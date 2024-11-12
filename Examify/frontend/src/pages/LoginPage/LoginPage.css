@@ -1,0 +1,105 @@
+  .login-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    height: 100vh;
+    background-color: #eae7ee;
+    font-family: Arial, sans-serif;
+  }
+  
+  .login-header {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 10px 20px;
+    background-color: #1f3b8f;
+    color: white;
+  }
+  
+  .logo {
+    font-size: 1.5em;
+    font-weight: bold;
+    padding-left: 0.7em;
+  }
+  
+  .help {
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding-right: 1em
+  }
+  
+  
+  .login-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding: 10em;
+  }
+  
+  .login-box {
+    background-color: white;
+    padding: 40px;
+    width: 300px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+  
+  label {
+    display: block;
+    font-weight: bold;
+    text-align: left;
+    margin-top: 20px;
+  }
+  
+  input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 1em;
+  }
+  
+  
+  .login-button {
+    background-color: #d9534f;
+    color: white;
+    border: none;
+    padding: 10px;
+    width: 100%;
+    border-radius: 5px;
+    font-size: 1em;
+    margin-top: 10px;
+    cursor: pointer;
+  }
+  
+  .login-button:hover {
+    background-color: #c9302c;
+  }
+  
+  hr {
+    margin: 20px 0;
+    border: 0.5px solid #ccc;
+  }
+  
+  .create-account-button {
+    background-color: #5bc0de;
+    color: white;
+    border: none;
+    padding: 10px;
+    width: 100%;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+  }
+  
+  .create-account-button:hover {
+    background-color: #31b0d5;
+  }
+  
