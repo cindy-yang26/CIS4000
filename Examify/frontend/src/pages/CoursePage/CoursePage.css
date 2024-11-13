@@ -1,4 +1,4 @@
-.home-page {
+.course-page {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -7,25 +7,34 @@
     min-height: 100vh;
   }
   
-  .home-content {
+  .course-content {
     width: 80%;
     max-width: 900px;
   }
   
-  .courses-header {
+  .course-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     margin-bottom: 20px;
   }
   
-  .courses-header h2 {
-    font-size: 1.8em;
-    font-weight: bold;
-    color: #333;
+  .back-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5em;
   }
   
-  .new-course-button {
+  .course-name {
+    font-size: 2em;
+    font-weight: bold;
+    color: #333;
+    flex-grow: 1;
+    text-align: center;
+  }
+  
+  .add-assignment-button {
     background-color: #d9534f;
     color: white;
     border: none;
@@ -37,33 +46,30 @@
     cursor: pointer;
   }
   
-  .new-course-button:hover {
+  .add-assignment-button:hover {
     background-color: #c9302c;
   }
   
-  .courses-list {
+  .assignments-list {
     display: flex;
     flex-wrap: wrap;
     gap: 16px;
   }
   
-  .course-card {
+  .assignment-card {
     background-color: #d3d3d3;
     width: 150px;
-    height: 50px;
+    height: 60px;
     border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 15px;
-    font-size: 10px;
+    padding: 0 10px;
+    font-size: 1em;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
   
-  .course-icon {
-    font-size: 1.5em;
-  }
-  
-  .course-name {
+  .assignment-name {
     font-weight: bold;
     color: #333;
   }
@@ -72,3 +78,4 @@
     font-size: 1.2em;
     cursor: pointer;
   }
+  
