@@ -1,0 +1,94 @@
+.questions-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: Arial, sans-serif;
+    background-color: #eae7ee;
+    min-height: 100vh;
+  }
+  
+  .questions-content {
+    width: 80%;
+    max-width: 900px;
+  }
+  
+  .questions-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .back-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5em;
+    margin-right: 10px;
+  }
+  
+  .course-title {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .questions-list {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .question-item {
+    background-color: #d3d3d3;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+    font-size: 1em;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+.add-question-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    margin-left: auto; 
+  }
+  
+  .add-question-button:hover {
+    background-color: #0056b3;
+  }
+  
+  .add-question-form {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .add-question-form textarea {
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 1em;
+  }
+  
+  .submit-question-button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    align-self: flex-end;
+  }
+  
+  .submit-question-button:hover {
+    background-color: #218838;
+  }
+  
+  

@@ -8,8 +8,9 @@ function HomePage() {
   const courses = ['Math 220', 'Math 221', 'Math 222', 'Math 223'];
   const navigate = useNavigate();
 
-  const handleCourseClick = () => {
-    navigate('/course');
+  const handleCourseClick = (courseName) => {
+    const slug = courseName.replace(/\s+/g, '-');
+    navigate(`/course/${slug}`);
   };
 
   return (
@@ -24,7 +25,7 @@ function HomePage() {
         </div>
         <div className="courses-list">
           {courses.map((course, index) => (
-            <div key={index} className="course-card" onClick={handleCourseClick}>
+            <div key={index} className="course-card" onClick={() => handleCourseClick(course)}>
               <FaFolder className="course-icon" />
               <span className="course-name">{course}</span>
               <FaEllipsisH className="options-icon" />
