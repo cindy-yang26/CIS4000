@@ -38,15 +38,24 @@
   }
   
   .question-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     background-color: #d3d3d3;
     border-radius: 10px;
-    padding: 10px;
+    padding: 0px 10px 20px 10px;
     margin-bottom: 10px;
     font-size: 1em;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
 
-.add-question-button {
+  .question-stats {
+    margin-top: 5px;
+    font-size: 0.9em;
+    color: #555;
+  }
+
+  .add-question-button {
     background-color: #007bff;
     color: white;
     border: none;
@@ -54,7 +63,7 @@
     padding: 10px 20px;
     font-size: 1em;
     cursor: pointer;
-    margin-left: auto; 
+    margin-left: auto;
   }
   
   .add-question-button:hover {
@@ -91,4 +100,128 @@
     background-color: #218838;
   }
   
+  .question-actions {
+    display: flex;
+    gap: 10px;
+    margin-left: auto;
+  }
+  
+  .edit-button,
+  .delete-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2em;
+    color: #333;
+  }
+  
+  .edit-button:hover {
+    color: #007bff;
+  }
+  
+  .delete-button:hover {
+    color: #d9534f;
+  }
+
+  .edit-stats-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 5px 15px;
+    font-size: 0.9em;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+  }
+  
+  .edit-stats-button:hover {
+    background-color: #0056b3;
+    color: white;
+  }
+  
+  
+  .edit-stats-form {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .stats-input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .stats-input-group label {
+    width: 80px;
+    font-size: 1em;
+    text-align: right;
+    margin-top: 0px;
+  }
+  
+  .edit-stats-form input {
+    flex: 1;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 5px;
+    font-size: 1em;
+    margin-top: 10px;
+  }
+  
+  .submit-stats-button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 1em;
+    cursor: pointer;
+  }
+  
+  .submit-stats-button:hover {
+    background-color: #218838;
+  }
+
+  .question-comment {
+    margin-top: 10px;
+  }
+
+  .question-tags {
+    font-size: 0.9em;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 20px;
+  }
+  
+  .tag-item {
+    display: inline-block;
+    background-color: #f0f0f0;
+    color: #333;
+    border-radius: 10px;
+    padding: 5px 10px;
+    font-size: 0.85em;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .delete-tag-button {
+    background: none;
+    border: none;
+    color: #777;
+    margin-left: 5px;
+    cursor: pointer;
+  }
+  
+  .delete-tag-button:hover {
+    color: #ff4d4d;
+  }
+
+  .question-title {
+    margin-left: 3px;
+  }
+  
+  
+
   
