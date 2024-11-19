@@ -5,6 +5,9 @@ import HomePage from './pages/HomePage/HomePage';
 import SignupPage from './pages/SignupPage/SignupPage';
 import CoursePage from './pages/CoursePage/CoursePage';
 import QuestionsPage from './pages/QuestionsPage/QuestionsPage';
+import AssignmentPage from './pages/AssignmentPage/AssignmentPage';
+import CreateAssignmentPage from './pages/AssignmentPage/CreateAssignmentPage';
+
 
 function App() {
   return (
@@ -15,6 +18,8 @@ function App() {
         <Route path="/home" element={<HomePage />} />
         <Route path="/course/:courseName" element={<CoursePage />} />
         <Route path="/course/:courseName/questions" element={<QuestionsPage />} />
+        <Route path="/course/:courseName/assignment/:assignmentName" element={<AssignmentPage />} />
+        <Route path="/course/:courseName/create-assignment" element={<CreateAssignmentPage />} />
       </Routes>
     </Router>
   );
