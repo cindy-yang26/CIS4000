@@ -29,10 +29,13 @@ function AssignmentPage() {
   ]);
 
   const [showForm, setShowForm] = useState(false);
-  const [newQuestion, setNewQuestion] = useState('');
-  const [newTitle, setNewTitle] = useState('');
-  const [newComment, setNewComment] = useState('');
-  const [newTags, setNewTags] = useState('');
+  const [formFields, setFormFields] = useState({
+    title: '',
+    text: '',
+    comment: '',
+    tags: '',
+    stats: { mean: '', median: '', stdDev: '', min: '', max: '' },
+  });
   const [editingQuestion, setEditingQuestion] = useState(null);
 
   const handleReturnToCourse = () => {
@@ -42,14 +45,21 @@ function AssignmentPage() {
   const handleFormSubmit = (e) => {
     e.preventDefault();
 
-    const tagsArray = newTags.split(',').map((tag) => tag.trim()).filter((tag) => tag);
+    const tagsArray = formFields.tags.split(',').map((tag) => tag.trim()).filter((tag) => tag);
 
-    if (newQuestion.trim() && newTitle.trim()) {
+    if (formFields.text.trim() && formFields.title.trim()) {
       if (editingQuestion) {
         setQuestions(
           questions.map((q) =>
             q.id === editingQuestion.id
-              ? { ...q, text: newQuestion, title: newTitle, comment: newComment, tags: tagsArray }
+              ? {
+                  ...q,
+                  title: formFields.title,
+                  text: formFields.text,
+                  comment: formFields.comment,
+                  tags: tagsArray,
+                  stats: { ...formFields.stats },
+                }
               : q
           )
         );
@@ -59,28 +69,35 @@ function AssignmentPage() {
           ...questions,
           {
             id: questions.length + 1,
-            title: newTitle,
-            text: newQuestion,
-            comment: newComment,
+            title: formFields.title,
+            text: formFields.text,
+            comment: formFields.comment,
             tags: tagsArray,
-            stats: { mean: 'N/A', median: 'N/A', stdDev: 'N/A', min: 'N/A', max: 'N/A' },
+            stats: { ...formFields.stats },
           },
         ]);
       }
-      setNewQuestion('');
-      setNewTitle('');
-      setNewComment('');
-      setNewTags('');
+
+      setFormFields({
+        title: '',
+        text: '',
+        comment: '',
+        tags: '',
+        stats: { mean: '', median: '', stdDev: '', min: '', max: '' },
+      });
       setShowForm(false);
     }
   };
 
   const handleEditQuestion = (question) => {
     setEditingQuestion(question);
-    setNewQuestion(question.text);
-    setNewTitle(question.title);
-    setNewComment(question.comment || '');
-    setNewTags(question.tags.join(', '));
+    setFormFields({
+      title: question.title,
+      text: question.text,
+      comment: question.comment || '',
+      tags: question.tags.join(', '),
+      stats: { ...question.stats },
+    });
     setShowForm(true);
   };
 
@@ -163,27 +180,88 @@ function AssignmentPage() {
               <input
                 type="text"
                 placeholder="Enter question title"
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
+                value={formFields.title}
+                onChange={(e) =>
+                  setFormFields({ ...formFields, title: e.target.value })
+                }
               />
               <textarea
                 placeholder="Enter your question"
-                value={newQuestion}
-                onChange={(e) => setNewQuestion(e.target.value)}
+                value={formFields.text}
+                onChange={(e) =>
+                  setFormFields({ ...formFields, text: e.target.value })
+                }
                 rows="3"
               />
               <textarea
                 placeholder="Enter a comment"
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
+                value={formFields.comment}
+                onChange={(e) =>
+                  setFormFields({ ...formFields, comment: e.target.value })
+                }
                 rows="2"
               />
               <input
                 type="text"
                 placeholder="Enter tags (comma-separated)"
-                value={newTags}
-                onChange={(e) => setNewTags(e.target.value)}
+                value={formFields.tags}
+                onChange={(e) =>
+                  setFormFields({ ...formFields, tags: e.target.value })
+                }
               />
+              <div className="stats-fields">
+                <label>
+                  Mean:
+                  <input
+                    type="text"
+                    value={formFields.stats.mean}
+                    onChange={(e) =>
+                      setFormFields({ ...formFields, stats: { ...formFields.stats, mean: e.target.value } })
+                    }
+                  />
+                </label>
+                <label>
+                  Median:
+                  <input
+                    type="text"
+                    value={formFields.stats.median}
+                    onChange={(e) =>
+                      setFormFields({ ...formFields, stats: { ...formFields.stats, median: e.target.value } })
+                    }
+                  />
+                </label>
+                <label>
+                  Std Dev:
+                  <input
+                    type="text"
+                    value={formFields.stats.stdDev}
+                    onChange={(e) =>
+                      setFormFields({ ...formFields, stats: { ...formFields.stats, stdDev: e.target.value } })
+                    }
+                  />
+                </label>
+                <label>
+                  Min:
+                  <input
+                    type="text"
+                    value={formFields.stats.min}
+                    onChange={(e) =>
+                      setFormFields({ ...formFields, stats: { ...formFields.stats, min: e.target.value } })
+                    }
+                  />
+                </label>
+                <label>
+                  Max:
+                  <input
+                    type="text"
+                    value={formFields.stats.max}
+                    onChange={(e) =>
+                      setFormFields({ ...formFields, stats: { ...formFields.stats, max: e.target.value } })
+                    }
+                  />
+                </label>
+              </div>
+
               <button type="submit" className="submit-question-button">
                 {editingQuestion ? 'Save Changes' : 'Add Question'}
               </button>
