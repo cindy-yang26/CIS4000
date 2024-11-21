@@ -7,7 +7,12 @@ import './CoursePage.css';
 function CoursePage() {
   const { courseName } = useParams();
   const actualCourseName = courseName.replace(/-/g, ' ');
-  const [assignments, setAssignments] = useState(['Spring 2021 MT2', 'Fall 2020 MT1', 'Spring 2022 Final']);
+  const [assignments, setAssignments] = useState([
+    'Spring 2021 MT2',
+    'Fall 2020 MT1',
+    'Spring 2022 Final',
+  ]);
+  const [menuVisible, setMenuVisible] = useState(null);
   const navigate = useNavigate();
 
   const handleViewQuestions = () => {
@@ -24,6 +29,19 @@ function CoursePage() {
 
   const handleCreateAssignment = () => {
     navigate(`/course/${courseName}/create-assignment`);
+  };
+
+  const handleDeleteAssignment = (assignmentToDelete) => {
+    setAssignments(assignments.filter((assignment) => assignment !== assignmentToDelete));
+    setMenuVisible(null);
+  };
+
+  const toggleMenu = (index) => {
+    if (menuVisible === index) {
+      setMenuVisible(null);
+    } else {
+      setMenuVisible(index); 
+    }
   };
 
   return (
@@ -47,13 +65,30 @@ function CoursePage() {
         <h3>Assignments</h3>
         <div className="assignments-list">
           {assignments.map((assignment, index) => (
-            <div
-              key={index}
-              className="assignment-card"
-              onClick={() => handleViewAssignment(assignment)}
-            >
-              <span className="assignment-name">{assignment}</span>
-              <FaEllipsisH className="options-icon" />
+            <div key={index} className="assignment-card">
+              <span
+                className="assignment-name"
+                onClick={() => handleViewAssignment(assignment)}
+              >
+                {assignment}
+              </span>
+              <FaEllipsisH
+                className="options-icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleMenu(index);
+                }}
+              />
+              {menuVisible === index && (
+                <div className="menu">
+                  <button
+                    className="menu-item delete-button"
+                    onClick={() => handleDeleteAssignment(assignment)}
+                  >
+                    Delete Assignment
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>

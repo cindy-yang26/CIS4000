@@ -35,6 +35,8 @@ function QuestionsPage() {
   const [newTags, setNewTags] = useState('');
   const [editingQuestion, setEditingQuestion] = useState(null);
 
+  const [searchQuery, setSearchQuery] = useState('');
+
   const handleReturnToCourse = () => {
     navigate(`/course/${courseName}`);
   };
@@ -102,6 +104,15 @@ function QuestionsPage() {
     );
   };
 
+  const filteredQuestions = questions.filter(
+    (question) =>
+      question.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      question.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      question.tags.some((tag) =>
+        tag.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+  );
+
   return (
     <MathJaxContext>
       <div className="questions-page">
@@ -117,52 +128,59 @@ function QuestionsPage() {
             </button>
           </div>
 
-          <ul className="questions-list">
-  {questions.map((question) => (
-    <li key={question.id} className="question-item">
-      <div className="question-text">
-        <h3 className="question-title">{question.title}</h3>
-        <div className="question-tags">
-          {question.tags.map((tag, index) => (
-            <span key={index} className="tag-item">
-              {tag}
-              <button
-                className="delete-tag-button"
-                onClick={() => handleDeleteTag(question.id, tag)}
-              >
-                ✕
-              </button>
-            </span>
-          ))}
-        </div>
-        <MathJax>{question.text}</MathJax>
-        <div className="question-stats">
-          Mean: {question.stats.mean}, Median: {question.stats.median}, Std Dev: {question.stats.stdDev}, Min: {question.stats.min}, Max: {question.stats.max}
-        </div>
-        {question.comment && (
-          <div className="question-comment">
-            <strong>Comment:</strong> {question.comment}
-          </div>
-        )}
-      </div>
-      <div className="question-actions">
-        <button
-          className="edit-button"
-          onClick={() => handleEditQuestion(question)}
-        >
-          <FaEdit />
-        </button>
-        <button
-          className="delete-button"
-          onClick={() => handleDeleteQuestion(question.id)}
-        >
-          <FaTrash />
-        </button>
-      </div>
-    </li>
-  ))}
-</ul>
+          <input
+            type="text"
+            placeholder="Search questions by title, tags, or content..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="search-input"
+          />
 
+          <ul className="questions-list">
+            {filteredQuestions.map((question) => (
+              <li key={question.id} className="question-item">
+                <div className="question-text">
+                  <h3 className="question-title">{question.title}</h3>
+                  <div className="question-tags">
+                    {question.tags.map((tag, index) => (
+                      <span key={index} className="tag-item">
+                        {tag}
+                        <button
+                          className="delete-tag-button"
+                          onClick={() => handleDeleteTag(question.id, tag)}
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <MathJax>{question.text}</MathJax>
+                  <div className="question-stats">
+                    Mean: {question.stats.mean}, Median: {question.stats.median}, Std Dev: {question.stats.stdDev}, Min: {question.stats.min}, Max: {question.stats.max}
+                  </div>
+                  {question.comment && (
+                    <div className="question-comment">
+                      <strong>Comment:</strong> {question.comment}
+                    </div>
+                  )}
+                </div>
+                <div className="question-actions">
+                  <button
+                    className="edit-button"
+                    onClick={() => handleEditQuestion(question)}
+                  >
+                    <FaEdit />
+                  </button>
+                  <button
+                    className="delete-button"
+                    onClick={() => handleDeleteQuestion(question.id)}
+                  >
+                    <FaTrash />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
 
           {showForm && (
             <form className="add-question-form" onSubmit={handleFormSubmit}>
