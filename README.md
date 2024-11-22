@@ -7,7 +7,7 @@ This project is a web application with a frontend built in React and a backend p
 
 Make sure you have the following installed:
 
-- **Java 11 or higher** for the Spring Boot backend.
+- **Java 17 or higher** for the Spring Boot backend.
 - **npm** (Node Package Manager) for the React frontend.
 - **Maven** for dependency management and building the backend (can use `mvn` or the provided Maven Wrapper `mvnw`).
 
