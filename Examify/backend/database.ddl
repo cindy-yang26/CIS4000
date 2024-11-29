@@ -19,29 +19,22 @@ CREATE TABLE assignment (
     FOREIGN KEY (course_id) REFERENCES course(id) ON DELETE CASCADE
 );
 
-CREATE TABLE question (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    type VARCHAR(50) NOT NULL,
+CREATE TABLE questions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    text TEXT NOT NULL,
     comment TEXT,
-    image_url VARCHAR(255)  -- Assuming this stores the S3 bucket URL
+    mean VARCHAR(255),
+    median VARCHAR(255),
+    std_dev VARCHAR(255),
+    min VARCHAR(255),
+    max VARCHAR(255)
 );
 
-CREATE TABLE tag (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    tag TEXT NOT NULL,
-    question_id INT NOT NULL,
-    FOREIGN KEY (question_id) REFERENCES question(id) ON DELETE CASCADE
-);
-
--- Creating the Statistics table
-CREATE TABLE statistics (
-    assignment_id INT NOT NULL,
-    question_id INT NOT NULL,
-    semester VARCHAR(20) NOT NULL,
-    statistics TEXT,
-    PRIMARY KEY (assignment_id, question_id, semester),
-    FOREIGN KEY (assignment_id) REFERENCES assignment(id) ON DELETE CASCADE,
-    FOREIGN KEY (question_id) REFERENCES question(id) ON DELETE CASCADE
+CREATE TABLE question_tags (
+    question_id BIGINT NOT NULL,
+    tag VARCHAR(255),
+    FOREIGN KEY (question_id) REFERENCES questions(id)
 );
 
 -- Creating the Variations table
@@ -53,3 +46,11 @@ CREATE TABLE variations (
     FOREIGN KEY (question_id) REFERENCES question(id) ON DELETE CASCADE,
     FOREIGN KEY (assignment_id) REFERENCES assignment(id) ON DELETE SET NULL
 );
+
+CREATE TABLE users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL
+);
+

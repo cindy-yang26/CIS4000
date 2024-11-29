@@ -13,11 +13,12 @@
     padding-left: 0.7em;
   }
   
-  .help {
+  .logout {
     font-size: 1em;
     font-weight: bold;
     cursor: pointer;
     display: flex;
     align-items: center;
-    padding-right: 1em
+    padding-right: 1em;
+    cursor: pointer;
   }

@@ -15,7 +15,7 @@ function SignUpPage() {
       await signup(username, email, password);
       navigate('/home'); 
     } catch (error) {
-      alert("Signup failed");
+      alert(error);
     }
   };
 
