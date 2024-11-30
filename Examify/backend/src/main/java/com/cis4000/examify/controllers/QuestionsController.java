@@ -1,5 +1,7 @@
 package com.cis4000.examify.controllers;
 
+import java.util.Optional;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,6 +32,47 @@ public class QuestionsController {
         return ResponseEntity.ok("Question created successfully");
     }
 
+    @PutMapping("{id}")
+    public ResponseEntity<String> editQuestion(@PathVariable Long id, @RequestBody QuestionRequest questionRequest) {
+        Optional<Question> questionOptional = questionRepository.findById(id);
+
+        if (questionOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Question not found");
+        }
+
+        Question question = questionOptional.get();
+
+        question.setTitle(questionRequest.getTitle());
+        question.setText(questionRequest.getText());
+        question.setComment(questionRequest.getComment());
+        question.setTags(questionRequest.getTags());
+
+        Question.Stats stats = question.getStats();
+
+        stats.setMean(questionRequest.getStats().getMean());
+        stats.setMedian(questionRequest.getStats().getMedian());
+        stats.setStdDev(questionRequest.getStats().getStdDev());
+        stats.setMin(questionRequest.getStats().getMin());
+        stats.setMax(questionRequest.getStats().getMax());
+
+        question.setStats(stats);
+
+        questionRepository.save(question);
+
+        return ResponseEntity.ok("Question updated successfully");
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<String> deleteQuestion(@PathVariable Long id) {
+        Optional<Question> questionOptional = questionRepository.findById(id);
+
+        if (questionOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Question not found");
+        }
+
+        questionRepository.deleteById(id);
+        return ResponseEntity.ok("Question deleted successfully");
+    }
 
 
     public static class QuestionRequest {

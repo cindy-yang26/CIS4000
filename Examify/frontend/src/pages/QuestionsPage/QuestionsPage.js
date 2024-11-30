@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { createQuestion, fetchQuestions } from '../../api/questions';
+import { createQuestion, fetchQuestions, editQuestion, deleteQuestion } from '../../api/questions';
 import Header from '../../components/Header/Header';
 import { FaChevronLeft, FaEdit, FaTrash } from 'react-icons/fa';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
@@ -69,7 +69,9 @@ function QuestionsPage() {
   
     try {
       if (editingQuestion) {
-        console.log("Edit question feature not yet implemented with backend.");
+        await editQuestion(editingQuestion.id, questionData);
+        const updatedQuestions = await fetchQuestions();
+        setQuestions(updatedQuestions);
       } else {
         await createQuestion(questionData);
         const updatedQuestions = await fetchQuestions();
@@ -85,7 +87,7 @@ function QuestionsPage() {
       });
       setShowForm(false);
     } catch (error) {
-      alert("Question creation failed.");
+      alert("Failed to save question");
       console.error(error);
     }
   };
@@ -103,9 +105,17 @@ function QuestionsPage() {
     setShowForm(true);
   };
 
-  const handleDeleteQuestion = (id) => {
-    setQuestions(questions.filter((question) => question.id !== id));
+  const handleDeleteQuestion = async (id) => {
+    try {
+      await deleteQuestion(id);
+      const updatedQuestions = await fetchQuestions();
+      setQuestions(updatedQuestions);
+    } catch (error) {
+      alert(error);
+      console.error(error);
+    }
   };
+  
 
   const handleDeleteTag = (questionId, tagToDelete) => {
     setQuestions(
