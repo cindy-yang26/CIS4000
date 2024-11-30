@@ -1,19 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../../components/Header/Header';
+import { createAssignment } from '../../api/assignments';
+import { fetchQuestions } from '../../api/questions';
 import './CreateAssignmentPage.css';
 
 function CreateAssignmentPage() {
   const { courseName } = useParams();
   const navigate = useNavigate();
 
-  const [assignmentName, setAssignmentName] = useState('');
-  const [availableQuestions, setAvailableQuestions] = useState([
-    { id: 1, title: 'Derivative Question', text: 'What is the derivative of \\(x^2\\)?' },
-    { id: 2, title: 'Integral Question', text: 'Solve the integral of \\(\\sin(x)\\).' },
-    { id: 3, title: 'Physics Question', text: 'Explain Newton’s laws of motion.' },
-  ]);
+  const [name, setName] = useState('');
+  const [availableQuestions, setAvailableQuestions] = useState([]);
   const [selectedQuestions, setSelectedQuestions] = useState([]);
+
+  useEffect(() => {
+    const loadQuestions = async () => {
+      try {
+        const questions = await fetchQuestions(); 
+        setAvailableQuestions(questions);
+      } catch (error) {
+        alert('Failed to load questions');
+        console.error(error);
+      }
+    };
+
+    loadQuestions();
+  }, []);
 
   const handleAddToAssignment = (question) => {
     setAvailableQuestions(availableQuestions.filter((q) => q.id !== question.id));
@@ -25,18 +37,25 @@ function CreateAssignmentPage() {
     setAvailableQuestions([...availableQuestions, question]);
   };
 
-  const handleSaveAssignment = () => {
-    if (assignmentName.trim() === '') {
+  const handleSaveAssignment = async () => {
+    if (name.trim() === '') {
       alert('Please provide an assignment name');
       return;
     }
 
-    const newAssignment = {
-      name: assignmentName,
-      questions: selectedQuestions,
+    const assignmentData = {
+      name: name,
+      questionIds: selectedQuestions.map((q) => q.id),
     };
 
-    navigate(`/course/${courseName}`);
+    try {
+      await createAssignment(assignmentData);
+      alert('Assignment created successfully');
+      navigate(`/course/${courseName}`);
+    } catch (error) {
+      alert(error);
+      console.error(error);
+    }
   };
 
   return (
@@ -47,8 +66,8 @@ function CreateAssignmentPage() {
         <input
           type="text"
           placeholder="Enter Assignment Name"
-          value={assignmentName}
-          onChange={(e) => setAssignmentName(e.target.value)}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
           className="assignment-name-input"
         />
         <div className="questions-container">

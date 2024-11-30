@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../../components/Header/Header';
+import { fetchAssignmentQuestions } from '../../api/assignments';
+import { editQuestion } from '../../api/questions';
 import { FaChevronLeft, FaEdit, FaTrash } from 'react-icons/fa';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
 import './AssignmentPage.css';
@@ -9,25 +11,7 @@ function AssignmentPage() {
   const { courseName, assignmentName } = useParams();
   const navigate = useNavigate();
 
-  const [questions, setQuestions] = useState([
-    {
-      id: 1,
-      title: 'Derivative Question',
-      text: 'What is the derivative of \\(x^2\\)?',
-      stats: { mean: 'N/A', median: 'N/A', stdDev: 'N/A', min: 'N/A', max: 'N/A' },
-      comment: 'This question focuses on basic differentiation.',
-      tags: ['Single Variable Differentiation', 'Derivative'],
-    },
-    {
-      id: 2,
-      title: 'Integral Question',
-      text: 'Solve the integral of \\(\\sin(x)\\).',
-      stats: { mean: 'N/A', median: 'N/A', stdDev: 'N/A', min: 'N/A', max: 'N/A' },
-      comment: 'This question covers trigonometric integrals.',
-      tags: ['Trigonometry', 'Integral'],
-    },
-  ]);
-
+  const [questions, setQuestions] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [formFields, setFormFields] = useState({
     title: '',
@@ -38,44 +22,42 @@ function AssignmentPage() {
   });
   const [editingQuestion, setEditingQuestion] = useState(null);
 
+  useEffect(() => {
+    const loadQuestions = async () => {
+      try {
+        const data = await fetchAssignmentQuestions(assignmentName);
+        setQuestions(data);
+      } catch (error) {
+        alert('Failed to load questions.');
+        console.error(error);
+      }
+    };
+
+    loadQuestions();
+  }, [assignmentName]);
+
   const handleReturnToCourse = () => {
     navigate(`/course/${courseName}`);
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
 
     const tagsArray = formFields.tags.split(',').map((tag) => tag.trim()).filter((tag) => tag);
 
-    if (formFields.text.trim() && formFields.title.trim()) {
+    const questionData = {
+      title: formFields.title,
+      text: formFields.text,
+      comment: formFields.comment,
+      tags: tagsArray,
+      stats: { ...formFields.stats },
+    };
+
+    try {
       if (editingQuestion) {
-        setQuestions(
-          questions.map((q) =>
-            q.id === editingQuestion.id
-              ? {
-                  ...q,
-                  title: formFields.title,
-                  text: formFields.text,
-                  comment: formFields.comment,
-                  tags: tagsArray,
-                  stats: { ...formFields.stats },
-                }
-              : q
-          )
-        );
-        setEditingQuestion(null);
-      } else {
-        setQuestions([
-          ...questions,
-          {
-            id: questions.length + 1,
-            title: formFields.title,
-            text: formFields.text,
-            comment: formFields.comment,
-            tags: tagsArray,
-            stats: { ...formFields.stats },
-          },
-        ]);
+        await editQuestion(editingQuestion.id, questionData);
+        const updatedQuestions = await fetchAssignmentQuestions(assignmentName);
+        setQuestions(updatedQuestions);
       }
 
       setFormFields({
@@ -86,6 +68,9 @@ function AssignmentPage() {
         stats: { mean: '', median: '', stdDev: '', min: '', max: '' },
       });
       setShowForm(false);
+    } catch (error) {
+      alert('Failed to save question.');
+      console.error(error);
     }
   };
 
@@ -95,14 +80,10 @@ function AssignmentPage() {
       title: question.title,
       text: question.text,
       comment: question.comment || '',
-      tags: question.tags.join(', '),
+      tags: (question.tags || []).join(', '),
       stats: { ...question.stats },
     });
     setShowForm(true);
-  };
-
-  const handleDeleteQuestion = (id) => {
-    setQuestions(questions.filter((question) => question.id !== id));
   };
 
   const handleDeleteTag = (questionId, tagToDelete) => {
@@ -135,7 +116,7 @@ function AssignmentPage() {
                 <div className="question-text">
                   <h3 className="question-title">{question.title}</h3>
                   <div className="question-tags">
-                    {question.tags.map((tag, index) => (
+                    {(question.tags || []).map((tag, index) => (
                       <span key={index} className="tag-item">
                         {tag}
                         <button
@@ -149,7 +130,11 @@ function AssignmentPage() {
                   </div>
                   <MathJax>{question.text}</MathJax>
                   <div className="question-stats">
-                    Mean: {question.stats.mean}, Median: {question.stats.median}, Std Dev: {question.stats.stdDev}, Min: {question.stats.min}, Max: {question.stats.max}
+                    Mean: {question.stats?.mean || 'N/A'}, 
+                    Median: {question.stats?.median || 'N/A'}, 
+                    Std Dev: {question.stats?.stdDev || 'N/A'}, 
+                    Min: {question.stats?.min || 'N/A'}, 
+                    Max: {question.stats?.max || 'N/A'}
                   </div>
                   {question.comment && (
                     <div className="question-comment">
@@ -163,12 +148,6 @@ function AssignmentPage() {
                     onClick={() => handleEditQuestion(question)}
                   >
                     <FaEdit />
-                  </button>
-                  <button
-                    className="delete-button"
-                    onClick={() => handleDeleteQuestion(question.id)}
-                  >
-                    <FaTrash />
                   </button>
                 </div>
               </li>
@@ -263,7 +242,7 @@ function AssignmentPage() {
               </div>
 
               <button type="submit" className="submit-question-button">
-                {editingQuestion ? 'Save Changes' : 'Add Question'}
+                Save Changes
               </button>
             </form>
           )}

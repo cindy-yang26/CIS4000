@@ -1,19 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../../components/Header/Header';
 import { FaEllipsisH, FaPlus, FaChevronLeft } from 'react-icons/fa';
+import { fetchAllAssignments, deleteAssignment } from '../../api/assignments';
 import './CoursePage.css';
 
 function CoursePage() {
   const { courseName } = useParams();
   const actualCourseName = courseName.replace(/-/g, ' ');
-  const [assignments, setAssignments] = useState([
-    'Spring 2021 MT2',
-    'Fall 2020 MT1',
-    'Spring 2022 Final',
-  ]);
+  const [assignments, setAssignments] = useState([]);
   const [menuVisible, setMenuVisible] = useState(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const loadAssignments = async () => {
+      try {
+        const data = await fetchAllAssignments();
+        setAssignments(data);
+      } catch (error) {
+        alert('Failed to load assignments');
+        console.error(error);
+      }
+    };
+
+    loadAssignments();
+  }, []);
 
   const handleViewQuestions = () => {
     navigate(`/course/${courseName}/questions`);
@@ -31,16 +42,24 @@ function CoursePage() {
     navigate(`/course/${courseName}/create-assignment`);
   };
 
-  const handleDeleteAssignment = (assignmentToDelete) => {
-    setAssignments(assignments.filter((assignment) => assignment !== assignmentToDelete));
-    setMenuVisible(null);
+  const handleDeleteAssignment = async (assignmentId, e) => {
+    e.stopPropagation(); // Prevent the click event from propagating to the parent `onClick`
+    try {
+      await deleteAssignment(assignmentId);
+      setAssignments(assignments.filter((assignment) => assignment.id !== assignmentId));
+      setMenuVisible(null);
+    } catch (error) {
+      alert('Failed to delete assignment');
+      console.error(error);
+    }
   };
 
-  const toggleMenu = (index) => {
+  const toggleMenu = (index, e) => {
+    e.stopPropagation(); // Prevent the click event from propagating to the parent `onClick`
     if (menuVisible === index) {
       setMenuVisible(null);
     } else {
-      setMenuVisible(index); 
+      setMenuVisible(index);
     }
   };
 
@@ -64,33 +83,33 @@ function CoursePage() {
         </div>
         <h3>Assignments</h3>
         <div className="assignments-list">
-          {assignments.map((assignment, index) => (
-            <div key={index} className="assignment-card">
-              <span
-                className="assignment-name"
-                onClick={() => handleViewAssignment(assignment)}
+          {assignments.length > 0 ? (
+            assignments.map((assignment, index) => (
+              <div
+                key={assignment.id}
+                className="assignment-card"
+                onClick={() => handleViewAssignment(assignment.name)}
               >
-                {assignment}
-              </span>
-              <FaEllipsisH
-                className="options-icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleMenu(index);
-                }}
-              />
-              {menuVisible === index && (
-                <div className="menu">
-                  <button
-                    className="menu-item delete-button"
-                    onClick={() => handleDeleteAssignment(assignment)}
-                  >
-                    Delete Assignment
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
+                <span className="assignment-name">{assignment.name}</span>
+                <FaEllipsisH
+                  className="options-icon"
+                  onClick={(e) => toggleMenu(index, e)}
+                />
+                {menuVisible === index && (
+                  <div className="menu">
+                    <button
+                      className="menu-item delete-button"
+                      onClick={(e) => handleDeleteAssignment(assignment.id, e)}
+                    >
+                      Delete Assignment
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <p>No assignments available</p>
+          )}
         </div>
       </div>
     </div>
