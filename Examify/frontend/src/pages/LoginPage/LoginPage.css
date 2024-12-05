@@ -15,11 +15,11 @@
     background-color: #eae7ee;
   }
   
-  .shadow-box {
+  .login-shadow-box {
     justify-content: center;
     border-radius: 10px;
     width: 550px;
-    height: 550px;
+    height: 545px;
     background-color: rgb(213, 213, 213);
     box-shadow: rgba(0, 0, 0, 0.15) 0px 5px 15px;
   }
@@ -28,22 +28,14 @@
     display: block;
     margin: auto;
     margin-top: 7.5%;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    padding-left: 30px;
-    padding-right: 20px;
+    padding: 10px 20px 20px 30px;
     width: 77%;
-    height: 81.5%;
+    height: auto;
     border-radius: 10px;
     text-align: center;
     background-color: white;
   }
 
-  .form {
-    width: 100%;
-    display: block;
-  }
-  
   h1 {
     font-size: 1.7em;
     font-weight: bold;
@@ -56,6 +48,7 @@
 
   label {
     font-weight: bold;
+    margin-bottom: 5px;
   }
 
   input {
@@ -64,6 +57,7 @@
     border-radius: 5px;
     border: 1px solid #ccc;
     font-size: 1em;
+    margin-bottom: 25px;
   }
 
   #username, #password {

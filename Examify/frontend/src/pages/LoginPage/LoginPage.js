@@ -22,7 +22,7 @@ function LoginPage() {
     <div className="login-page">
       <LoginHeader />
       <div className="login-container">
-        <div className="shadow-box">
+        <div className="login-shadow-box">
           <div className="login-box">
 
             <h1>Welcome back!</h1>
