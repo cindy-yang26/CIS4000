@@ -10,6 +10,7 @@
 .home-content {
   width: 80%;
   max-width: 900px;
+  height: auto;
 }
 
 .courses-header {

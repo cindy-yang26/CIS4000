@@ -36,12 +36,12 @@
     background-color: white;
   }
 
-  h1 {
+  .login-welcome {
     font-size: 1.7em;
     font-weight: bold;
   }
 
-  p {
+  .login-welcome-text {
     margin-top: -10px;
     margin-bottom: 30px;
   }

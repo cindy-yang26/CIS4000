@@ -36,7 +36,17 @@
     background-color: white;
   }
 
-  h2 {
+  .signup-welcome {
+    font-size: 1.7em;
+    font-weight: bold;
+  }
+
+  .signup-welcome-text {
+    margin-top: -10px;
+    margin-bottom: 30px;
+  }
+
+  .create-acc {
     font-size: 1.2em;
     text-align: left;
     margin-top: -10px;

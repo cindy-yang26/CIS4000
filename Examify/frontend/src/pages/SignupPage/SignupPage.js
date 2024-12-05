@@ -26,10 +26,10 @@ function SignUpPage() {
         <div className="signup-shadow-box">
           <div className="signup-box">
 
-            <h1>Welcome to Examify!</h1>
-            <p>Your one-stop-shop for assignment creation</p>
+            <h1 className="signup-welcome">Welcome to Examify!</h1>
+            <p className="signup-welcome-text">Your one-stop-shop for assignment creation</p>
 
-            <h2>Create your account</h2>
+            <h2 className="create-acc">Create your account</h2>
 
             <label htmlFor="username">Username</label>
             <input type="text" id="username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Enter username" />

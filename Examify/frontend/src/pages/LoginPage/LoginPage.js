@@ -25,8 +25,8 @@ function LoginPage() {
         <div className="login-shadow-box">
           <div className="login-box">
 
-            <h1>Welcome back!</h1>
-            <p>Your all-in-one assignment design studio awaits...</p>
+            <h1 className="login-welcome">Welcome back!</h1>
+            <p className="login-welcome-text">Your all-in-one assignment design studio awaits...</p>
 
             <label htmlFor="username">Username</label>
             <input type="text" id="username" placeholder="Enter username" value={username} onChange={(e) => setUsername(e.target.value)} />
