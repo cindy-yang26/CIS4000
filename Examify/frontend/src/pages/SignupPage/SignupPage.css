@@ -11,15 +11,15 @@
     justify-content: center;
     width: 60%;
     height: 100%;
-    padding-top: 6%;
+    padding-top: 3%;
     background-color: #eae7ee;
   }
 
   .signup-shadow-box {
     justify-content: center;
     border-radius: 10px;
-    width: 550px;
-    height: 600px;
+    width: 500px;
+    height: 580px;
     background-color: rgb(213, 213, 213);
     box-shadow: rgba(0, 0, 0, 0.15) 0px 5px 15px;
   }
@@ -27,7 +27,7 @@
   .signup-box {
     display: block;
     margin: auto;
-    margin-top: 7.5%;
+    margin-top: 6%;
     padding: 10px 20px 20px 30px;
     width: 77%;
     height: auto;

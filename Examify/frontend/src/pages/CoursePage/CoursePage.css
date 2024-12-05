@@ -8,13 +8,14 @@
   }
   
   .course-content {
-    width: 80%;
-    max-width: 900px;
+    width: 70%;
+    max-width: 1400px;
+    padding-top: 10px;
   }
   
   .course-header {
     display: flex;
-    align-items: center;
+    align-items: left;
     justify-content: space-between;
     margin-bottom: 20px;
   }

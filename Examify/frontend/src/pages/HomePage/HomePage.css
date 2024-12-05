@@ -26,7 +26,7 @@
 
 .new-course-button {
   background-color: #e96c67;
-  width: 13%;
+  width: auto;
   justify-content: center;
   color: white;
   border: 2px solid black;
