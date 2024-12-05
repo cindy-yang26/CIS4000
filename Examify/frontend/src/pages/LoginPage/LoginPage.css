@@ -1,105 +1,135 @@
   .login-page {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
     height: 100vh;
-    background-color: #eae7ee;
-    font-family: Arial, sans-serif;
+    background-color: #63a2e1;
+    font-family: 'Trebuchet MS', sans-serif;
   }
-  
-  .login-header {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    padding: 10px 20px;
-    background-color: #1f3b8f;
-    color: white;
-  }
-  
-  .logo {
-    font-size: 1.5em;
-    font-weight: bold;
-    padding-left: 0.7em;
-  }
-  
-  .help {
-    font-size: 1em;
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    padding-right: 1em
-  }
-  
   
   .login-container {
     display: flex;
     justify-content: center;
-    width: 100%;
-    padding: 10em;
+    width: 60%;
+    height: 100%;
+    padding-top: 6%;
+    background-color: #eae7ee;
   }
   
-  .login-box {
-    background-color: white;
-    padding: 40px;
-    width: 300px;
+  .shadow-box {
+    justify-content: center;
     border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    text-align: center;
+    width: 550px;
+    height: 550px;
+    background-color: rgb(213, 213, 213);
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 5px 15px;
   }
-  
-  label {
+
+  .login-box {
     display: block;
-    font-weight: bold;
-    text-align: left;
-    margin-top: 20px;
+    margin: auto;
+    margin-top: 7.5%;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 30px;
+    padding-right: 20px;
+    width: 77%;
+    height: 81.5%;
+    border-radius: 10px;
+    text-align: center;
+    background-color: white;
+  }
+
+  .form {
+    width: 100%;
+    display: block;
   }
   
+  h1 {
+    font-size: 1.7em;
+    font-weight: bold;
+  }
+
+  p {
+    margin-top: -10px;
+    margin-bottom: 30px;
+  }
+
+  label {
+    font-weight: bold;
+  }
+
   input {
-    width: 100%;
+    display: block;
     padding: 8px;
-    margin-top: 5px;
-    margin-bottom: 20px;
     border-radius: 5px;
     border: 1px solid #ccc;
     font-size: 1em;
   }
-  
-  
-  .login-button {
-    background-color: #d9534f;
-    color: white;
-    border: none;
-    padding: 10px;
+
+  #username, #password {
+    width: 80%;
+  }
+
+  #password {
+    margin-bottom: 5px;
+  }
+
+  .forgot-pw {
     width: 100%;
+    font-size: 0.8em;
+    float: left;
+    text-align: left;
+    margin-bottom: 40px;
+  }
+  
+  a {
+    color: black;
+  }
+
+  .login-button {
+    background-color: #63a2e1;
+    margin: auto;
+    display: block;
+    color: white;
+    font-weight: bold;
+    padding: 10px;
+    width: 40%;
     border-radius: 5px;
     font-size: 1em;
     margin-top: 10px;
+    margin-bottom: 20px;
     cursor: pointer;
   }
   
   .login-button:hover {
-    background-color: #c9302c;
+    background-color: #1c6ab7;
   }
   
-  hr {
-    margin: 20px 0;
-    border: 0.5px solid #ccc;
-  }
+  .line {
+    width: 100%; 
+    text-align: center; 
+    border-bottom: 1px solid #000; 
+    line-height: 0.1em;
+    margin: 10px 0 10px; 
+ } 
+ 
+ .line span { 
+     background:#fff; 
+     padding:0 10px; 
+     font-size: 0.8em;
+ }
   
   .create-account-button {
-    background-color: #5bc0de;
-    color: white;
+    background-color: white;
+    color: #1f3b8f;
+    font-weight: bold;
     border: none;
     padding: 10px;
-    width: 100%;
     border-radius: 5px;
     font-size: 1em;
     cursor: pointer;
   }
   
   .create-account-button:hover {
-    background-color: #31b0d5;
+    background-color: white;
   }
-  

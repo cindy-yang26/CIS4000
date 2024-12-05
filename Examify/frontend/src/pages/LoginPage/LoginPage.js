@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { login } from '../../api/auth';
-import Header from '../../components/Header/Header';
+import LoginHeader from '../../components/Header/LoginHeader';
 import './LoginPage.css';
 
 function LoginPage() {
@@ -20,23 +20,31 @@ function LoginPage() {
 
   return (
     <div className="login-page">
-      <Header />
+      <LoginHeader />
       <div className="login-container">
-        <div className="login-box">
-          <label htmlFor="username">Username</label>
-          <input type="text" id="username" placeholder="Enter username" value={username} onChange={(e) => setUsername(e.target.value)} />
-          
-          <label htmlFor="password">Password</label>
-          <input type="password" id="password" placeholder="Enter password" value={password} onChange={(e) => setPassword(e.target.value)} />
-          
-          <button className="login-button" onClick={handleLogin}>Log In</button>
-          
-          <hr />
-          
-          <Link to="/signup">
-            <button className="create-account-button">Create new account</button>
-          </Link>
-          
+        <div className="shadow-box">
+          <div className="login-box">
+
+            <h1>Welcome back!</h1>
+            <p>Your all-in-one assignment design studio awaits...</p>
+
+            <label htmlFor="username">Username</label>
+            <input type="text" id="username" placeholder="Enter username" value={username} onChange={(e) => setUsername(e.target.value)} />
+            
+            <label htmlFor="password">Password</label>
+            <input type="password" id="password" placeholder="Enter password" value={password} onChange={(e) => setPassword(e.target.value)} />
+
+            <div className="forgot-pw"><Link to="" className="link"><span className="text">Forgot password?</span></Link></div>
+
+            <button className="login-button" onClick={handleLogin}>Log In</button>
+            
+            <div className="line"><span>OR</span></div>
+
+            <Link to="/signup">
+              <button className="create-account-button">Create new account</button>
+            </Link>
+            
+          </div>
         </div>
       </div>
     </div>
