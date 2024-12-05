@@ -1,6 +1,6 @@
 ## Examify
 
-This project is a web application with a frontend built in React and a backend powered by Spring Boot. The frontend and backend are run separately, with the frontend handling the user interface and connecting to the backend for API calls.
+This project is a web application with a frontend built in React, a backend powered by Spring Boot, and a MySQL database on Amazon RDS.The frontend and backend are run separately, with the frontend handling the user interface and connecting to the backend for API calls.
 
 
 ### Prerequisites
