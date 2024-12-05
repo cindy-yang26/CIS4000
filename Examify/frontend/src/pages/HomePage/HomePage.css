@@ -98,6 +98,10 @@
   color: #333;
 }
 
+.home-options-icon:hover {
+  font-size: 1.6em;
+}
+
 .home-menu {
   position: absolute;
   right: -95px;
