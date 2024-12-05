@@ -2,15 +2,15 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-family: Arial, sans-serif;
+  font-family: 'Verdana', sans-serif;
   background-color: #eae7ee;
   min-height: 100vh;
 }
 
 .home-content {
-  width: 80%;
-  max-width: 900px;
-  height: auto;
+  width: 70%;
+  max-width: 1400px;
+  padding-top: 10px
 }
 
 .courses-header {
@@ -20,22 +20,27 @@
   margin-bottom: 20px;
 }
 
-.courses-header h2 {
-  font-size: 1.8em;
-  font-weight: bold;
-  color: #333;
+.courses-title {
+  font-size: 2.1em;
 }
 
 .new-course-button {
-  background-color: #d9534f;
+  background-color: #e96c67;
+  width: 13%;
+  justify-content: center;
   color: white;
-  border: none;
-  border-radius: 20px;
+  border: 2px solid black;
+  border-radius: 10px;
   padding: 8px 16px;
   display: flex;
   align-items: center;
   font-size: 0.9em;
   cursor: pointer;
+}
+
+.add-course {
+  font-weight: bold;
+  margin-left: 5px;
 }
 
 .new-course-button:hover {
@@ -45,23 +50,24 @@
 .courses-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 20px;
 }
 
-.course-card {
-  background-color: #d3d3d3;
-  width: 150px;
-  height: 50px;
-  border-radius: 10px;
+.home-course-card {
+  background-color: #dcdcdc;
+  border: 2px solid black;
+  width: 320px;
+  height: 45px;
+  border-radius: 5px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 10px;
+  padding: 0 15px;
   position: relative;
-  font-size: 0.7em;
+  cursor: pointer;
 }
 
-.course-info {
+.home-course-info {
   display: flex;
   align-items: center;
   gap: 5px;
@@ -71,50 +77,58 @@
   text-overflow: ellipsis;
 }
 
-.course-icon {
-  font-size: 1.2em;
+.home-course-icon {
+  font-size: 1.6em;
   color: #333;
   padding-right: 6px;
 }
 
-.course-name {
-  font-weight: bold;
+.home-course-name {
   color: #333;
-  font-size: 0.9em;
+  font-size: 1.2em;
+  font-weight: normal;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.options-icon {
-  font-size: 1.2em;
+.home-options-icon {
+  font-size: 1.5em;
   cursor: pointer;
   color: #333;
 }
 
-.menu {
+.home-menu {
   position: absolute;
-  right: 10px;
-  top: 40px;
+  right: -95px;
+  top: 35px;
   background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  border: 1px solid black;
+  border-radius: 3px;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   z-index: 10;
   width: 120px;
 }
 
-.menu-item {
+.home-menu-item {
   background: none;
-  border: none;
-  padding: 10px 15px;
+  color: black;
+  padding: 8px 15px;
   width: 100%;
-  text-align: left;
-  font-size: 0.8em;
+  text-align: center;
+  font-size: 0.9em;
   cursor: pointer;
 }
 
-.menu-item:hover {
-  background-color: #f8d7da;
-  color: #d9534f;
+.home-menu-item.rename {
+  border-bottom: 1px solid black;
+  border-radius: 3px 3px 0 0;
+}
+
+.home-menu-item.delete {
+  border-radius: 0 0 3px 3px;
+}
+
+.home-menu-item:hover {
+  background-color: #c4c4c4;
 }
