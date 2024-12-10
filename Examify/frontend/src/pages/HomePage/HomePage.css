@@ -25,7 +25,7 @@
 }
 
 .new-course-button {
-  background-color: #e96c67;
+  background-color: #d9534f;
   width: auto;
   justify-content: center;
   color: white;
@@ -65,6 +65,11 @@
   padding: 0 15px;
   position: relative;
   cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.home-course-card:hover {
+  background-color: #c9c9c9;
 }
 
 .home-course-info {

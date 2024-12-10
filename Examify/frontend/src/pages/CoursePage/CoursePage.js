@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../../components/Header/Header';
-import { FaEllipsisH, FaPlus, FaChevronLeft } from 'react-icons/fa';
+import { FaFolder, FaPlus, FaChevronLeft } from 'react-icons/fa';
 import { fetchAllAssignments, deleteAssignment } from '../../api/assignments';
 import './CoursePage.css';
+import { FiMoreVertical, FiTrash2 } from 'react-icons/fi';
+import { TiEdit } from 'react-icons/ti';
 
 function CoursePage() {
   const { courseName } = useParams();
@@ -67,41 +69,46 @@ function CoursePage() {
     <div className="course-page">
       <Header />
       <div className="course-content">
+
         <div className="course-header">
           <button className="back-button" onClick={handleReturnToMainPage}>
             <FaChevronLeft />
           </button>
-          <h2 className="course-name">{actualCourseName}</h2>
-          <div className="course-buttons">
-            <button className="add-assignment-button" onClick={handleCreateAssignment}>
-              <FaPlus /> <span id="add-assignment-text">Create Assignment</span>
-            </button>
-            <button className="view-questions-button" onClick={handleViewQuestions}>
-              View All Questions
-            </button>
-          </div>
+          <h2 className="course-name">
+            {actualCourseName} <br></br> 
+            <div className="assignment-header-div">
+              Assignments
+              <button className="add-assignment-button" onClick={handleCreateAssignment}>
+                <FaPlus /> <span id="add-assignment-text">Create Assignment</span>
+              </button>
+            </div>
+          </h2>
         </div>
-        <h3>Assignments</h3>
+        <button className="view-questions-button" onClick={handleViewQuestions}>
+          View All Questions
+        </button>
+
         <div className="assignments-list">
-          {assignments.length > 0 ? (
-            assignments.map((assignment, index) => (
-              <div
-                key={assignment.id}
-                className="assignment-card"
-                onClick={() => handleViewAssignment(assignment.name)}
-              >
-                <span className="assignment-name">{assignment.name}</span>
-                <FaEllipsisH
-                  className="options-icon"
+          {assignments.length > 0 ? (assignments.map((assignment, index) => (
+              <div key={assignment.id} className="assignment-card" onClick={() => handleViewAssignment(assignment.name)}>
+                <div className="course-assignment-info">
+                  <FaFolder className="assignment-icon" />
+                  <span className="assignment-name">{assignment.name}</span>
+                </div>
+                <FiMoreVertical
+                  className="assignment-options-icon"
                   onClick={(e) => toggleMenu(index, e)}
                 />
                 {menuVisible === index && (
-                  <div className="menu">
+                  <div className="course-menu">
+                    {/* <button className="course-menu-item rename">
+                      <TiEdit /> Rename
+                    </button> */}
                     <button
-                      className="menu-item delete-button"
+                      className="course-menu-item delete"
                       onClick={(e) => handleDeleteAssignment(assignment.id, e)}
                     >
-                      Delete Assignment
+                      <FiTrash2 /> Delete
                     </button>
                   </div>
                 )}

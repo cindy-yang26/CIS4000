@@ -2,7 +2,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    font-family: Arial, sans-serif;
+    font-family: 'Trebuchet MS', sans-serif;
     background-color: #eae7ee;
     min-height: 100vh;
   }
@@ -10,52 +10,86 @@
   .course-content {
     width: 70%;
     max-width: 1400px;
-    padding-top: 10px;
   }
   
   .course-header {
     display: flex;
     align-items: left;
     justify-content: space-between;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
+    margin-top: 30px;
   }
   
   .back-button {
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 1.5em;
-  }
-  
-  .course-name {
     font-size: 2em;
+    padding-top: 10px;
+    height: 45px;
+    color:#0056b3;
+  }
+
+  .course-name {
+    font-size: 2.3em;
     font-weight: bold;
     color: #333;
     flex-grow: 1;
-    text-align: center;
+    text-align: left;
+    margin-top: 0px;
+    margin-bottom: 0px;
+  }
+
+  .assignment-header-div {
+    font-size: 0.8em;
   }
   
   .add-assignment-button {
     background-color: #d9534f;
     color: white;
-    border: none;
+    border: 2px black solid;
     border-radius: 20px;
     padding: 8px 16px;
-    display: flex;
     align-items: center;
-    font-size: 0.9em;
+    font-size: 0.4em;
+    font-weight: bold;
     cursor: pointer;
-    margin: 20px 0px;
+    float: right;
   }
   
   .add-assignment-button:hover {
     background-color: #c9302c;
   }
-  
+
+  .view-questions-button {
+    background-color: #007bff;
+    color: white;
+    border: 2px black solid;
+    border-radius: 20px;
+    padding: 8px 16px;
+    margin-bottom: 20px; 
+    font-weight: bold;
+    font-size: 0.9em;
+    cursor: pointer;
+    width: auto;
+    float: right;
+  }
+
+  .view-questions-button:hover {
+    background-color: #0056b3;
+  }
+
+  #add-assignment-text {
+    margin-left: 5px;
+    font-size: 1.2em;
+  }
+
   .assignments-list {
     display: flex;
     flex-wrap: wrap;
     gap: 16px;
+    padding-top: 20px;
+    padding-left: 25px;
   }
   
   .assignment-card {
@@ -64,65 +98,60 @@
     height: 60px;
     border-radius: 10px;
     display: flex;
-    align-items: center;
     justify-content: space-between;
     padding: 0 10px;
-    font-size: 1em;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
   
-  .assignment-name {
-    font-weight: bold;
-    color: #333;
+  .assignment-card:hover {
+    background-color: #c9c9c9;
   }
 
-  #add-assignment-text {
-    margin-left: 10px;
-  }
-  
-  .options-icon {
-    font-size: 1.2em;
-    cursor: pointer;
-  }
-  
-  .view-questions-button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 20px;
-    padding: 10px 20px;
-    margin-bottom: 20px; 
-    font-size: 1em;
-    cursor: pointer;
-    display: inline-block;
-  }
-  
-  .view-questions-button:hover {
-    background-color: #0056b3;
-  }
-
-  .course-buttons {
+  .course-assignment-info {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  
+  .assignment-icon {
+    font-size: 1.6em;
+    color: #333;
+    padding-right: 6px;
   }
 
-  .back-button {
-    background: none;
-    border: none;
-    cursor: pointer;
+  .assignment-name {
+    color: #333;
+    font-size: 1.2em;
+    font-weight: normal;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .assignment-options-icon {
     font-size: 1.5em;
-    margin-right: 10px;
+    cursor: pointer;
+  }
+
+  .assignment-options-icon:hover {
+    font-size: 1.6em;
   }
 
   .assignment-card {
+    background-color: #dcdcdc;
+    border: 2px solid black;
+    width: 320px;
+    height: 45px;
+    border-radius: 5px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    padding: 0 15px;
     position: relative;
-    background-color: #d3d3d3;
-    border-radius: 10px;
-    padding: 10px;
-    margin-bottom: 10px;
     cursor: pointer;
   }
   
@@ -131,29 +160,38 @@
     font-size: 1.2em;
   }
   
-  .menu {
+  .course-menu {
     position: absolute;
-    right: 10px;
-    top: 40px;
+    right: -95px;
+    top: 35px;
     background-color: white;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    border: 1px solid black;
+    border-radius: 3px;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
     z-index: 10;
+    width: 120px;
   }
   
-  .menu-item {
+  .course-menu-item {
     background: none;
-    border: none;
-    padding: 10px 15px;
+    color: black;
+    padding: 8px 15px;
     width: 100%;
-    text-align: left;
-    font-size: 1em;
+    text-align: center;
+    font-size: 0.9em;
     cursor: pointer;
   }
+
+  /* .course-menu-item.rename {
+    border-bottom: 1px solid black;
+    border-radius: 3px 3px 0 0;
+  } */
+
+  .course-menu-item.delete {
+    border-radius: 0 0 3px 3px;
+  }
   
-  .menu-item:hover {
-    background-color: #f8d7da;
-    color: #d9534f;
+  .course-menu-item:hover {
+    background-color: #c4c4c4;
   }
   
