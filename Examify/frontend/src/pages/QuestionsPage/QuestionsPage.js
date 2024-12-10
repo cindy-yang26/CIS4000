@@ -155,13 +155,15 @@ function QuestionsPage() {
             </button>
           </div>
 
-          <input
-            type="text"
-            placeholder="Search questions by title, tags, or content..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="search-input"
-          />
+          <div className="question-search-div">
+            <input
+              type="text"
+              placeholder="🔍 Search questions by title, tags, or content..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="question-search-input"
+            />
+          </div>
 
           <ul className="questions-list">
             {filteredQuestions.map((question) => (
