@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { createQuestion, fetchQuestions, editQuestion, deleteQuestion } from '../../api/questions';
 import Header from '../../components/Header/Header';
-import { FaChevronLeft, FaEdit, FaTrash } from 'react-icons/fa';
+import { FaChevronLeft, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
 import './QuestionsPage.css';
 
@@ -91,7 +91,6 @@ function QuestionsPage() {
       console.error(error);
     }
   };
-  
 
   const handleEditQuestion = (question) => {
     setEditingQuestion(question);
@@ -116,7 +115,6 @@ function QuestionsPage() {
     }
   };
   
-
   const handleDeleteTag = (questionId, tagToDelete) => {
     setQuestions(
       questions.map((q) =>
@@ -151,14 +149,15 @@ function QuestionsPage() {
             </button>
             <h2 className="course-title">Questions for {courseName}</h2>
             <button className="add-question-button" onClick={handleAddQuestion}>
-              {showForm ? 'Cancel' : editingQuestion ? 'Edit Question' : 'Add Question'}
+              <FaPlus />
+              <span className="question-button-text">{showForm ? 'Cancel' : editingQuestion ? 'Edit Question' : ' Add Question'}</span>
             </button>
           </div>
 
           <div className="question-search-div">
             <input
               type="text"
-              placeholder="🔍 Search questions by title, tags, or content..."
+              placeholder=" 🔍 Search questions by title, tags, or content..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="question-search-input"

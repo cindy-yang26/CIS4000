@@ -54,13 +54,22 @@
 
   .add-question-button {
     background-color: #007bff;
+    width: auto;
     color: white;
-    border: none;
-    border-radius: 20px;
-    padding: 10px 20px;
-    font-size: 1em;
+    justify-content: center;
+    font-weight: bold;
+    border: 2px solid black;
+    border-radius: 10px;
+    padding: 8px 16px;
+    display: flex;
+    font-size: 0.9em;
     cursor: pointer;
     margin-left: auto;
+  }
+
+  .question-button-text {
+    font-weight: bold;
+    margin-left: 5px;
   }
   
   .add-question-button:hover {
@@ -74,8 +83,8 @@
 
   .question-search-input {
     display: inline-block;
-    border-left-color: white;
     margin-bottom: 0;
+    width: 60%;
   }
 
   .questions-list {
