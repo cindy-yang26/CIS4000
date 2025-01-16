@@ -17,7 +17,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
 }
 
 .courses-title {
@@ -45,6 +44,12 @@
 
 .new-course-button:hover {
   background-color: #c9302c;
+}
+
+.courses-search-div {
+  text-align: center;
+  width: 100%;
+  margin-bottom: 25px;
 }
 
 .courses-list {

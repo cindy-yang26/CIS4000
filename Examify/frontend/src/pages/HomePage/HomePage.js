@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Header from '../../components/Header/Header';
 import { useNavigate } from 'react-router-dom';
+import { createCourse } from '../../api/courses';
 import './HomePage.css';
 import { FaFolder, FaPlus } from 'react-icons/fa';
 import { FiMoreVertical, FiTrash2 } from 'react-icons/fi';
@@ -8,9 +9,10 @@ import { TiEdit } from "react-icons/ti";
 
 
 function HomePage() {
-  const [courses, setCourses] = useState(['Math 220', 'Math 221', 'Math 222', 'Math 223']);
+  const [courses, setCourses] = useState(['Math 220', 'Math 221', 'CIS 222', 'EAS 223']);
   const [menuVisible, setMenuVisible] = useState(null); 
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleCourseClick = (courseName) => {
     const slug = courseName.replace(/\s+/g, '-');
@@ -30,6 +32,14 @@ function HomePage() {
     }
   };
 
+  const filteredCourses = courses.filter((course, index) => {
+    // const title = course.title || ''; 
+    const title = course;
+    return (
+      title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  });
+
   return (
     <div className="home-page">
       <Header />
@@ -42,8 +52,18 @@ function HomePage() {
           </button>
         </div>
 
+        <div className="courses-search-div">
+            <input
+              type="text"
+              placeholder=" 🔍 Search courses..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="question-search-input"
+            />
+        </div>
+
         <div className="courses-list">
-          {courses.map((course, index) => (
+          {filteredCourses.map((course, index) => (
             <div key={index} className="home-course-card" onClick={() => handleCourseClick(course)}>
               <div className="home-course-info">
                 <FaFolder className="home-course-icon" />
