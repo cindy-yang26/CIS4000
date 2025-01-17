@@ -115,7 +115,7 @@ function CoursePage() {
               </div>
             ))
           ) : (
-            <p>No assignments available</p>
+            <p>No assignments created yet</p>
           )}
         </div>
       </div>

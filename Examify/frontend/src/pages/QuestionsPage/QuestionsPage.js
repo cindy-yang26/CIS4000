@@ -54,6 +54,11 @@ function QuestionsPage() {
     setEditingQuestion(null);
   };
 
+  const handleCancelQuestion = () => {
+    setShowForm(!showForm);
+    setEditingQuestion(null);
+  }
+
   const handleFormSubmit = async (e) => {
     e.preventDefault();
   
@@ -150,7 +155,7 @@ function QuestionsPage() {
             <h2 className="course-title">Questions for {courseName}</h2>
             <button className="add-question-button" onClick={handleAddQuestion}>
               <FaPlus />
-              <span className="question-button-text">{showForm ? 'Cancel' : editingQuestion ? 'Edit Question' : ' Add Question'}</span>
+              <span className="question-button-text">{editingQuestion ? 'Edit Question' : ' Add Question'}</span>
             </button>
           </div>
 
@@ -215,96 +220,102 @@ function QuestionsPage() {
           </ul>
 
           {showForm && (
-            <form className="add-question-form" onSubmit={handleFormSubmit}>
-              <input
-                type="text"
-                placeholder="Enter question title"
-                value={formFields.title}
-                onChange={(e) =>
-                  setFormFields({ ...formFields, title: e.target.value })
-                }
-              />
-              <textarea
-                placeholder="Enter your question"
-                value={formFields.text}
-                onChange={(e) =>
-                  setFormFields({ ...formFields, text: e.target.value })
-                }
-                rows="3"
-              />
-              <textarea
-                placeholder="Enter a comment"
-                value={formFields.comment}
-                onChange={(e) =>
-                  setFormFields({ ...formFields, comment: e.target.value })
-                }
-                rows="2"
-              />
-              <input
-                type="text"
-                placeholder="Enter tags (comma-separated)"
-                value={formFields.tags}
-                onChange={(e) =>
-                  setFormFields({ ...formFields, tags: e.target.value })
-                }
-              />
-              <div className="stats-fields">
-                <label>
-                  Mean:
-                  <input
-                    type="text"
-                    value={formFields.stats.mean}
-                    onChange={(e) =>
-                      setFormFields({ ...formFields, stats: { ...formFields.stats, mean: e.target.value } })
-                    }
-                  />
-                </label>
-                <label>
-                  Median:
-                  <input
-                    type="text"
-                    value={formFields.stats.median}
-                    onChange={(e) =>
-                      setFormFields({ ...formFields, stats: { ...formFields.stats, median: e.target.value } })
-                    }
-                  />
-                </label>
-                <label>
-                  Std Dev:
-                  <input
-                    type="text"
-                    value={formFields.stats.stdDev}
-                    onChange={(e) =>
-                      setFormFields({ ...formFields, stats: { ...formFields.stats, stdDev: e.target.value } })
-                    }
-                  />
-                </label>
-                <label>
-                  Min:
-                  <input
-                    type="text"
-                    value={formFields.stats.min}
-                    onChange={(e) =>
-                      setFormFields({ ...formFields, stats: { ...formFields.stats, min: e.target.value } })
-                    }
-                  />
-                </label>
-                <label>
-                  Max:
-                  <input
-                    type="text"
-                    value={formFields.stats.max}
-                    onChange={(e) =>
-                      setFormFields({ ...formFields, stats: { ...formFields.stats, max: e.target.value } })
-                    }
-                  />
-                </label>
-              </div>
+            <div className="question-form-div">
+              <form className="add-question-form" onSubmit={handleFormSubmit}>
+                <input
+                  type="text"
+                  placeholder="Enter question title"
+                  value={formFields.title}
+                  onChange={(e) =>
+                    setFormFields({ ...formFields, title: e.target.value })
+                  }
+                />
+                <textarea
+                  placeholder="Enter your question"
+                  value={formFields.text}
+                  onChange={(e) =>
+                    setFormFields({ ...formFields, text: e.target.value })
+                  }
+                  rows="3"
+                />
+                <textarea
+                  placeholder="Enter a comment"
+                  value={formFields.comment}
+                  onChange={(e) =>
+                    setFormFields({ ...formFields, comment: e.target.value })
+                  }
+                  rows="2"
+                />
+                <input
+                  type="text"
+                  placeholder="Enter tags (comma-separated)"
+                  value={formFields.tags}
+                  onChange={(e) =>
+                    setFormFields({ ...formFields, tags: e.target.value })
+                  }
+                />
+                <div className="stats-fields">
+                  <label>
+                    Mean:
+                    <input
+                      type="text"
+                      value={formFields.stats.mean}
+                      onChange={(e) =>
+                        setFormFields({ ...formFields, stats: { ...formFields.stats, mean: e.target.value } })
+                      }
+                    />
+                  </label>
+                  <label>
+                    Median:
+                    <input
+                      type="text"
+                      value={formFields.stats.median}
+                      onChange={(e) =>
+                        setFormFields({ ...formFields, stats: { ...formFields.stats, median: e.target.value } })
+                      }
+                    />
+                  </label>
+                  <label>
+                    Std Dev:
+                    <input
+                      type="text"
+                      value={formFields.stats.stdDev}
+                      onChange={(e) =>
+                        setFormFields({ ...formFields, stats: { ...formFields.stats, stdDev: e.target.value } })
+                      }
+                    />
+                  </label>
+                  <label>
+                    Min:
+                    <input
+                      type="text"
+                      value={formFields.stats.min}
+                      onChange={(e) =>
+                        setFormFields({ ...formFields, stats: { ...formFields.stats, min: e.target.value } })
+                      }
+                    />
+                  </label>
+                  <label>
+                    Max:
+                    <input
+                      type="text"
+                      value={formFields.stats.max}
+                      onChange={(e) =>
+                        setFormFields({ ...formFields, stats: { ...formFields.stats, max: e.target.value } })
+                      }
+                    />
+                  </label>
+                </div>
 
-              <button type="submit" className="submit-question-button">
-                {editingQuestion ? 'Save Changes' : 'Add Question'}
-              </button>
-            </form>
+                <button type="submit" className="submit-question-button">
+                  {editingQuestion ? 'Save Changes' : 'Add Question'}
+                </button>
+                <button className="cancel-question-button" onClick={handleCancelQuestion}>
+                  Cancel
+                </button>
+
+              </form>
+            </div>
           )}
         </div>
       </div>
