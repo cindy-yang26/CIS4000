@@ -12,35 +12,32 @@ export const createAssignment = async (assignmentData) => {
   }
 };
 
-export const fetchAllAssignments = async () => {
-    try {
-      const response = await axios.get(API_BASE_URL);
-      return response.data;
-    } catch (error) {
-      console.error("Failed to fetch assignments", error);
-      throw error;
-    }
-  };
+export const fetchAssignmentInfo = async (id) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching info for assignment:', error);
+    throw error;
+  }
+};
 
-  export const fetchAssignmentQuestions = async (name) => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/${name}/questions`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching questions for assignment:', error);
-      throw error;
-    }
-  };
+export const fetchAssignmentQuestions = async (id) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/${id}/questions`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching questions for assignment:', error);
+    throw error;
+  }
+};
 
-  export const deleteAssignment = async (assignmentId) => {
-    try {
-      const response = await axios.delete(`${API_BASE_URL}/${assignmentId}`);
-      return response.data;
-    } catch (error) {
-      console.error('Failed to delete assignment', error);
-      throw error;
-    }
-  };
-  
-  
-
+export const deleteAssignment = async (assignmentId) => {
+  try {
+    const response = await axios.delete(`${API_BASE_URL}/${assignmentId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to delete assignment', error);
+    throw error;
+  }
+};

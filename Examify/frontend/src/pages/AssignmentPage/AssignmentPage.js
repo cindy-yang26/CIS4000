@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../../components/Header/Header';
-import { fetchAssignmentQuestions } from '../../api/assignments';
+import { fetchAssignmentInfo, fetchAssignmentQuestions } from '../../api/assignments';
+import { fetchCourseInfo } from '../../api/courses';
 import { editQuestion } from '../../api/questions';
 import { FaChevronLeft, FaEdit, FaTrash } from 'react-icons/fa';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
 import './AssignmentPage.css';
 
 function AssignmentPage() {
-  const { courseName, assignmentName } = useParams();
+  const { courseId, assignmentId } = useParams();
   const navigate = useNavigate();
 
+  const [assignmentName, setAssignmentName] = useState("");
+  const [courseName, setCourseName] = useState("");
   const [questions, setQuestions] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [formFields, setFormFields] = useState({
@@ -23,9 +26,32 @@ function AssignmentPage() {
   const [editingQuestion, setEditingQuestion] = useState(null);
 
   useEffect(() => {
+    const loadCourseName = async () => {
+      try {
+        const courseInfo = await fetchCourseInfo(courseId);
+        setCourseName(courseInfo.courseCode);
+      } catch (error) {
+        alert('Failed to load course name.');
+        console.error(error);
+      }
+    };
+
+    loadCourseName();
+  }, [courseId]);
+
+  useEffect(() => {
+    const loadAssignmentName = async () => {
+      try {
+        const assignmentInfo = await fetchAssignmentInfo(assignmentId);
+        setAssignmentName(assignmentInfo.name);
+      } catch (error) {
+        alert('Failed to load assignment name.');
+        console.error(error);
+      }
+    };
     const loadQuestions = async () => {
       try {
-        const data = await fetchAssignmentQuestions(assignmentName);
+        const data = await fetchAssignmentQuestions(assignmentId);
         setQuestions(data);
       } catch (error) {
         alert('Failed to load questions.');
@@ -33,11 +59,12 @@ function AssignmentPage() {
       }
     };
 
+    loadAssignmentName();
     loadQuestions();
-  }, [assignmentName]);
+  }, [assignmentId]);
 
   const handleReturnToCourse = () => {
-    navigate(`/course/${courseName}`);
+    navigate(`/course/${courseId}`);
   };
 
   const handleFormSubmit = async (e) => {
@@ -56,7 +83,7 @@ function AssignmentPage() {
     try {
       if (editingQuestion) {
         await editQuestion(editingQuestion.id, questionData);
-        const updatedQuestions = await fetchAssignmentQuestions(assignmentName);
+        const updatedQuestions = await fetchAssignmentQuestions(assignmentId);
         setQuestions(updatedQuestions);
       }
 
@@ -130,10 +157,10 @@ function AssignmentPage() {
                   </div>
                   <MathJax>{question.text}</MathJax>
                   <div className="question-stats">
-                    Mean: {question.stats?.mean || 'N/A'}, 
-                    Median: {question.stats?.median || 'N/A'}, 
-                    Std Dev: {question.stats?.stdDev || 'N/A'}, 
-                    Min: {question.stats?.min || 'N/A'}, 
+                    Mean: {question.stats?.mean || 'N/A'},
+                    Median: {question.stats?.median || 'N/A'},
+                    Std Dev: {question.stats?.stdDev || 'N/A'},
+                    Min: {question.stats?.min || 'N/A'},
                     Max: {question.stats?.max || 'N/A'}
                   </div>
                   {question.comment && (

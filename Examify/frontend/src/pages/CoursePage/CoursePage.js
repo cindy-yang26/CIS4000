@@ -2,22 +2,33 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../../components/Header/Header';
 import { FaFolder, FaPlus, FaChevronLeft } from 'react-icons/fa';
-import { fetchAllAssignments, deleteAssignment } from '../../api/assignments';
+import { deleteAssignment } from '../../api/assignments';
 import './CoursePage.css';
 import { FiMoreVertical, FiTrash2 } from 'react-icons/fi';
 import { TiEdit } from 'react-icons/ti';
+import { fetchCourseAssignments, fetchCourseInfo } from '../../api/courses';
 
 function CoursePage() {
-  const { courseName } = useParams();
-  const actualCourseName = courseName.replace(/-/g, ' ');
+  const { courseId } = useParams();
+
+  const [actualCourseName, setActualCourseName] = useState("");
   const [assignments, setAssignments] = useState([]);
   const [menuVisible, setMenuVisible] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    const loadCourseName = async () => {
+      try {
+        const courseInfo = await fetchCourseInfo(courseId);
+        setActualCourseName(courseInfo.courseCode.replace(/-/g, ' '));
+      } catch (error) {
+        alert('Failed to load course name');
+        console.error(error);
+      }
+    };
     const loadAssignments = async () => {
       try {
-        const data = await fetchAllAssignments();
+        const data = await fetchCourseAssignments(courseId);
         setAssignments(data);
       } catch (error) {
         alert('Failed to load assignments');
@@ -25,23 +36,24 @@ function CoursePage() {
       }
     };
 
+    loadCourseName();
     loadAssignments();
-  }, []);
+  }, [courseId]);
 
   const handleViewQuestions = () => {
-    navigate(`/course/${courseName}/questions`);
+    navigate(`/course/${courseId}/questions`);
   };
 
   const handleReturnToMainPage = () => {
     navigate(`/home`);
   };
 
-  const handleViewAssignment = (assignmentName) => {
-    navigate(`/course/${courseName}/assignment/${assignmentName}`);
+  const handleViewAssignment = (assignmentId) => {
+    navigate(`/course/${courseId}/assignment/${assignmentId}`);
   };
 
   const handleCreateAssignment = () => {
-    navigate(`/course/${courseName}/create-assignment`);
+    navigate(`/course/${courseId}/create-assignment`);
   };
 
   const handleDeleteAssignment = async (assignmentId, e) => {
@@ -75,7 +87,7 @@ function CoursePage() {
             <FaChevronLeft />
           </button>
           <h2 className="course-name">
-            {actualCourseName} <br></br> 
+            {actualCourseName} <br></br>
             <div className="assignment-header-div">
               Assignments
               <button className="add-assignment-button" onClick={handleCreateAssignment}>
@@ -90,30 +102,30 @@ function CoursePage() {
 
         <div className="assignments-list">
           {assignments.length > 0 ? (assignments.map((assignment, index) => (
-              <div key={assignment.id} className="assignment-card" onClick={() => handleViewAssignment(assignment.name)}>
-                <div className="course-assignment-info">
-                  <FaFolder className="assignment-icon" />
-                  <span className="assignment-name">{assignment.name}</span>
-                </div>
-                <FiMoreVertical
-                  className="assignment-options-icon"
-                  onClick={(e) => toggleMenu(index, e)}
-                />
-                {menuVisible === index && (
-                  <div className="course-menu">
-                    {/* <button className="course-menu-item rename">
+            <div key={assignment.id} className="assignment-card" onClick={() => handleViewAssignment(assignment.id)}>
+              <div className="course-assignment-info">
+                <FaFolder className="assignment-icon" />
+                <span className="assignment-name">{assignment.name}</span>
+              </div>
+              <FiMoreVertical
+                className="assignment-options-icon"
+                onClick={(e) => toggleMenu(index, e)}
+              />
+              {menuVisible === index && (
+                <div className="course-menu">
+                  {/* <button className="course-menu-item rename">
                       <TiEdit /> Rename
                     </button> */}
-                    <button
-                      className="course-menu-item delete"
-                      onClick={(e) => handleDeleteAssignment(assignment.id, e)}
-                    >
-                      <FiTrash2 /> Delete
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))
+                  <button
+                    className="course-menu-item delete"
+                    onClick={(e) => handleDeleteAssignment(assignment.id, e)}
+                  >
+                    <FiTrash2 /> Delete
+                  </button>
+                </div>
+              )}
+            </div>
+          ))
           ) : (
             <p>No assignments created yet</p>
           )}

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '../../components/Header/Header';
 import { useNavigate } from 'react-router-dom';
-import { createCourse } from '../../api/courses';
+import { createCourse, deleteCourse, fetchCourseInfo } from '../../api/courses';
 import './HomePage.css';
 import { FaFolder, FaPlus } from 'react-icons/fa';
 import { FiMoreVertical, FiTrash2 } from 'react-icons/fi';
@@ -9,18 +9,29 @@ import { TiEdit } from "react-icons/ti";
 
 
 function HomePage() {
-  const [courses, setCourses] = useState(['Math 220', 'Math 221', 'CIS 222', 'EAS 223']);
-  const [menuVisible, setMenuVisible] = useState(null); 
+  // TODO: the following line should be done by fetching from backend
+  const [courseIds, setCourseIds] = useState([2, 3, 4, 5]);
+  const [courses, setCourses] = useState([]);
+  const [menuVisible, setMenuVisible] = useState(null);
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const handleCourseClick = (courseName) => {
-    const slug = courseName.replace(/\s+/g, '-');
-    navigate(`/course/${slug}`);
+  useEffect(() => {
+    const loadCourses = async () => {
+      const newCourseInfo = await Promise.all(courseIds.map(fetchCourseInfo));
+      setCourses(newCourseInfo);
+    };
+    loadCourses();
+  }, [courseIds]);
+
+  const handleCourseClick = (course) => {
+    navigate(`/course/${course.id}`);
   };
 
   const handleDeleteCourse = (courseToDelete) => {
-    setCourses(courses.filter((course) => course !== courseToDelete));
+    const idToDelete = courseToDelete.id;
+    deleteCourse(idToDelete);
+    setCourseIds(courseIds.filter((id) => id !== idToDelete));
     setMenuVisible(null);
   };
 
@@ -33,8 +44,8 @@ function HomePage() {
   };
 
   const filteredCourses = courses.filter((course, index) => {
-    // const title = course.title || ''; 
-    const title = course;
+    // const title = course.courseCode || ''; 
+    const title = course.courseCode;
     return (
       title.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -53,13 +64,13 @@ function HomePage() {
         </div>
 
         <div className="courses-search-div">
-            <input
-              type="text"
-              placeholder=" 🔍 Search courses..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="question-search-input"
-            />
+          <input
+            type="text"
+            placeholder=" 🔍 Search courses..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="question-search-input"
+          />
         </div>
 
         <div className="courses-list">
@@ -67,7 +78,7 @@ function HomePage() {
             <div key={index} className="home-course-card" onClick={() => handleCourseClick(course)}>
               <div className="home-course-info">
                 <FaFolder className="home-course-icon" />
-                <span className="home-course-name">{course}</span>
+                <span className="home-course-name">{course.courseCode}</span>
               </div>
               <FiMoreVertical
                 className="home-options-icon"

@@ -1,6 +1,7 @@
 package com.cis4000.examify.controllers;
 
 import com.cis4000.examify.models.Assignment;
+import com.cis4000.examify.models.Course;
 import com.cis4000.examify.models.Question;
 import com.cis4000.examify.repositories.AssignmentRepository;
 import com.cis4000.examify.repositories.QuestionRepository;
@@ -30,7 +31,10 @@ public class AssignmentController {
             assignment.setComment(request.getComment() != null ? request.getComment() : "");
             assignment.setStatistics("{}");
             assignment.setSemesterYear("");
-            assignment.setCourse(null);
+
+            Course course = new Course();
+            course.setId(request.getCourseId());
+            assignment.setCourse(course);
 
             List<Question> questions = questionRepository.findAllById(request.getQuestionIds());
             if (questions.isEmpty() && !request.getQuestionIds().isEmpty()) {
@@ -48,14 +52,36 @@ public class AssignmentController {
         }
     }
 
-    @GetMapping("{name}/questions")
-    public ResponseEntity<?> getQuestionsByAssignmentName(@PathVariable("name") String name) {
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getAssignmentInfoById(@PathVariable("id") Long id) {
         try {
-            Assignment assignment = assignmentRepository.findByName(name)
-                    .orElseThrow(() -> new RuntimeException("Assignment not found with name: " + name));
-            
+            Assignment assignment = assignmentRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Assignment not found with id: " + id));
+            // TODO: the following line exists because, if not, the fetching would have a
+            // cycle (by fetching an assignment, which has a course, which has assignments
+            // (including this one), etc.) leading to an infinitely long response
+            // We should probably figure out a way for it to return the course id but not
+            // the assignments of that course?
+            assignment.setCourse(null);
+            assignment.setQuestions(null);
+
+            return ResponseEntity.ok(assignment);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error fetching assignment: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/questions")
+    public ResponseEntity<?> getQuestionsByAssignmentId(@PathVariable("id") Long id) {
+        try {
+            Assignment assignment = assignmentRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Assignment not found with id: " + id));
+
             List<Question> questions = assignment.getQuestions();
-            
+
             return ResponseEntity.ok(questions);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -82,16 +108,19 @@ public class AssignmentController {
         }
     }
 
-    @GetMapping
-    public ResponseEntity<List<Assignment>> getAllAssignments() {
-        List<Assignment> assignments = assignmentRepository.findAll();
-        return ResponseEntity.ok(assignments);
-    }
-
     public static class AssignmentRequest {
+        private long courseId;
         private String name;
         private String comment;
         private List<Long> questionIds;
+
+        public long getCourseId() {
+            return courseId;
+        }
+
+        public void setCourseId(long courseId) {
+            this.courseId = courseId;
+        }
 
         public String getName() {
             return name;

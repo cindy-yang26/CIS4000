@@ -2,21 +2,37 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../../components/Header/Header';
 import { createAssignment } from '../../api/assignments';
+import { fetchCourseInfo } from '../../api/courses';
 import { fetchQuestions } from '../../api/questions';
 import './CreateAssignmentPage.css';
 
 function CreateAssignmentPage() {
-  const { courseName } = useParams();
+  const { courseId } = useParams();
   const navigate = useNavigate();
 
+  const [courseName, setCourseName] = useState('');
   const [name, setName] = useState('');
   const [availableQuestions, setAvailableQuestions] = useState([]);
   const [selectedQuestions, setSelectedQuestions] = useState([]);
 
   useEffect(() => {
+    const loadCourseName = async () => {
+      try {
+        const courseInfo = await fetchCourseInfo(courseId);
+        setCourseName(courseInfo.courseCode);
+      } catch (error) {
+        alert('Failed to load course name');
+        console.error(error);
+      }
+    };
+
+    loadCourseName();
+  }, [courseId]);
+
+  useEffect(() => {
     const loadQuestions = async () => {
       try {
-        const questions = await fetchQuestions(); 
+        const questions = await fetchQuestions();
         setAvailableQuestions(questions);
       } catch (error) {
         alert('Failed to load questions');
@@ -44,14 +60,15 @@ function CreateAssignmentPage() {
     }
 
     const assignmentData = {
-      name: name,
+      courseId: courseId,
+      name: name.trim(),
       questionIds: selectedQuestions.map((q) => q.id),
     };
 
     try {
       await createAssignment(assignmentData);
       alert('Assignment created successfully');
-      navigate(`/course/${courseName}`);
+      navigate(`/course/${courseId}`);
     } catch (error) {
       alert(error);
       console.error(error);

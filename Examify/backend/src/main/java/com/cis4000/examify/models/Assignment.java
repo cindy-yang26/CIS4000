@@ -12,13 +12,13 @@ public class Assignment {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "course_id", nullable = true) // Todo: change when courses are implemented
+    @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @Column(name = "semester_year", nullable = false)
+    @Column(name = "semester_year", nullable = false, length = 20)
     private String semesterYear;
 
     @Lob

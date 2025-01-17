@@ -11,6 +11,10 @@ public class Course {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = true) // TODO: change when courses are restricted to specific users
+    private User user;
+
     @Column(name = "course_code", nullable = false, length = 50)
     private String courseCode;
 
@@ -26,6 +30,14 @@ public class Course {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public String getCourseCode() {

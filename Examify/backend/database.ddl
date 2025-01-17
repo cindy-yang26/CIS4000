@@ -4,14 +4,16 @@ USE examify_alpha;
 
 CREATE TABLE course (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NULL, # TODO: make this NOT NULL once we figure out how to restrict courses to particular users
     course_code VARCHAR(50) NOT NULL,
     professor VARCHAR(100) NOT NULL,
-    CONSTRAINT uc_course UNIQUE (course_code, professor)
+    CONSTRAINT uc_course UNIQUE (course_code, professor),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE assignment (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    course_id INT NULL,
+    course_id INT NOT NULL,
     name VARCHAR(100) NOT NULL,
     semester_year VARCHAR(20) NOT NULL,
     statistics JSON,

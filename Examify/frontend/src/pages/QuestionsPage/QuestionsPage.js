@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { fetchCourseInfo } from '../../api/courses';
 import { createQuestion, fetchQuestions, editQuestion, deleteQuestion } from '../../api/questions';
 import Header from '../../components/Header/Header';
 import { FaChevronLeft, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
@@ -7,9 +8,10 @@ import { MathJax, MathJaxContext } from 'better-react-mathjax';
 import './QuestionsPage.css';
 
 function QuestionsPage() {
-  const { courseName } = useParams();
+  const { courseId } = useParams();
   const navigate = useNavigate();
 
+  const [courseName, setCourseName] = useState("");
   const [questions, setQuestions] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState(null);
@@ -21,6 +23,20 @@ function QuestionsPage() {
     stats: { mean: '', median: '', stdDev: '', min: '', max: '' },
   });
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    const loadCourseName = async () => {
+      try {
+        const courseInfo = await fetchCourseInfo(courseId);
+        setCourseName(courseInfo.courseCode);
+      } catch (error) {
+        alert('Failed to load course name.');
+        console.error(error);
+      }
+    };
+
+    loadCourseName();
+  }, [courseId]);
 
   useEffect(() => {
     const loadQuestions = async () => {
@@ -37,7 +53,7 @@ function QuestionsPage() {
   }, []);
 
   const handleReturnToCourse = () => {
-    navigate(`/course/${courseName}`);
+    navigate(`/course/${courseId}`);
   };
 
   const handleAddQuestion = () => {
