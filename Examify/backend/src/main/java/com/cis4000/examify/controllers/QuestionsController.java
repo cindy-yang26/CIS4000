@@ -20,12 +20,6 @@ public class QuestionsController {
         this.questionRepository = questionRepository;
     }
 
-    @GetMapping
-    public ResponseEntity<List<Question>> fetchQuestions() {
-        List<Question> questions = questionRepository.findAll();
-        return ResponseEntity.ok(questions);
-    }
-
     @PostMapping
     public ResponseEntity<String> createQuestion(@RequestBody Question question) {
         try {
