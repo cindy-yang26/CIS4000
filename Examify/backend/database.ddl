@@ -65,3 +65,11 @@ CREATE TABLE variation (
     FOREIGN KEY (question_id) REFERENCES question(id) ON DELETE CASCADE,
     FOREIGN KEY (assignment_id) REFERENCES assignment(id) ON DELETE SET NULL
 );
+
+CREATE TABLE sessions (
+    cookie varchar(225),
+    id bigint,
+    expiration DATETIME,
+    PRIMARY KEY (cookie),
+    FOREIGN KEY (id) REFERENCES user(id)
+);
