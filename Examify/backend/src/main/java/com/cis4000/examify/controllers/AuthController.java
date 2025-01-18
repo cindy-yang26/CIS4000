@@ -33,6 +33,11 @@ public class AuthController {
     public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
         System.out.println("Received login request for username: " + loginRequest.getUsername());
 
+        Optional<Sessions> sessionsOptional = sessionsRepository.findByCookie(loginRequest.getCookie());
+        if (!sessionsOptional.isEmpty()) {
+            return ResponseEntity.ok("Login successful with cookie " + loginRequest.getCookie());
+        }
+
         Optional<User> userOptional = userRepository.findByUsername(loginRequest.getUsername());
         if (userOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Invalid username or password");
