@@ -11,7 +11,10 @@ public class Question {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "course_id", nullable = false)
+    private Long courseId;
+
+    @Column(nullable = false, length = 255)
     private String title;
 
     @Column(nullable = false, columnDefinition = "TEXT")
@@ -34,6 +37,14 @@ public class Question {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getCourseId() {
+        return courseId;
+    }
+
+    public void setCourseId(Long courseId) {
+        this.courseId = courseId;
     }
 
     public String getTitle() {
@@ -126,4 +137,3 @@ public class Question {
         }
     }
 }
-

@@ -32,6 +32,16 @@ export const fetchCourseAssignments = async (id) => {
   }
 };
 
+export const fetchCourseQuestions = async (id) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/${id}/questions`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching questions for course:', error);
+    throw error;
+  }
+};
+
 export const deleteCourse = async (id) => {
   try {
     const response = await axios.delete(`${API_BASE_URL}/${id}`);

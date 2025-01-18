@@ -20,16 +20,15 @@ public class QuestionsController {
         this.questionRepository = questionRepository;
     }
 
-    @GetMapping
-    public ResponseEntity<List<Question>> fetchQuestions() {
-        List<Question> questions = questionRepository.findAll();
-        return ResponseEntity.ok(questions);
-    }
-
     @PostMapping
     public ResponseEntity<String> createQuestion(@RequestBody Question question) {
-        questionRepository.save(question);
-        return ResponseEntity.ok("Question created successfully");
+        try {
+            questionRepository.save(question);
+            return ResponseEntity.ok("Question created successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error creating question: " + e.getMessage());
+        }
     }
 
     @PutMapping("{id}")
@@ -73,7 +72,6 @@ public class QuestionsController {
         questionRepository.deleteById(id);
         return ResponseEntity.ok("Question deleted successfully");
     }
-
 
     public static class QuestionRequest {
         private String title;

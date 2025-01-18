@@ -2,6 +2,7 @@ package com.cis4000.examify.controllers;
 
 import com.cis4000.examify.models.Assignment;
 import com.cis4000.examify.models.Course;
+import com.cis4000.examify.models.Question;
 import com.cis4000.examify.repositories.CourseRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,7 @@ public class CourseController {
                     .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
             course.setUser(null);
             course.setAssignments(null);
+            course.setQuestions(null);
 
             return ResponseEntity.ok(course);
         } catch (RuntimeException e) {
@@ -68,6 +70,22 @@ public class CourseController {
                 a.setCourse(null);
             }
             return ResponseEntity.ok(assignments);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error fetching assignments for course: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/questions")
+    public ResponseEntity<?> getQuestionsByCourseId(@PathVariable("id") Long id) {
+        try {
+            Course course = courseRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
+
+            List<Question> questions = course.getQuestions();
+            return ResponseEntity.ok(questions);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {

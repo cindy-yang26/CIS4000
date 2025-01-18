@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../../components/Header/Header';
 import { createAssignment } from '../../api/assignments';
-import { fetchCourseInfo } from '../../api/courses';
-import { fetchQuestions } from '../../api/questions';
+import { fetchCourseInfo, fetchCourseQuestions } from '../../api/courses';
 import './CreateAssignmentPage.css';
 
 function CreateAssignmentPage() {
@@ -32,7 +31,7 @@ function CreateAssignmentPage() {
   useEffect(() => {
     const loadQuestions = async () => {
       try {
-        const questions = await fetchQuestions();
+        const questions = await fetchCourseQuestions(courseId);
         setAvailableQuestions(questions);
       } catch (error) {
         alert('Failed to load questions');
