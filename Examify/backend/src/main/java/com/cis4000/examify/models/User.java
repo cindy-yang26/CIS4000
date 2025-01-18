@@ -3,7 +3,7 @@ package com.cis4000.examify.models;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "users")
+@Table(name = "user")
 public class User {
 
     @Id
