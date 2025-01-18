@@ -56,13 +56,16 @@ public class AuthController {
                 .body("Error: Invalid credentials");
         }
 
-        // user has logged in successfully need to store cookie
+        // Check the cookie of the loginRequest. If not exists, fail login.
         String cookie = loginRequest.getCookie();
-
+        if (cookie == null) {
+            return ResponseEntity.status(HttpStatus.I_AM_A_TEAPOT)
+                .body("Error: Cookie not found with request"); 
+        }
         Sessions sessions = new Sessions();
         sessions.setCookie(cookie);
         sessions.setId(user.getId());
-        LocalDateTime expiration = LocalDateTime.now().plusHours(1);
+        LocalDateTime expiration = LocalDateTime.now().plusDays(30);
         sessions.setExpiration(expiration);
         sessionsRepository.save(sessions);
 
