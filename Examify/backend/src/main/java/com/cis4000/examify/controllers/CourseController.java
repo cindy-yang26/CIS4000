@@ -4,11 +4,18 @@ import com.cis4000.examify.models.Assignment;
 import com.cis4000.examify.models.Course;
 import com.cis4000.examify.models.Question;
 import com.cis4000.examify.repositories.CourseRepository;
+import com.cis4000.examify.repositories.SessionsRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -18,6 +25,9 @@ public class CourseController {
 
     @Autowired
     private CourseRepository courseRepository;
+
+    @Autowired
+    private SessionsRepository sessionsRepository;
 
     @PostMapping
     public ResponseEntity<?> createCourse(@RequestBody CourseRequest request) {
@@ -111,6 +121,22 @@ public class CourseController {
         }
     }
 
+    @GetMapping("/")
+    public ResponseEntity<?> getAllCourses(@RequestBody GetAllCoursesRequest request) {
+        try {
+            List<Course> courses = courseRepository.findCoursesByCookie(request.getCookie());
+            for (Course c : courses) {
+                c.setAssignments(null);
+                c.setUser(null);
+                c.setSessions(null);
+            }
+            return ResponseEntity.ok(courses);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error getting all courses: " + e.getMessage());
+        }
+    }
+
     public static class CourseRequest {
         private long userId;
         private String courseCode;
@@ -138,6 +164,18 @@ public class CourseController {
 
         public void setProfessor(String professor) {
             this.professor = professor;
+        }
+    }
+
+    public static class GetAllCoursesRequest {
+        private String cookie;
+
+        public void setCookie(String cookie) {
+            this.cookie = cookie;
+        }
+
+        public String getCookie() {
+            return cookie;
         }
     }
 }

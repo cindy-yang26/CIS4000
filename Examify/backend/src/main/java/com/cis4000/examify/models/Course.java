@@ -1,7 +1,18 @@
 package com.cis4000.examify.models;
 
-import jakarta.persistence.*;
 import java.util.List;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "course")
@@ -26,6 +37,10 @@ public class Course {
 
     @OneToMany(mappedBy = "courseId", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Question> questions;
+
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name="user_id", referencedColumnName = "user_id")
+    private List<Sessions> sessions;
 
     public Long getId() {
         return id;
@@ -73,5 +88,13 @@ public class Course {
 
     public void setQuestions(List<Question> questions) {
         this.questions = questions;
+    }
+
+    public List<Sessions> getSessions() {
+        return sessions;
+    }
+
+    public void setSessions(List<Sessions> sessions) {
+        this.sessions = sessions;
     }
 }
