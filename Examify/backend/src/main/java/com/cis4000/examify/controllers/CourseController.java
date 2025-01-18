@@ -39,6 +39,7 @@ public class CourseController {
         try {
             Course course = courseRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
+            course.setUser(null);
             course.setAssignments(null);
 
             return ResponseEntity.ok(course);
