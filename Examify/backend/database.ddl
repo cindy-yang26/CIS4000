@@ -68,7 +68,7 @@ CREATE TABLE variation (
 
 CREATE TABLE sessions (
     cookie varchar(225),
-    id bigint,
+    user_id bigint,
     expiration DATETIME,
     PRIMARY KEY (cookie),
     FOREIGN KEY (id) REFERENCES user(id)
