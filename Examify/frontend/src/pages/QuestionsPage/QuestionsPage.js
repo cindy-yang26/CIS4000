@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchCourseInfo, fetchCourseQuestions } from '../../api/courses';
-import { createQuestion, editQuestion, deleteQuestion } from '../../api/questions';
+import { createQuestion, editQuestion, deleteQuestion, uploadFileContentToBackend } from '../../api/questions';
 import Header from '../../components/Header/Header';
 import { FaChevronLeft, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
 import './QuestionsPage.css';
+import mammoth from 'mammoth';
 
 function QuestionsPage() {
   const { courseId } = useParams();
@@ -50,7 +51,7 @@ function QuestionsPage() {
     };
 
     loadQuestions();
-  }, []);
+  }, [courseId]);
 
   const handleReturnToCourse = () => {
     navigate(`/course/${courseId}`);
@@ -159,6 +160,50 @@ function QuestionsPage() {
     );
   });
 
+  const handleUploadDocument = async (e) => {
+    const file = e.target.files[0];
+  
+    if (!file) {
+      alert('No file selected!');
+      return;
+    }
+  
+    const fileType = file.name.split('.').pop().toLowerCase();
+  
+    if (fileType === 'docx') {
+      const reader = new FileReader();
+  
+      reader.onload = async (event) => {
+        const arrayBuffer = event.target.result;
+        try {
+          const result = await mammoth.extractRawText({ arrayBuffer });
+          const fileContent = result.value;
+          await uploadFileContentToBackend(courseId, fileContent);
+          const updatedQuestions = await fetchCourseQuestions(courseId);
+          setQuestions(updatedQuestions);
+        } catch (error) {
+          console.error('Error processing Word document:', error);
+          alert('Failed to process the Word document.');
+        }
+      };
+  
+      reader.readAsArrayBuffer(file);
+    } else if (fileType === 'txt') {
+      const reader = new FileReader();
+  
+      reader.onload = async (event) => {
+        const fileContent = event.target.result;
+        await uploadFileContentToBackend(courseId, fileContent);
+        const updatedQuestions = await fetchCourseQuestions(courseId);
+        setQuestions(updatedQuestions);
+      };
+  
+      reader.readAsText(file);
+    } else {
+      alert('Unsupported file type. Please upload a .docx or .txt file.');
+    }
+  };
+  
 
   return (
     <MathJaxContext>
@@ -170,10 +215,24 @@ function QuestionsPage() {
               <FaChevronLeft />
             </button>
             <h2 className="course-title">Questions for {courseName}</h2>
-            <button className="add-question-button" onClick={handleAddQuestion}>
-              <FaPlus />
-              <span className="question-button-text">{editingQuestion ? 'Edit Question' : ' Add Question'}</span>
-            </button>
+            <div className="button-container">
+              <button className="add-question-button" onClick={handleAddQuestion}>
+                <FaPlus />
+                <span className="question-button-text">{editingQuestion ? 'Edit Question' : ' Add Question'}</span>
+              </button>
+              <button className="upload-document-button">
+                <label htmlFor="upload-document" style={{ cursor: "pointer" }}>
+                  Upload Document
+                </label>
+                <input
+                  type="file"
+                  id="upload-document"
+                  style={{ display: "none" }}
+                  accept=".txt"
+                  onChange={handleUploadDocument}
+                />
+              </button>
+            </div>
           </div>
 
           <div className="question-search-div">
