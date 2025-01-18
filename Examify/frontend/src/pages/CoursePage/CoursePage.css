@@ -16,7 +16,6 @@
     display: flex;
     align-items: left;
     justify-content: space-between;
-    margin-bottom: 10px;
     margin-top: 30px;
   }
   
@@ -42,6 +41,23 @@
 
   .assignment-header-div {
     font-size: 0.8em;
+  }
+
+  .course-second-div {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #spacer {
+    width: 20%;
+  }
+
+  .assignments-search-div {
+    flex-grow: 1;
+    width: 60%;
   }
   
   .add-assignment-button {
@@ -72,7 +88,7 @@
     font-size: 0.9em;
     cursor: pointer;
     width: auto;
-    float: right;
+    align-self: flex-start;
   }
 
   .view-questions-button:hover {
@@ -88,7 +104,6 @@
     display: flex;
     flex-wrap: wrap;
     gap: 16px;
-    padding-top: 20px;
     padding-left: 25px;
   }
   

@@ -27,7 +27,7 @@ export const fetchCourseAssignments = async (id) => {
     const response = await axios.get(`${API_BASE_URL}/${id}/assignments`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching assignments for course:', error);
+    console.error('Error fetching assignments for this course:', error);
     throw error;
   }
 };

@@ -10,10 +10,10 @@ import { fetchCourseAssignments, fetchCourseInfo } from '../../api/courses';
 
 function CoursePage() {
   const { courseId } = useParams();
-
   const [actualCourseName, setActualCourseName] = useState("");
   const [assignments, setAssignments] = useState([]);
   const [menuVisible, setMenuVisible] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -77,6 +77,13 @@ function CoursePage() {
     }
   };
 
+  const filteredAssignments = assignments.filter((assignment, index) => {
+    const name = assignment.name;
+    return (
+      name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  });
+
   return (
     <div className="course-page">
       <Header />
@@ -96,12 +103,24 @@ function CoursePage() {
             </div>
           </h2>
         </div>
-        <button className="view-questions-button" onClick={handleViewQuestions}>
-          View All Questions
-        </button>
+        <div className="course-second-div">
+          <div id="spacer"></div>
+          <div className="assignments-search-div">
+            <input
+              type="text"
+              placeholder=" 🔍 Search assignments..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="assignment-search-input"
+            />
+          </div>
+          <button className="view-questions-button" onClick={handleViewQuestions}>
+            View All Questions
+          </button>
+        </div>
 
         <div className="assignments-list">
-          {assignments.length > 0 ? (assignments.map((assignment, index) => (
+          {filteredAssignments.length > 0 ? (filteredAssignments.map((assignment, index) => (
             <div key={assignment.id} className="assignment-card" onClick={() => handleViewAssignment(assignment.id)}>
               <div className="course-assignment-info">
                 <FaFolder className="assignment-icon" />
