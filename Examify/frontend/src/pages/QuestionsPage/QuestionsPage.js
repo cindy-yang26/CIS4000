@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { fetchCourseInfo } from '../../api/courses';
-import { createQuestion, fetchQuestions, editQuestion, deleteQuestion } from '../../api/questions';
+import { fetchCourseInfo, fetchCourseQuestions } from '../../api/courses';
+import { createQuestion, editQuestion, deleteQuestion } from '../../api/questions';
 import Header from '../../components/Header/Header';
 import { FaChevronLeft, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
@@ -41,7 +41,7 @@ function QuestionsPage() {
   useEffect(() => {
     const loadQuestions = async () => {
       try {
-        const data = await fetchQuestions();
+        const data = await fetchCourseQuestions(courseId);
         setQuestions(data);
       } catch (error) {
         alert("Failed to fetch questions.");
@@ -77,28 +77,29 @@ function QuestionsPage() {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-  
+
     const tagsArray = formFields.tags.split(',').map((tag) => tag.trim()).filter((tag) => tag);
-  
+
     const questionData = {
+      courseId: courseId,
       title: formFields.title,
       text: formFields.text,
       comment: formFields.comment,
       tags: tagsArray,
       stats: { ...formFields.stats },
     };
-  
+
     try {
       if (editingQuestion) {
         await editQuestion(editingQuestion.id, questionData);
-        const updatedQuestions = await fetchQuestions();
+        const updatedQuestions = await fetchCourseQuestions(courseId);
         setQuestions(updatedQuestions);
       } else {
         await createQuestion(questionData);
-        const updatedQuestions = await fetchQuestions();
+        const updatedQuestions = await fetchCourseQuestions(courseId);
         setQuestions(updatedQuestions);
       }
-  
+
       setFormFields({
         title: '',
         text: '',
@@ -128,14 +129,14 @@ function QuestionsPage() {
   const handleDeleteQuestion = async (id) => {
     try {
       await deleteQuestion(id);
-      const updatedQuestions = await fetchQuestions();
+      const updatedQuestions = await fetchCourseQuestions(courseId);
       setQuestions(updatedQuestions);
     } catch (error) {
       alert(error);
       console.error(error);
     }
   };
-  
+
   const handleDeleteTag = (questionId, tagToDelete) => {
     setQuestions(
       questions.map((q) =>
@@ -147,17 +148,17 @@ function QuestionsPage() {
   };
 
   const filteredQuestions = questions.filter((question) => {
-    const title = question.title || ''; 
-    const text = question.text || '';   
-    const tags = question.tags || [];  
-  
+    const title = question.title || '';
+    const text = question.text || '';
+    const tags = question.tags || [];
+
     return (
       title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       text.toLowerCase().includes(searchQuery.toLowerCase()) ||
       tags.some((tag) => (tag || '').toLowerCase().includes(searchQuery.toLowerCase()))
     );
   });
-  
+
 
   return (
     <MathJaxContext>
@@ -191,7 +192,7 @@ function QuestionsPage() {
                 <div className="question-text">
                   <h3 className="question-title">{question.title}</h3>
                   <div className="question-tags">
-                  {(question.tags || []).map((tag, index) => (
+                    {(question.tags || []).map((tag, index) => (
                       <span key={index} className="tag-item">
                         {tag}
                         <button
@@ -205,10 +206,10 @@ function QuestionsPage() {
                   </div>
                   <MathJax>{question.text}</MathJax>
                   <div className="question-stats">
-                    Mean: {question.stats?.mean || 'N/A'}, 
-                    Median: {question.stats?.median || 'N/A'}, 
-                    Std Dev: {question.stats?.stdDev || 'N/A'}, 
-                    Min: {question.stats?.min || 'N/A'}, 
+                    Mean: {question.stats?.mean || 'N/A'},
+                    Median: {question.stats?.median || 'N/A'},
+                    Std Dev: {question.stats?.stdDev || 'N/A'},
+                    Min: {question.stats?.min || 'N/A'},
                     Max: {question.stats?.max || 'N/A'}
                   </div>
                   {question.comment && (

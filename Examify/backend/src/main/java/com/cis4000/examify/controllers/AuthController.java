@@ -17,7 +17,6 @@ import com.cis4000.examify.models.Sessions;
 import com.cis4000.examify.models.User;
 import com.cis4000.examify.repositories.SessionsRepository;
 import com.cis4000.examify.repositories.UserRepository;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -45,7 +44,7 @@ public class AuthController {
         Optional<User> userOptional = userRepository.findByUsername(loginRequest.getUsername());
         if (userOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body("Error: Invalid credentials");
+                    .body("Error: Invalid credentials");
         }
 
         User user = userOptional.get();
@@ -53,14 +52,14 @@ public class AuthController {
         // Using BCrypt to decrypt and hash the password
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body("Error: Invalid credentials");
+                    .body("Error: Invalid credentials");
         }
 
         // Check the cookie of the loginRequest. If not exists, fail login.
         String cookie = loginRequest.getCookie();
         if (cookie == null) {
             return ResponseEntity.status(HttpStatus.I_AM_A_TEAPOT)
-                .body("Error: Cookie not found with request"); 
+                    .body("Error: Cookie not found with request");
         }
         Sessions sessions = new Sessions();
         sessions.setCookie(cookie);
@@ -76,27 +75,27 @@ public class AuthController {
     public ResponseEntity<String> signup(@RequestBody SignupRequest signupRequest) {
         if (signupRequest.getPassword() == null || signupRequest.getPassword().length() < 8) {
             return ResponseEntity.badRequest()
-                .body("Error: Password must be at least 8 characters long");
+                    .body("Error: Password must be at least 8 characters long");
         }
 
         if (userRepository.existsByUsername(signupRequest.getUsername())) {
             return ResponseEntity.badRequest()
-                .body("Error: Username is already taken!");
+                    .body("Error: Username is already taken!");
         }
 
         if (userRepository.existsByEmail(signupRequest.getEmail())) {
             return ResponseEntity.badRequest()
-                .body("Error: Email is already in use!");
+                    .body("Error: Email is already in use!");
         }
 
         User user = new User();
         user.setUsername(signupRequest.getUsername());
         user.setEmail(signupRequest.getEmail());
-        
+
         // Using BCrypt to salt and hash the password
         String hashedPassword = passwordEncoder.encode(signupRequest.getPassword());
         user.setPassword(hashedPassword);
-        
+
         userRepository.save(user);
 
         return ResponseEntity.ok("User registered successfully!");
@@ -132,7 +131,7 @@ public class AuthController {
             return cookie;
         }
 
-        public void setCookie() {
+        public void setCookie(String cookie) {
             this.cookie = cookie;
         }
     }

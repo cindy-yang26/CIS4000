@@ -14,7 +14,7 @@ import jakarta.persistence.Table;
 public class Sessions {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private String cookie;
 
     @Column(name = "user_id", nullable = false)

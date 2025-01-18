@@ -71,5 +71,5 @@ CREATE TABLE sessions (
     user_id bigint,
     expiration DATETIME,
     PRIMARY KEY (cookie),
-    FOREIGN KEY (id) REFERENCES user(id)
+    FOREIGN KEY (user_id) REFERENCES user(id)
 );
