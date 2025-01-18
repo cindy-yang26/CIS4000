@@ -1,23 +1,32 @@
 package com.cis4000.examify.controllers;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.view.RedirectView;
 
+import com.cis4000.examify.models.Sessions;
 import com.cis4000.examify.models.User;
+import com.cis4000.examify.repositories.SessionsRepository;
 import com.cis4000.examify.repositories.UserRepository;
-
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
     private final UserRepository userRepository;
+    private final SessionsRepository sessionsRepository;
 
-    public AuthController(UserRepository userRepository) {
+    public AuthController(UserRepository userRepository, SessionsRepository sessionsRepository) {
         this.userRepository = userRepository;
+        this.sessionsRepository = sessionsRepository;
     }
 
     @PostMapping("/login")
@@ -34,6 +43,16 @@ public class AuthController {
         if (!user.getPassword().equals(loginRequest.getPassword())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Invalid username or password");
         }
+
+        // user has logged in successfully need to store cookie
+        String cookie = loginRequest.getCookie();
+
+        Sessions sessions = new Sessions();
+        sessions.setCookie(cookie);
+        sessions.setId(user.getId());
+        LocalDateTime expiration = LocalDateTime.now().plusHours(1);
+        sessions.setExpiration(expiration);
+        sessionsRepository.save(sessions);
 
         return ResponseEntity.ok("Login successful for " + loginRequest.getUsername());
     }
@@ -65,6 +84,7 @@ public class AuthController {
     public static class LoginRequest {
         private String username;
         private String password;
+        private String cookie;
 
         public String getUsername() {
             return username;
@@ -80,6 +100,14 @@ public class AuthController {
 
         public void setPassword(String password) {
             this.password = password;
+        }
+
+        public String getCookie() {
+            return cookie;
+        }
+
+        public void setCookie() {
+            this.cookie = cookie;
         }
     }
 
