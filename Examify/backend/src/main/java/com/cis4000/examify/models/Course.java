@@ -23,7 +23,7 @@ public class Course {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = true) // TODO: change when courses are restricted to specific users
+    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = true) // TODO: change when courses are restricted to specific users
     private User user;
 
     @Column(name = "course_code", nullable = false, length = 50)
@@ -37,10 +37,6 @@ public class Course {
 
     @OneToMany(mappedBy = "courseId", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Question> questions;
-
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name="user_id", referencedColumnName = "user_id")
-    private List<Sessions> sessions;
 
     public Long getId() {
         return id;
@@ -88,13 +84,5 @@ public class Course {
 
     public void setQuestions(List<Question> questions) {
         this.questions = questions;
-    }
-
-    public List<Sessions> getSessions() {
-        return sessions;
-    }
-
-    public void setSessions(List<Sessions> sessions) {
-        this.sessions = sessions;
     }
 }

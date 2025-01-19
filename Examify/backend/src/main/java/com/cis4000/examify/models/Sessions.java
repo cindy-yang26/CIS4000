@@ -4,9 +4,6 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -17,17 +14,12 @@ import jakarta.persistence.Table;
 public class Sessions {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(length = 225, nullable = false)
     private String cookie;
 
-    @Column(name = "user_id", nullable = false, insertable=false, updatable=false)
-    private Long userId;
-
-
-    // TODO: Might need to add more many to one relationships across the tables
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="user_id", referencedColumnName = "user_id")
-    private Course course;
+    @ManyToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
+    private User user;
 
     @Column(nullable = false)
     private LocalDateTime expiration;
@@ -40,12 +32,12 @@ public class Sessions {
         this.cookie = cookie;
     }
 
-    public Long getUserId() {
-        return userId;
+    public User getUser() {
+        return user;
     }
 
-    public void setId(Long userId) {
-        this.userId = userId;
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public LocalDateTime getExpiration() {

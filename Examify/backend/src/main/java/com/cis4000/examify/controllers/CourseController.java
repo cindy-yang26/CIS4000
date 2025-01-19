@@ -128,7 +128,6 @@ public class CourseController {
             for (Course c : courses) {
                 c.setAssignments(null);
                 c.setUser(null);
-                c.setSessions(null);
             }
             return ResponseEntity.ok(courses);
         } catch (Exception e) {
