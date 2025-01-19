@@ -4,7 +4,8 @@ import com.cis4000.examify.models.Assignment;
 import com.cis4000.examify.models.Course;
 import com.cis4000.examify.models.Question;
 import com.cis4000.examify.repositories.CourseRepository;
-import com.cis4000.examify.repositories.SessionsRepository;
+
+import jakarta.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,19 +22,21 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/courses")
-public class CourseController {
-
+public class CourseController extends BaseController {
     @Autowired
     private CourseRepository courseRepository;
 
-    @Autowired
-    private SessionsRepository sessionsRepository;
-
     @PostMapping
-    public ResponseEntity<?> createCourse(@RequestBody CourseRequest request) {
+    public ResponseEntity<?> createCourse(@RequestBody CourseRequest request, HttpSession session) {
         try {
+            Long userId = getUserIdOfSession(session);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Error creating course: no user associated with current session");
+            }
+
             Course course = new Course();
-            // TODO: set user/user_id so that only particular users can access this course
+            course.setUserId(userId);
             course.setCourseCode(request.getCourseCode());
             course.setProfessor(request.getProfessor());
 
@@ -46,11 +49,22 @@ public class CourseController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getCourseInfoById(@PathVariable("id") Long id) {
+    public ResponseEntity<?> getCourseInfoById(@PathVariable("id") Long id, HttpSession session) {
         try {
+            Long userId = getUserIdOfSession(session);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Error fetching course info: no user associated with current session");
+            }
+
             Course course = courseRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
-            course.setUser(null);
+
+            if (course.getUserId().equals(userId)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Error fetching course info: current user not authorized to access course");
+            }
+
             course.setAssignments(null);
             course.setQuestions(null);
 
@@ -64,10 +78,21 @@ public class CourseController {
     }
 
     @GetMapping("/{id}/assignments")
-    public ResponseEntity<?> getAssignmentsByCourseId(@PathVariable("id") Long id) {
+    public ResponseEntity<?> getAssignmentsByCourseId(@PathVariable("id") Long id, HttpSession session) {
         try {
+            Long userId = getUserIdOfSession(session);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Error fetching course assignments: no user associated with current session");
+            }
+
             Course course = courseRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
+
+            if (course.getUserId().equals(userId)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Error fetching course assignments: current user not authorized to access course");
+            }
 
             List<Assignment> assignments = course.getAssignments();
             for (Assignment a : assignments) {
@@ -89,10 +114,21 @@ public class CourseController {
     }
 
     @GetMapping("/{id}/questions")
-    public ResponseEntity<?> getQuestionsByCourseId(@PathVariable("id") Long id) {
+    public ResponseEntity<?> getQuestionsByCourseId(@PathVariable("id") Long id, HttpSession session) {
         try {
+            Long userId = getUserIdOfSession(session);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Error fetching course assignments: no user associated with current session");
+            }
+
             Course course = courseRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
+
+            if (course.getUserId().equals(userId)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Error fetching course assignments: current user not authorized to access course");
+            }
 
             List<Question> questions = course.getQuestions();
             return ResponseEntity.ok(questions);
@@ -105,10 +141,21 @@ public class CourseController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteCourse(@PathVariable Long id) {
+    public ResponseEntity<?> deleteCourse(@PathVariable Long id, HttpSession session) {
         try {
+            Long userId = getUserIdOfSession(session);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Error fetching course assignments: no user associated with current session");
+            }
+
             Course course = courseRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("course not found with id: " + id));
+                    .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
+
+            if (course.getUserId().equals(userId)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Error fetching course assignments: current user not authorized to access course");
+            }
 
             courseRepository.delete(course);
 
@@ -122,13 +169,16 @@ public class CourseController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<?> getAllCourses(@RequestBody GetAllCoursesRequest request) {
+    public ResponseEntity<?> getAllCourses(@RequestBody GetAllCoursesRequest request, HttpSession session) {
         try {
-            List<Course> courses = courseRepository.findCoursesByCookie(request.getCookie());
+            Long userId = getUserIdOfSession(session);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Error retrieving courses: no user associated with current session");
+            }
+            List<Course> courses = courseRepository.findByUserId(userId);
             for (Course c : courses) {
                 c.setAssignments(null);
-                c.setUser(null);
-                c.setSessions(null);
             }
             return ResponseEntity.ok(courses);
         } catch (Exception e) {

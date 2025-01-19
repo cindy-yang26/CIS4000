@@ -18,6 +18,8 @@ import com.cis4000.examify.models.User;
 import com.cis4000.examify.repositories.SessionsRepository;
 import com.cis4000.examify.repositories.UserRepository;
 
+import jakarta.servlet.http.HttpSession;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -33,12 +35,13 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest, HttpSession session) {
         System.out.println("Received login request for username: " + loginRequest.getUsername());
 
-        Optional<Sessions> sessionsOptional = sessionsRepository.findByCookie(loginRequest.getCookie());
+        String sessionId = session.getId();
+        Optional<Sessions> sessionsOptional = sessionsRepository.findByCookie(sessionId);
         if (!sessionsOptional.isEmpty()) {
-            return ResponseEntity.ok("Login successful with cookie " + loginRequest.getCookie());
+            return ResponseEntity.ok("Login successful with session id " + sessionId);
         }
 
         Optional<User> userOptional = userRepository.findByUsername(loginRequest.getUsername());
@@ -56,14 +59,13 @@ public class AuthController {
         }
 
         // Check the cookie of the loginRequest. If not exists, fail login.
-        String cookie = loginRequest.getCookie();
-        if (cookie == null) {
+        if (sessionId == null) {
             return ResponseEntity.status(HttpStatus.I_AM_A_TEAPOT)
-                    .body("Error: Cookie not found with request");
+                    .body("Error: Cookie with session id not found with request");
         }
         Sessions sessions = new Sessions();
-        sessions.setCookie(cookie);
-        sessions.setId(user.getId());
+        sessions.setCookie(sessionId);
+        sessions.setUserId(user.getId());
         LocalDateTime expiration = LocalDateTime.now().plusDays(30);
         sessions.setExpiration(expiration);
         sessionsRepository.save(sessions);
@@ -109,7 +111,6 @@ public class AuthController {
     public static class LoginRequest {
         private String username;
         private String password;
-        private String cookie;
 
         public String getUsername() {
             return username;
@@ -125,14 +126,6 @@ public class AuthController {
 
         public void setPassword(String password) {
             this.password = password;
-        }
-
-        public String getCookie() {
-            return cookie;
-        }
-
-        public void setCookie(String cookie) {
-            this.cookie = cookie;
         }
     }
 
