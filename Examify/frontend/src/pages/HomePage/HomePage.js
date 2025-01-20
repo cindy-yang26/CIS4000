@@ -16,7 +16,7 @@ function HomePage() {
 
   useEffect(() => {
     const loadCourses = async () => {
-      const newCourseInfo = await fetchAllCourses();
+      const newCourseInfo = await fetchAllCourses(navigate);
       console.log(newCourseInfo);
       setCourses(newCourseInfo);
     };
@@ -29,7 +29,7 @@ function HomePage() {
 
   const handleDeleteCourse = (courseToDelete) => {
     const idToDelete = courseToDelete.id;
-    deleteCourse(idToDelete);
+    deleteCourse(idToDelete, navigate);
     setCourses(courses.filter((course) => course.id !== idToDelete));
     setMenuVisible(null);
   };
