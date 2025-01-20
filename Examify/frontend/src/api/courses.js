@@ -12,6 +12,16 @@ export const createCourse = async (courseData) => {
   }
 };
 
+export const fetchAllCourses = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/`, { withCredentials: true });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching info for course:', error);
+    throw error;
+  }
+}
+
 export const fetchCourseInfo = async (id) => {
   try {
     const response = await axios.get(`${API_BASE_URL}/${id}`, { withCredentials: true });

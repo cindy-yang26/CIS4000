@@ -70,7 +70,7 @@ public class AuthController {
         // Update / create a cookie in the database, and send it back to user.
         Sessions sessions = new Sessions();
         sessions.setCookie(cookie);
-        sessions.setUser(user);
+        sessions.setUserId(user.getId());
         LocalDateTime expiration = LocalDateTime.now().plusDays(30);
         sessions.setExpiration(expiration);
         sessionsRepository.save(sessions);
@@ -120,7 +120,7 @@ public class AuthController {
         String cookie = java.util.UUID.randomUUID().toString();
         Sessions sessions = new Sessions();
         sessions.setCookie(cookie);
-        sessions.setUser(user);
+        sessions.setUserId(user.getId());
         LocalDateTime expiration = LocalDateTime.now().plusDays(30);
         sessions.setExpiration(expiration);
         sessionsRepository.save(sessions);

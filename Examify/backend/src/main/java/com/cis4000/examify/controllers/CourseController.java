@@ -4,11 +4,11 @@ import com.cis4000.examify.models.Assignment;
 import com.cis4000.examify.models.Course;
 import com.cis4000.examify.models.Question;
 import com.cis4000.examify.repositories.CourseRepository;
-import com.cis4000.examify.repositories.SessionsRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,19 +21,24 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/courses")
-public class CourseController {
+public class CourseController extends BaseController {
 
     @Autowired
     private CourseRepository courseRepository;
 
-    @Autowired
-    private SessionsRepository sessionsRepository;
-
     @PostMapping
-    public ResponseEntity<?> createCourse(@RequestBody CourseRequest request) {
+    public ResponseEntity<?> createCourse(
+            @CookieValue(name = "sessionId", required = false) String sessionCookie,
+            @RequestBody CourseRequest request) {
         try {
+            Long userId = getUserIdFromSessionCookie(sessionCookie);
+            // User needs to log in first
+            if (userId == null) {
+                return notLoggedInResponse();
+            }
+
             Course course = new Course();
-            // TODO: set user/user_id so that only particular users can access this course
+            course.setUserId(userId);
             course.setCourseCode(request.getCourseCode());
             course.setProfessor(request.getProfessor());
 
@@ -46,13 +51,24 @@ public class CourseController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getCourseInfoById(@PathVariable("id") Long id) {
+    public ResponseEntity<?> getCourseInfoById(@CookieValue(name = "sessionId", required = false) String sessionCookie,
+            @PathVariable("id") Long id) {
         try {
+            Long userId = getUserIdFromSessionCookie(sessionCookie);
+            // User needs to log in first
+            if (userId == null) {
+                return notLoggedInResponse();
+            }
+
             Course course = courseRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
-            course.setUser(null);
             course.setAssignments(null);
             course.setQuestions(null);
+
+            // Verify that this course belongs to the user
+            if (!course.getUserId().equals(userId)) {
+                return userDoesntHaveAccessResponse();
+            }
 
             return ResponseEntity.ok(course);
         } catch (RuntimeException e) {
@@ -64,10 +80,22 @@ public class CourseController {
     }
 
     @GetMapping("/{id}/assignments")
-    public ResponseEntity<?> getAssignmentsByCourseId(@PathVariable("id") Long id) {
+    public ResponseEntity<?> getAssignmentsByCourseId(
+            @CookieValue(name = "sessionId", required = false) String sessionCookie, @PathVariable("id") Long id) {
         try {
+            Long userId = getUserIdFromSessionCookie(sessionCookie);
+            // User needs to log in first
+            if (userId == null) {
+                return notLoggedInResponse();
+            }
+
             Course course = courseRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
+
+            // Verify that this course belongs to the user
+            if (!course.getUserId().equals(userId)) {
+                return userDoesntHaveAccessResponse();
+            }
 
             List<Assignment> assignments = course.getAssignments();
             for (Assignment a : assignments) {
@@ -89,10 +117,22 @@ public class CourseController {
     }
 
     @GetMapping("/{id}/questions")
-    public ResponseEntity<?> getQuestionsByCourseId(@PathVariable("id") Long id) {
+    public ResponseEntity<?> getQuestionsByCourseId(
+            @CookieValue(name = "sessionId", required = false) String sessionCookie, @PathVariable("id") Long id) {
         try {
+            Long userId = getUserIdFromSessionCookie(sessionCookie);
+            // User needs to log in first
+            if (userId == null) {
+                return notLoggedInResponse();
+            }
+
             Course course = courseRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
+
+            // Verify that this course belongs to the user
+            if (!course.getUserId().equals(userId)) {
+                return userDoesntHaveAccessResponse();
+            }
 
             List<Question> questions = course.getQuestions();
             return ResponseEntity.ok(questions);
@@ -105,10 +145,22 @@ public class CourseController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteCourse(@PathVariable Long id) {
+    public ResponseEntity<?> deleteCourse(@CookieValue(name = "sessionId", required = false) String sessionCookie,
+            @PathVariable Long id) {
         try {
+            Long userId = getUserIdFromSessionCookie(sessionCookie);
+            // User needs to log in first
+            if (userId == null) {
+                return notLoggedInResponse();
+            }
+
             Course course = courseRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("course not found with id: " + id));
+
+            // Verify that this course belongs to the user
+            if (!course.getUserId().equals(userId)) {
+                return userDoesntHaveAccessResponse();
+            }
 
             courseRepository.delete(course);
 
@@ -122,12 +174,17 @@ public class CourseController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<?> getAllCourses(@RequestBody GetAllCoursesRequest request) {
+    public ResponseEntity<?> getAllCourses(@CookieValue(name = "sessionId", required = false) String sessionCookie) {
         try {
-            List<Course> courses = courseRepository.findCoursesByCookie(request.getCookie());
+            Long userId = getUserIdFromSessionCookie(sessionCookie);
+            // User needs to log in first
+            if (userId == null) {
+                return notLoggedInResponse();
+            }
+
+            List<Course> courses = courseRepository.findByUserId(userId);
             for (Course c : courses) {
                 c.setAssignments(null);
-                c.setUser(null);
             }
             return ResponseEntity.ok(courses);
         } catch (Exception e) {
@@ -163,18 +220,6 @@ public class CourseController {
 
         public void setProfessor(String professor) {
             this.professor = professor;
-        }
-    }
-
-    public static class GetAllCoursesRequest {
-        private String cookie;
-
-        public void setCookie(String cookie) {
-            this.cookie = cookie;
-        }
-
-        public String getCookie() {
-            return cookie;
         }
     }
 }

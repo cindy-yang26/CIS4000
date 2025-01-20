@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Header from '../../components/Header/Header';
 import { useNavigate } from 'react-router-dom';
-import { createCourse, deleteCourse, fetchCourseInfo } from '../../api/courses';
+import { createCourse, deleteCourse, fetchAllCourses } from '../../api/courses';
 import './HomePage.css';
 import { FaFolder, FaPlus } from 'react-icons/fa';
 import { FiMoreVertical, FiTrash2 } from 'react-icons/fi';
@@ -9,8 +9,6 @@ import { TiEdit } from "react-icons/ti";
 
 
 function HomePage() {
-  // TODO: the following line should be done by fetching from backend
-  const [courseIds, setCourseIds] = useState([2, 3, 4, 5]);
   const [courses, setCourses] = useState([]);
   const [menuVisible, setMenuVisible] = useState(null);
   const navigate = useNavigate();
@@ -18,11 +16,12 @@ function HomePage() {
 
   useEffect(() => {
     const loadCourses = async () => {
-      const newCourseInfo = await Promise.all(courseIds.map(fetchCourseInfo));
+      const newCourseInfo = await fetchAllCourses();
+      console.log(newCourseInfo);
       setCourses(newCourseInfo);
     };
     loadCourses();
-  }, [courseIds]);
+  }, []);
 
   const handleCourseClick = (course) => {
     navigate(`/course/${course.id}`);
@@ -31,7 +30,7 @@ function HomePage() {
   const handleDeleteCourse = (courseToDelete) => {
     const idToDelete = courseToDelete.id;
     deleteCourse(idToDelete);
-    setCourseIds(courseIds.filter((id) => id !== idToDelete));
+    setCourses(courses.filter((course) => course.id !== idToDelete));
     setMenuVisible(null);
   };
 
