@@ -5,6 +5,7 @@ import com.cis4000.examify.models.Course;
 import com.cis4000.examify.models.Question;
 import com.cis4000.examify.repositories.AssignmentRepository;
 import com.cis4000.examify.repositories.QuestionRepository;
+import com.cis4000.examify.repositories.CourseRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,10 +13,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/assignments")
-public class AssignmentController {
+public class AssignmentController extends BaseController {
 
     @Autowired
     private AssignmentRepository assignmentRepository;
@@ -23,9 +25,28 @@ public class AssignmentController {
     @Autowired
     private QuestionRepository questionRepository;
 
+    @Autowired
+    private CourseRepository courseRepository;
+
     @PostMapping
-    public ResponseEntity<?> createAssignment(@RequestBody AssignmentRequest request) {
+    public ResponseEntity<?> createAssignment(@CookieValue(name = "sessionId", required = false) String sessionCookie,
+            @RequestBody AssignmentRequest request) {
         try {
+            Long userId = getUserIdFromSessionCookie(sessionCookie);
+            // User needs to log in first
+            if (userId == null) {
+                return notLoggedInResponse();
+            }
+
+            // Verify that the user has access to the course
+            Optional<Course> courseOpt = courseRepository.findById(request.getCourseId());
+            if (courseOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No such course");
+            }
+            if (!courseOpt.get().getUserId().equals(userId)) {
+                return userDoesntHaveAccessResponse();
+            }
+
             Assignment assignment = new Assignment();
             assignment.setName(request.getName());
             assignment.setComment(request.getComment() != null ? request.getComment() : "");
@@ -53,10 +74,23 @@ public class AssignmentController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getAssignmentInfoById(@PathVariable("id") Long id) {
+    public ResponseEntity<?> getAssignmentInfoById(
+            @CookieValue(name = "sessionId", required = false) String sessionCookie, @PathVariable("id") Long id) {
         try {
+            Long userId = getUserIdFromSessionCookie(sessionCookie);
+            // User needs to log in first
+            if (userId == null) {
+                return notLoggedInResponse();
+            }
+
             Assignment assignment = assignmentRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Assignment not found with id: " + id));
+
+            // Verify that the user has access to the course
+            if (!assignment.getCourse().getUserId().equals(userId)) {
+                return userDoesntHaveAccessResponse();
+            }
+
             // TODO: the following line exists because, if not, the fetching would have a
             // cycle (by fetching an assignment, which has a course, which has assignments
             // (including this one), etc.) leading to an infinitely long response
@@ -75,10 +109,22 @@ public class AssignmentController {
     }
 
     @GetMapping("/{id}/questions")
-    public ResponseEntity<?> getQuestionsByAssignmentId(@PathVariable("id") Long id) {
+    public ResponseEntity<?> getQuestionsByAssignmentId(
+            @CookieValue(name = "sessionId", required = false) String sessionCookie, @PathVariable("id") Long id) {
         try {
+            Long userId = getUserIdFromSessionCookie(sessionCookie);
+            // User needs to log in first
+            if (userId == null) {
+                return notLoggedInResponse();
+            }
+
             Assignment assignment = assignmentRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Assignment not found with id: " + id));
+
+            // Verify that the user has access to the course
+            if (!assignment.getCourse().getUserId().equals(userId)) {
+                return userDoesntHaveAccessResponse();
+            }
 
             List<Question> questions = assignment.getQuestions();
 
@@ -92,10 +138,22 @@ public class AssignmentController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteAssignment(@PathVariable Long id) {
+    public ResponseEntity<?> deleteAssignment(@CookieValue(name = "sessionId", required = false) String sessionCookie,
+            @PathVariable Long id) {
         try {
+            Long userId = getUserIdFromSessionCookie(sessionCookie);
+            // User needs to log in first
+            if (userId == null) {
+                return notLoggedInResponse();
+            }
+
             Assignment assignment = assignmentRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Assignment not found with id: " + id));
+
+            // Verify that the user has access to the course
+            if (!assignment.getCourse().getUserId().equals(userId)) {
+                return userDoesntHaveAccessResponse();
+            }
 
             assignmentRepository.delete(assignment);
 

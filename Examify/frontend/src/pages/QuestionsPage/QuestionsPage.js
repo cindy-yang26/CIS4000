@@ -28,7 +28,10 @@ function QuestionsPage() {
   useEffect(() => {
     const loadCourseName = async () => {
       try {
-        const courseInfo = await fetchCourseInfo(courseId);
+        const courseInfo = await fetchCourseInfo(courseId, navigate);
+        if (courseInfo == null) {
+          return;
+        }
         setCourseName(courseInfo.courseCode);
       } catch (error) {
         alert('Failed to load course name.');
@@ -42,7 +45,7 @@ function QuestionsPage() {
   useEffect(() => {
     const loadQuestions = async () => {
       try {
-        const data = await fetchCourseQuestions(courseId);
+        const data = await fetchCourseQuestions(courseId, navigate);
         setQuestions(data);
       } catch (error) {
         alert("Failed to fetch questions.");
@@ -92,12 +95,12 @@ function QuestionsPage() {
 
     try {
       if (editingQuestion) {
-        await editQuestion(editingQuestion.id, questionData);
-        const updatedQuestions = await fetchCourseQuestions(courseId);
+        await editQuestion(editingQuestion.id, questionData, navigate);
+        const updatedQuestions = await fetchCourseQuestions(courseId, navigate);
         setQuestions(updatedQuestions);
       } else {
-        await createQuestion(questionData);
-        const updatedQuestions = await fetchCourseQuestions(courseId);
+        await createQuestion(questionData, navigate);
+        const updatedQuestions = await fetchCourseQuestions(courseId, navigate);
         setQuestions(updatedQuestions);
       }
 
@@ -129,8 +132,8 @@ function QuestionsPage() {
 
   const handleDeleteQuestion = async (id) => {
     try {
-      await deleteQuestion(id);
-      const updatedQuestions = await fetchCourseQuestions(courseId);
+      await deleteQuestion(id, navigate);
+      const updatedQuestions = await fetchCourseQuestions(courseId, navigate);
       setQuestions(updatedQuestions);
     } catch (error) {
       alert(error);
@@ -162,48 +165,48 @@ function QuestionsPage() {
 
   const handleUploadDocument = async (e) => {
     const file = e.target.files[0];
-  
+
     if (!file) {
       alert('No file selected!');
       return;
     }
-  
+
     const fileType = file.name.split('.').pop().toLowerCase();
-  
+
     if (fileType === 'docx') {
       const reader = new FileReader();
-  
+
       reader.onload = async (event) => {
         const arrayBuffer = event.target.result;
         try {
           const result = await mammoth.extractRawText({ arrayBuffer });
           const fileContent = result.value;
-          await uploadFileContentToBackend(courseId, fileContent);
-          const updatedQuestions = await fetchCourseQuestions(courseId);
+          await uploadFileContentToBackend(courseId, fileContent, navigate);
+          const updatedQuestions = await fetchCourseQuestions(courseId, navigate);
           setQuestions(updatedQuestions);
         } catch (error) {
           console.error('Error processing Word document:', error);
           alert('Failed to process the Word document.');
         }
       };
-  
+
       reader.readAsArrayBuffer(file);
     } else if (fileType === 'txt') {
       const reader = new FileReader();
-  
+
       reader.onload = async (event) => {
         const fileContent = event.target.result;
-        await uploadFileContentToBackend(courseId, fileContent);
-        const updatedQuestions = await fetchCourseQuestions(courseId);
+        await uploadFileContentToBackend(courseId, fileContent, navigate);
+        const updatedQuestions = await fetchCourseQuestions(courseId, navigate);
         setQuestions(updatedQuestions);
       };
-  
+
       reader.readAsText(file);
     } else {
       alert('Unsupported file type. Please upload a .docx or .txt file.');
     }
   };
-  
+
 
   return (
     <MathJaxContext>

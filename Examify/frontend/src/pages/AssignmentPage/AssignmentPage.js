@@ -28,7 +28,10 @@ function AssignmentPage() {
   useEffect(() => {
     const loadCourseName = async () => {
       try {
-        const courseInfo = await fetchCourseInfo(courseId);
+        const courseInfo = await fetchCourseInfo(courseId, navigate);
+        if (courseInfo == null) {
+          return;
+        }
         setCourseName(courseInfo.courseCode);
       } catch (error) {
         alert('Failed to load course name.');
@@ -42,7 +45,7 @@ function AssignmentPage() {
   useEffect(() => {
     const loadAssignmentName = async () => {
       try {
-        const assignmentInfo = await fetchAssignmentInfo(assignmentId);
+        const assignmentInfo = await fetchAssignmentInfo(assignmentId, navigate);
         setAssignmentName(assignmentInfo.name);
       } catch (error) {
         alert('Failed to load assignment name.');
@@ -51,7 +54,7 @@ function AssignmentPage() {
     };
     const loadQuestions = async () => {
       try {
-        const data = await fetchAssignmentQuestions(assignmentId);
+        const data = await fetchAssignmentQuestions(assignmentId, navigate);
         setQuestions(data);
       } catch (error) {
         alert('Failed to load questions.');
@@ -82,8 +85,8 @@ function AssignmentPage() {
 
     try {
       if (editingQuestion) {
-        await editQuestion(editingQuestion.id, questionData);
-        const updatedQuestions = await fetchAssignmentQuestions(assignmentId);
+        await editQuestion(editingQuestion.id, questionData, navigate);
+        const updatedQuestions = await fetchAssignmentQuestions(assignmentId, navigate);
         setQuestions(updatedQuestions);
       }
 

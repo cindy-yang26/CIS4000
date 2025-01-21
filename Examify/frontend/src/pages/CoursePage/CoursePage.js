@@ -19,7 +19,10 @@ function CoursePage() {
   useEffect(() => {
     const loadCourseName = async () => {
       try {
-        const courseInfo = await fetchCourseInfo(courseId);
+        const courseInfo = await fetchCourseInfo(courseId, navigate);
+        if (courseInfo == null) {
+          return;
+        }
         setActualCourseName(courseInfo.courseCode.replace(/-/g, ' '));
       } catch (error) {
         alert('Failed to load course name');
@@ -28,7 +31,7 @@ function CoursePage() {
     };
     const loadAssignments = async () => {
       try {
-        const data = await fetchCourseAssignments(courseId);
+        const data = await fetchCourseAssignments(courseId, navigate);
         setAssignments(data);
       } catch (error) {
         alert('Failed to load assignments');
@@ -59,7 +62,7 @@ function CoursePage() {
   const handleDeleteAssignment = async (assignmentId, e) => {
     e.stopPropagation(); // Prevent the click event from propagating to the parent `onClick`
     try {
-      await deleteAssignment(assignmentId);
+      await deleteAssignment(assignmentId, navigate);
       setAssignments(assignments.filter((assignment) => assignment.id !== assignmentId));
       setMenuVisible(null);
     } catch (error) {

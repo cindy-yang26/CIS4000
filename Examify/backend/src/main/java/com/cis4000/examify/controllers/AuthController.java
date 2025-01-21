@@ -4,7 +4,10 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,12 +36,19 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
-        System.out.println("Received login request for username: " + loginRequest.getUsername());
+    public ResponseEntity<String> login(
+        @CookieValue(name = "sessionId", required = false) String sessionCookie,
+        @RequestBody LoginRequest loginRequest) {
 
-        Optional<Sessions> sessionsOptional = sessionsRepository.findByCookie(loginRequest.getCookie());
-        if (!sessionsOptional.isEmpty()) {
-            return ResponseEntity.ok("Login successful with cookie " + loginRequest.getCookie());
+        System.out.println("Received login request: User: " + loginRequest.getUsername() + " Cookie: " + sessionCookie);
+        // If cookie exists and is not expired, then log in. If it does not exist or is expired, generate a new one and check login info
+        String cookie = sessionCookie;
+        Optional<Sessions> sessionsOptional = sessionsRepository.findByCookie(cookie);
+        if (sessionsOptional.isPresent() && LocalDateTime.now().isBefore(sessionsOptional.get().getExpiration())) {
+            return ResponseEntity.ok("Login successful with cookie " + cookie);
+        } else {
+            cookie = java.util.UUID.randomUUID().toString();
+            System.out.println("No cookie found. Generated new cookie: " + cookie);
         }
 
         Optional<User> userOptional = userRepository.findByUsername(loginRequest.getUsername());
@@ -49,26 +59,34 @@ public class AuthController {
 
         User user = userOptional.get();
 
-        // Using BCrypt to decrypt and hash the password
+        // Using BCrypt to check password match
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Error: Invalid credentials");
         }
 
-        // Check the cookie of the loginRequest. If not exists, fail login.
-        String cookie = loginRequest.getCookie();
-        if (cookie == null) {
-            return ResponseEntity.status(HttpStatus.I_AM_A_TEAPOT)
-                    .body("Error: Cookie not found with request");
-        }
+        System.out.println("User and password matched, adding new cookie to database.");
+
+        // Update / create a cookie in the database, and send it back to user.
         Sessions sessions = new Sessions();
         sessions.setCookie(cookie);
-        sessions.setId(user.getId());
+        sessions.setUserId(user.getId());
         LocalDateTime expiration = LocalDateTime.now().plusDays(30);
         sessions.setExpiration(expiration);
         sessionsRepository.save(sessions);
 
-        return ResponseEntity.ok("Login successful for " + loginRequest.getUsername());
+        System.out.println("Added cookie to database. Sending response.");
+
+        ResponseCookie responseCookie = ResponseCookie.from("sessionId", cookie)
+            .maxAge(30 * 24 * 60 * 60)
+            .httpOnly(true)
+            .secure(true)
+            .path("/")
+            .build();
+
+        return ResponseEntity.ok()
+            .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
+            .body("Login successful for " + loginRequest.getUsername());
     }
 
     @PostMapping("/signup")
@@ -98,7 +116,26 @@ public class AuthController {
 
         userRepository.save(user);
 
-        return ResponseEntity.ok("User registered successfully!");
+        // Create and save session cookie
+        String cookie = java.util.UUID.randomUUID().toString();
+        Sessions sessions = new Sessions();
+        sessions.setCookie(cookie);
+        sessions.setUserId(user.getId());
+        LocalDateTime expiration = LocalDateTime.now().plusDays(30);
+        sessions.setExpiration(expiration);
+        sessionsRepository.save(sessions);
+
+        // Create response cookie
+        ResponseCookie responseCookie = ResponseCookie.from("sessionId", cookie)
+            .maxAge(30 * 24 * 60 * 60)
+            .httpOnly(true)
+            .secure(true)
+            .path("/")
+            .build();
+
+        return ResponseEntity.ok()
+            .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
+            .body("User registered successfully!");
     }
 
     @GetMapping("/redirect")
@@ -109,7 +146,6 @@ public class AuthController {
     public static class LoginRequest {
         private String username;
         private String password;
-        private String cookie;
 
         public String getUsername() {
             return username;
@@ -125,14 +161,6 @@ public class AuthController {
 
         public void setPassword(String password) {
             this.password = password;
-        }
-
-        public String getCookie() {
-            return cookie;
-        }
-
-        public void setCookie(String cookie) {
-            this.cookie = cookie;
         }
     }
 

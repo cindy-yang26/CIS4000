@@ -67,9 +67,9 @@ CREATE TABLE variation (
 );
 
 CREATE TABLE sessions (
-    cookie varchar(225),
-    user_id bigint,
-    expiration DATETIME,
+    cookie varchar(225) NOT NULL,
+    user_id bigint NOT NULL,
+    expiration DATETIME NOT NULL,
     PRIMARY KEY (cookie),
-    FOREIGN KEY (user_id) REFERENCES user(id)
+    FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
 );

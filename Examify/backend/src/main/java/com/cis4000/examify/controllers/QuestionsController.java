@@ -1,28 +1,53 @@
 package com.cis4000.examify.controllers;
 
 import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.cis4000.examify.models.Question;
 import com.cis4000.examify.repositories.QuestionRepository;
+import com.cis4000.examify.repositories.CourseRepository;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/questions")
-public class QuestionsController {
+public class QuestionsController extends BaseController {
 
-    private final QuestionRepository questionRepository;
+    @Autowired
+    private QuestionRepository questionRepository;
 
-    public QuestionsController(QuestionRepository questionRepository) {
-        this.questionRepository = questionRepository;
+    @Autowired
+    private CourseRepository courseRepository;
+
+    private boolean belongsToUser(Question question, Long userId) {
+        if (question == null || question.getCourseId() == null) {
+            return false;
+        }
+
+        return courseRepository.findById(question.getCourseId()).map(course -> {
+            return course.getUserId() != null && course.getUserId().equals(userId);
+        }).orElse(false);
     }
 
     @PostMapping
-    public ResponseEntity<String> createQuestion(@RequestBody Question question) {
+    public ResponseEntity<?> createQuestion(@CookieValue(name = "sessionId", required = false) String sessionCookie,
+            @RequestBody Question question) {
         try {
+            Long userId = getUserIdFromSessionCookie(sessionCookie);
+            // User needs to log in first
+            if (userId == null) {
+                return notLoggedInResponse();
+            }
+
+            // Verify that the user has access to this question
+            if (!belongsToUser(question, userId)) {
+                return userDoesntHaveAccessResponse();
+            }
+
             questionRepository.save(question);
             return ResponseEntity.ok("Question created successfully");
         } catch (Exception e) {
@@ -32,7 +57,14 @@ public class QuestionsController {
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<String> editQuestion(@PathVariable Long id, @RequestBody QuestionRequest questionRequest) {
+    public ResponseEntity<?> editQuestion(@CookieValue(name = "sessionId", required = false) String sessionCookie,
+            @PathVariable Long id, @RequestBody QuestionRequest questionRequest) {
+        Long userId = getUserIdFromSessionCookie(sessionCookie);
+        // User needs to log in first
+        if (userId == null) {
+            return notLoggedInResponse();
+        }
+
         Optional<Question> questionOptional = questionRepository.findById(id);
 
         if (questionOptional.isEmpty()) {
@@ -40,6 +72,11 @@ public class QuestionsController {
         }
 
         Question question = questionOptional.get();
+
+        // Verify that the user has access to this question
+        if (!belongsToUser(question, userId)) {
+            return userDoesntHaveAccessResponse();
+        }
 
         question.setTitle(questionRequest.getTitle());
         question.setText(questionRequest.getText());
@@ -62,11 +99,23 @@ public class QuestionsController {
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity<String> deleteQuestion(@PathVariable Long id) {
+    public ResponseEntity<?> deleteQuestion(@CookieValue(name = "sessionId", required = false) String sessionCookie,
+            @PathVariable Long id) {
+        Long userId = getUserIdFromSessionCookie(sessionCookie);
+        // User needs to log in first
+        if (userId == null) {
+            return notLoggedInResponse();
+        }
+
         Optional<Question> questionOptional = questionRepository.findById(id);
 
         if (questionOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Question not found");
+        }
+
+        // Verify that the user has access to this question
+        if (!belongsToUser(questionOptional.get(), userId)) {
+            return userDoesntHaveAccessResponse();
         }
 
         questionRepository.deleteById(id);

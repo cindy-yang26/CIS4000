@@ -17,7 +17,10 @@ function CreateAssignmentPage() {
   useEffect(() => {
     const loadCourseName = async () => {
       try {
-        const courseInfo = await fetchCourseInfo(courseId);
+        const courseInfo = await fetchCourseInfo(courseId, navigate);
+        if (courseInfo == null) {
+          return;
+        }
         setCourseName(courseInfo.courseCode);
       } catch (error) {
         alert('Failed to load course name');
@@ -31,7 +34,7 @@ function CreateAssignmentPage() {
   useEffect(() => {
     const loadQuestions = async () => {
       try {
-        const questions = await fetchCourseQuestions(courseId);
+        const questions = await fetchCourseQuestions(courseId, navigate);
         setAvailableQuestions(questions);
       } catch (error) {
         alert('Failed to load questions');
@@ -65,7 +68,7 @@ function CreateAssignmentPage() {
     };
 
     try {
-      await createAssignment(assignmentData);
+      await createAssignment(assignmentData, navigate);
       alert('Assignment created successfully');
       navigate(`/course/${courseId}`);
     } catch (error) {
