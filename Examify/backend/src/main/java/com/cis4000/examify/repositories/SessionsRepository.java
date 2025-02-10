@@ -8,4 +8,5 @@ import com.cis4000.examify.models.Sessions;
 
 public interface SessionsRepository extends JpaRepository<Sessions, String> {
     Optional<Sessions> findByCookie(String cookie);
+    void deleteByCookie(String cookie);
 }

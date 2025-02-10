@@ -8,13 +8,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.GetMapping;
+// import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.web.servlet.view.RedirectView;
+// import org.springframework.web.servlet.view.RedirectView;
 
 import com.cis4000.examify.models.Sessions;
 import com.cis4000.examify.models.User;
@@ -37,11 +37,12 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<String> login(
-        @CookieValue(name = "sessionId", required = false) String sessionCookie,
-        @RequestBody LoginRequest loginRequest) {
+            @CookieValue(name = "sessionId", required = false) String sessionCookie,
+            @RequestBody LoginRequest loginRequest) {
 
         System.out.println("Received login request: User: " + loginRequest.getUsername() + " Cookie: " + sessionCookie);
-        // If cookie exists and is not expired, then log in. If it does not exist or is expired, generate a new one and check login info
+        // If cookie exists and is not expired, then log in. If it does not exist or is
+        // expired, generate a new one and check login info
         String cookie = sessionCookie;
         Optional<Sessions> sessionsOptional = sessionsRepository.findByCookie(cookie);
         if (sessionsOptional.isPresent() && LocalDateTime.now().isBefore(sessionsOptional.get().getExpiration())) {
@@ -78,15 +79,15 @@ public class AuthController {
         System.out.println("Added cookie to database. Sending response.");
 
         ResponseCookie responseCookie = ResponseCookie.from("sessionId", cookie)
-            .maxAge(30 * 24 * 60 * 60)
-            .httpOnly(true)
-            .secure(true)
-            .path("/")
-            .build();
+                .maxAge(30 * 24 * 60 * 60)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .build();
 
         return ResponseEntity.ok()
-            .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
-            .body("Login successful for " + loginRequest.getUsername());
+                .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
+                .body("Login successful for " + loginRequest.getUsername());
     }
 
     @PostMapping("/signup")
@@ -127,20 +128,35 @@ public class AuthController {
 
         // Create response cookie
         ResponseCookie responseCookie = ResponseCookie.from("sessionId", cookie)
-            .maxAge(30 * 24 * 60 * 60)
-            .httpOnly(true)
-            .secure(true)
-            .path("/")
-            .build();
+                .maxAge(30 * 24 * 60 * 60)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .build();
 
         return ResponseEntity.ok()
-            .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
-            .body("User registered successfully!");
+                .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
+                .body("User registered successfully!");
     }
 
-    @GetMapping("/redirect")
-    public RedirectView redirectToLogin() {
-        return new RedirectView("/api/auth/login");
+    // TODO: this is unused ancd should probably be deleted
+    // @GetMapping("/redirect")
+    // public RedirectView redirectToLogin() {
+    // return new RedirectView("/api/auth/login");
+    // }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(@CookieValue(name = "sessionId", required = false) String sessionCookie) {
+        if (sessionCookie == null) {
+            return ResponseEntity.ok("Successfully logged out");
+        }
+
+        try {
+            sessionsRepository.deleteById(sessionCookie);
+            return ResponseEntity.ok("Successfully logged out and removed all traces of session and cookie");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("error logging out: " + e);
+        }
     }
 
     public static class LoginRequest {

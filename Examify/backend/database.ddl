@@ -54,7 +54,7 @@ CREATE TABLE assignment_question (
 CREATE TABLE question_tags (
     question_id BIGINT NOT NULL,
     tag VARCHAR(255),
-    FOREIGN KEY (question_id) REFERENCES question(id)
+    FOREIGN KEY (question_id) REFERENCES question(id) ON DELETE CASCADE
 );
 
 CREATE TABLE variation (

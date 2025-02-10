@@ -24,6 +24,21 @@ export const signup = async (username, email, password) => {
     return response.data;
   } catch (error) {
     console.error("Signup failed", error);
-    throw error;
+    if (error.response) {
+      throw new Error(error.response.data);
+    } else {
+      throw error;
+    }
   }
 };
+
+export const logout = async () => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/logout`, {},
+      { withCredentials: true });
+    return response.data;
+  } catch (error) {
+    console.error("Logout failed", error);
+    throw error;
+  }
+}

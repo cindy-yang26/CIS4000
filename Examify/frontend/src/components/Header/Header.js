@@ -3,11 +3,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleCheck } from '@fortawesome/free-regular-svg-icons';
 import { useNavigate } from 'react-router-dom';
 import './Header.css';
+import { logout } from '../../api/auth';
 
 function Header() {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await logout();
     navigate('/');
   };
 
