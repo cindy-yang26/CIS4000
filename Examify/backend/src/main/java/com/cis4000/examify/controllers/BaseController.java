@@ -44,12 +44,12 @@ public class BaseController {
         }
     }
 
-    protected static ResponseEntity<?> notLoggedInResponse() {
+    protected static ResponseEntity<String> notLoggedInResponse() {
         System.err.println("Returning UNAUTHORIZED");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Need to log in first");
     }
 
-    protected static ResponseEntity<?> userDoesntHaveAccessResponse() {
+    protected static ResponseEntity<String> userDoesntHaveAccessResponse() {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body("User does not have access to requested resource");
     }
 }

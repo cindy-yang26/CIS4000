@@ -34,6 +34,28 @@ public class Course {
     @OneToMany(mappedBy = "courseId", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Question> questions;
 
+    @Column(name = "canvasCourseId", nullable = true)
+    private Long canvasCourseId;
+    
+    @Column(name = "canvasToken", nullable = true)
+    private String canvasToken;
+
+    public String getCanvasToken() {
+        return canvasToken;
+    }
+
+    public Long getCanvasCourseId() {
+        return canvasCourseId;
+    }
+
+    public void setCanvasCourseId(Long canvasCourseId) {
+        this.canvasCourseId = canvasCourseId;
+    }
+
+    public void setCanvasToken(String canvasToken) {
+        this.canvasToken = canvasToken;
+    }
+
     public Long getId() {
         return id;
     }

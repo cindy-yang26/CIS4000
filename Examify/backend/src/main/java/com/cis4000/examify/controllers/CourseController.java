@@ -13,11 +13,16 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/courses")
@@ -173,15 +178,64 @@ public class CourseController extends BaseController {
         }
     }
 
+    @PutMapping("/{id}/link-canvas")
+    public ResponseEntity<?> linkCanvasCourse(
+        @CookieValue(name = "sessionId", required = false) String sessionCookie,
+        @PathVariable Long id,
+        @RequestBody Map<String, Object> payload) {
+        Long userId = getUserIdFromSessionCookie(sessionCookie);
+        // User needs to log in first
+        if (userId == null) {
+            return notLoggedInResponse();
+        }
+        
+        Course course = courseRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Course not found"));
+        
+        // Verify that this course belongs to the user
+        if (!course.getUserId().equals(userId)) {
+            return userDoesntHaveAccessResponse();
+        }
+
+        if (!payload.containsKey("canvasCourseId") || !payload.containsKey("canvasToken")) {
+            return ResponseEntity.badRequest().body("Canvas Course ID and Token are required.");
+        }
+
+        Long canvasCourseId = Long.valueOf(payload.get("canvasCourseId").toString());
+        String canvasToken = payload.get("canvasToken").toString();
+
+        course.setCanvasCourseId(canvasCourseId);
+        course.setCanvasToken(canvasToken);
+        courseRepository.save(course);
+
+        System.out.println("Linked Canvas Course ID " + canvasCourseId + " to Course " + course.getId());
+
+        return ResponseEntity.ok("Canvas course linked successfully.");
+    }
+
+    @PutMapping("/{id}/rename")
+    public ResponseEntity<?> updateCourse(@PathVariable Long id, @RequestBody Map<String, String> payload) {
+        Course course = courseRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        if (payload.containsKey("courseCode")) {
+            course.setCourseCode(payload.get("courseCode"));
+        }
+
+        courseRepository.save(course);
+        return ResponseEntity.ok(course);
+    }
+
+
     @GetMapping("/")
     public ResponseEntity<?> getAllCourses(@CookieValue(name = "sessionId", required = false) String sessionCookie) {
-        try {
-            Long userId = getUserIdFromSessionCookie(sessionCookie);
+        Long userId = getUserIdFromSessionCookie(sessionCookie);
             // User needs to log in first
             if (userId == null) {
                 return notLoggedInResponse();
             }
 
+        try {
             List<Course> courses = courseRepository.findByUserId(userId);
             for (Course c : courses) {
                 c.setAssignments(null);

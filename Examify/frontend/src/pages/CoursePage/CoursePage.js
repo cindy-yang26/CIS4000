@@ -14,6 +14,7 @@ function CoursePage() {
   const [assignments, setAssignments] = useState([]);
   const [menuVisible, setMenuVisible] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showLinkCanvas, setShowLinkCanvas] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -60,7 +61,7 @@ function CoursePage() {
   };
 
   const handleDeleteAssignment = async (assignmentId, e) => {
-    e.stopPropagation(); // Prevent the click event from propagating to the parent `onClick`
+    e.stopPropagation(); 
     try {
       await deleteAssignment(assignmentId, navigate);
       setAssignments(assignments.filter((assignment) => assignment.id !== assignmentId));
@@ -72,7 +73,7 @@ function CoursePage() {
   };
 
   const toggleMenu = (index, e) => {
-    e.stopPropagation(); // Prevent the click event from propagating to the parent `onClick`
+    e.stopPropagation(); 
     if (menuVisible === index) {
       setMenuVisible(null);
     } else {
@@ -120,7 +121,15 @@ function CoursePage() {
           <button className="view-questions-button" onClick={handleViewQuestions}>
             View All Questions
           </button>
+          <button 
+            className="link-canvas-button" 
+            onClick={() => setShowLinkCanvas(!showLinkCanvas)}
+          >
+            {showLinkCanvas ? "Close" : "Link Canvas"}
+          </button>
         </div>
+
+        {showLinkCanvas && <LinkCanvas courseId={courseId} setShowLinkCanvas={setShowLinkCanvas} />}
 
         <div className="assignments-list">
           {filteredAssignments.length > 0 ? (filteredAssignments.map((assignment, index) => (
@@ -154,6 +163,46 @@ function CoursePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function LinkCanvas({ courseId }) {
+  const [canvasCourseId, setCanvasCourseId] = useState("");
+  const [canvasToken, setCanvasToken] = useState("");
+
+  const handleSubmit = async () => {
+      const response = await fetch(`http://localhost:8080/api/courses/${courseId}/link-canvas`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ canvasCourseId, canvasToken })
+      });
+
+      if (response.ok) {
+          alert("Canvas course linked successfully!");
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to link Canvas course:", errorData);
+        alert(`Failed to link Canvas course: ${errorData.message || JSON.stringify(errorData)}`);
+      }
+  };
+
+  return (
+      <div>
+          <h3>Link Canvas Course</h3>
+          <input
+              type="text"
+              placeholder="Enter Canvas Course ID"
+              value={canvasCourseId}
+              onChange={(e) => setCanvasCourseId(e.target.value)}
+          />
+          <input
+              type="text"
+              placeholder="Enter Canvas Token"
+              value={canvasToken}
+              onChange={(e) => setCanvasToken(e.target.value)}
+          />
+          <button onClick={handleSubmit}>Link Canvas</button>
+      </div>
   );
 }
 

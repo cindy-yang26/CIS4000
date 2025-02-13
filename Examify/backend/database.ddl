@@ -14,6 +14,8 @@ CREATE TABLE course (
     user_id BIGINT NULL, # TODO: make this NOT NULL once we figure out how to restrict courses to particular users
     course_code VARCHAR(50) NOT NULL,
     professor VARCHAR(100) NOT NULL,
+    canvas_course_id BIGINT NULL,
+    canvas_token VARCHAR(255) NULL,
     CONSTRAINT uc_course UNIQUE (course_code, professor),
     FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
 );

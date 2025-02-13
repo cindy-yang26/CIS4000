@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../../components/Header/Header';
-import { fetchAssignmentInfo, fetchAssignmentQuestions } from '../../api/assignments';
+import { fetchAssignmentInfo, fetchAssignmentQuestions, uploadAssignmentToCanvas } from '../../api/assignments';
 import { fetchCourseInfo } from '../../api/courses';
 import { editQuestion } from '../../api/questions';
 import { FaChevronLeft, FaEdit, FaTrash } from 'react-icons/fa';
@@ -126,6 +126,21 @@ function AssignmentPage() {
     );
   };
 
+  const handleUploadToCanvas = async () => {
+    try {
+      const response = await uploadAssignmentToCanvas(courseId, assignmentName, assignmentId, navigate);
+      if (response) {
+        alert('Assignment uploaded to Canvas successfully!');
+      } else {
+        alert('Failed to upload assignment.');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert(error);
+    }
+  };
+  
+
   return (
     <MathJaxContext>
       <div className="assignment-page">
@@ -138,6 +153,9 @@ function AssignmentPage() {
             <h2 className="assignment-title">
               {assignmentName.replace(/-/g, ' ')} (Course: {courseName.replace(/-/g, ' ')})
             </h2>
+            <button className="upload-button" onClick={handleUploadToCanvas}>
+              Upload to Canvas
+            </button>
           </div>
 
           <ul className="questions-list">

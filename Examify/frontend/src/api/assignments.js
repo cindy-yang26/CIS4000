@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:8080/api/assignments';
+const CANVAS_API_BASE_URL = 'http://localhost:8080/api/canvas';
 
 export const createAssignment = async (assignmentData, navigate) => {
   try {
@@ -74,6 +75,34 @@ export const deleteAssignment = async (assignmentId, navigate) => {
       }
     }
     console.error('Failed to delete assignment', error);
+    throw error;
+  }
+};
+
+export const uploadAssignmentToCanvas = async (courseId, assignmentName, assignmentId, navigate) => {
+  try {
+    const response = await axios.post(
+      `${CANVAS_API_BASE_URL}/upload`,
+      {
+        courseId,
+        name: assignmentName,
+        assignmentId
+      },
+      { withCredentials: true }
+    );
+
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      if (error.response.status === 401) {
+        console.log('Unauthorized: Please login');
+        navigate('/');
+        return null;
+      } else if (error.response.status === 403) {
+        console.log('Access denied: No permission to upload');
+      }
+    }
+    console.error('Failed to upload assignment to Canvas', error);
     throw error;
   }
 };

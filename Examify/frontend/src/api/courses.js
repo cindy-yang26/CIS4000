@@ -115,3 +115,22 @@ export const deleteCourse = async (id, navigate) => {
     throw error;
   }
 };
+
+export const updateCourse = async (courseId, updatedData) => {
+  try {
+      const response = await fetch(`${API_BASE_URL}/${courseId}/rename`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedData)
+      });
+
+      if (!response.ok) {
+          throw new Error("Failed to update course");
+      }
+
+      return await response.json();
+  } catch (error) {
+      console.error("Error updating course:", error);
+      throw error;
+  }
+};

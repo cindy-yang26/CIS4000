@@ -95,6 +95,24 @@
     background-color: #0056b3;
   }
 
+  .link-canvas-button {
+    background-color: #059121;
+    color: white;
+    border: 2px black solid;
+    border-radius: 20px;
+    padding: 8px 16px;
+    margin-bottom: 20px; 
+    font-weight: bold;
+    font-size: 0.9em;
+    cursor: pointer;
+    width: auto;
+    align-self: flex-start;
+  }
+
+  .link-canvas-button:hover {
+    background-color: #037119;
+  }
+
   #add-assignment-text {
     margin-left: 5px;
     font-size: 1.2em;
