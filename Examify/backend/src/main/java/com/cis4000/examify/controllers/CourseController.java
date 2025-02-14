@@ -9,6 +9,7 @@ import com.cis4000.examify.repositories.QuestionRepository;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -291,40 +292,71 @@ public class CourseController extends BaseController {
         }
 
         // Query Canvas API to get questions, statistics, etc.
-        CanvasQuizStatisticsResponse quizStatisticsResponse;
         RestTemplate restTemplate = new RestTemplate();
-        final String url = "https://canvas.instructure.com/api/v1/courses/{canvasCourseId}/quizzes/{quizId}/statistics";
+        final String url = "https://canvas.instructure.com/api/v1/courses/{canvasCourseId}/quizzes/{quizId}/questions";
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + canvasToken);
+
+        // The following is for testing purposes:
+        // return restTemplate.exchange(url,
+        // HttpMethod.GET, new HttpEntity<>(headers), String.class,
+        // canvasCourseId, quizId);
+
+        // The following code is for a version that uses /statistics instead of
+        // /questions
+        // CanvasQuizStatisticsResponse quizStatisticsResponse;
+        // try {
+        // ResponseEntity<CanvasQuizStatisticsResponseWrapper> res =
+        // restTemplate.exchange(url,
+        // HttpMethod.GET, new HttpEntity<>(headers),
+        // CanvasQuizStatisticsResponseWrapper.class,
+        // canvasCourseId, quizId);
+        // if (!res.getStatusCode().is2xxSuccessful()) {
+        // System.err.println(restTemplate.exchange(url,
+        // HttpMethod.GET, new HttpEntity<>(headers), String.class,
+        // canvasCourseId, quizId).getBody());
+        // return ResponseEntity.status(res.getStatusCode()).body("error retrieving quiz
+        // from Canvas API");
+        // }
+        // if (!res.hasBody()) {
+        // return ResponseEntity.internalServerError().body("response from Canvas API
+        // had no body");
+        // }
+
+        // Optional<CanvasQuizStatisticsResponse> quizStatisticsResponseOpt =
+        // res.getBody().getData();
+        // if (quizStatisticsResponseOpt.isEmpty()) {
+        // System.err.println(restTemplate.exchange(url,
+        // HttpMethod.GET, new HttpEntity<>(headers), String.class,
+        // canvasCourseId, quizId).getBody());
+        // return ResponseEntity.internalServerError().body("unexpected format returned
+        // by Canvas API");
+        // }
+
+        // quizStatisticsResponse = quizStatisticsResponseOpt.get();
+        // } catch (HttpStatusCodeException e) {
+        // return ResponseEntity.status(e.getStatusCode()).body("error retrieving quiz
+        // from Canvas API");
+        // } catch (RestClientException e) {
+        // System.err.println("couldn't retrieve quiz: " + e.getMessage());
+        // return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+        // .body("{\"message\": \"error retrieving quiz from Canvas API\"}");
+        // } catch (Exception e) {
+        // return ResponseEntity.internalServerError().body("failed to get current
+        // course info");
+        // }
+
+        // Get questions from Canvas API
+        List<CanvasQuizQuestion> canvasQuestions;
         try {
-            // The following is for testing purposes:
-            // return restTemplate.exchange(url,
-            // HttpMethod.GET, new HttpEntity<>(headers), String.class,
-            // canvasCourseId, quizId);
-            ResponseEntity<CanvasQuizStatisticsResponseWrapper> res = restTemplate.exchange(url,
-                    HttpMethod.GET, new HttpEntity<>(headers),
-                    CanvasQuizStatisticsResponseWrapper.class,
-                    canvasCourseId, quizId);
-            if (!res.getStatusCode().is2xxSuccessful()) {
-                System.err.println(restTemplate.exchange(url,
-                        HttpMethod.GET, new HttpEntity<>(headers), String.class,
-                        canvasCourseId, quizId).getBody());
-                return ResponseEntity.status(res.getStatusCode()).body("error retrieving quiz from Canvas API");
-            }
-            if (!res.hasBody()) {
+            ResponseEntity<List<CanvasQuizQuestion>> response = restTemplate.exchange(url, HttpMethod.GET,
+                    new HttpEntity<>(headers), new ParameterizedTypeReference<List<CanvasQuizQuestion>>() {
+                    }, canvasCourseId, quizId);
+            canvasQuestions = response.getBody();
+            if (canvasQuestions == null) {
                 return ResponseEntity.internalServerError().body("response from Canvas API had no body");
             }
-
-            Optional<CanvasQuizStatisticsResponse> quizStatisticsResponseOpt = res.getBody().getData();
-            if (quizStatisticsResponseOpt.isEmpty()) {
-                System.err.println(restTemplate.exchange(url,
-                        HttpMethod.GET, new HttpEntity<>(headers), String.class,
-                        canvasCourseId, quizId).getBody());
-                return ResponseEntity.internalServerError().body("unexpected format returned by Canvas API");
-            }
-
-            quizStatisticsResponse = quizStatisticsResponseOpt.get();
         } catch (HttpStatusCodeException e) {
             return ResponseEntity.status(e.getStatusCode()).body("error retrieving quiz from Canvas API");
         } catch (RestClientException e) {
@@ -335,10 +367,12 @@ public class CourseController extends BaseController {
             return ResponseEntity.internalServerError().body("failed to get current course info");
         }
 
-        // Import questions from quiz statistics response
+        // Import questions
         List<Question> assignmentQuestions = new ArrayList<>();
+
         try {
-            for (CanvasQuestionStatistics question : quizStatisticsResponse.questions) {
+            // TODO: for the /submissions endpoint, use quizStatisticsResponse.questions
+            for (CanvasQuizQuestion question : canvasQuestions) {
                 if (question != null) {
                     Question savedQuestion = questionRepository.save(question.toQuestion(id));
                     assignmentQuestions.add(savedQuestion);
@@ -398,27 +432,27 @@ public class CourseController extends BaseController {
         }
     }
 
-    private static class CanvasQuizStatisticsResponseWrapper {
-        @JsonProperty("quiz_statistics")
-        private List<CanvasQuizStatisticsResponse> quizzes;
+    // private static class CanvasQuizStatisticsResponseWrapper {
+    //     @JsonProperty("quiz_statistics")
+    //     private List<CanvasQuizStatisticsResponse> quizzes;
 
-        Optional<CanvasQuizStatisticsResponse> getData() {
-            if (quizzes.isEmpty()) {
-                return Optional.empty();
-            } else {
-                return Optional.ofNullable(quizzes.get(0));
-            }
-        }
-    }
+    //     Optional<CanvasQuizStatisticsResponse> getData() {
+    //         if (quizzes.isEmpty()) {
+    //             return Optional.empty();
+    //         } else {
+    //             return Optional.ofNullable(quizzes.get(0));
+    //         }
+    //     }
+    // }
 
-    private static class CanvasQuizStatisticsResponse {
-        @JsonProperty("question_statistics")
-        List<CanvasQuestionStatistics> questions;
-        // @JsonProperty("submission_statistics")
-        // private CanvasOverallStatistics statistics;
-    }
+    // private static class CanvasQuizStatisticsResponse {
+    //     @JsonProperty("question_statistics")
+    //     List<CanvasQuizQuestion> questions;
+    //     // @JsonProperty("submission_statistics")
+    //     // private CanvasOverallStatistics statistics;
+    // }
 
-    private static class CanvasQuestionStatistics {
+    private static class CanvasQuizQuestion {
         @JsonProperty("id")
         String id;
         @JsonProperty("question_type")
