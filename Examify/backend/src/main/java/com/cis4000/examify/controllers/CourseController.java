@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.*;
@@ -66,7 +67,7 @@ public class CourseController extends BaseController {
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getCourseInfoById(@CookieValue(name = "sessionId", required = false) String sessionCookie,
-            @PathVariable("id") Long id) {
+            @PathVariable Long id) {
         try {
             Long userId = getUserIdFromSessionCookie(sessionCookie);
             // User needs to log in first
@@ -95,7 +96,7 @@ public class CourseController extends BaseController {
 
     @GetMapping("/{id}/assignments")
     public ResponseEntity<?> getAssignmentsByCourseId(
-            @CookieValue(name = "sessionId", required = false) String sessionCookie, @PathVariable("id") Long id) {
+            @CookieValue(name = "sessionId", required = false) String sessionCookie, @PathVariable Long id) {
         try {
             Long userId = getUserIdFromSessionCookie(sessionCookie);
             // User needs to log in first
@@ -132,7 +133,7 @@ public class CourseController extends BaseController {
 
     @GetMapping("/{id}/questions")
     public ResponseEntity<?> getQuestionsByCourseId(
-            @CookieValue(name = "sessionId", required = false) String sessionCookie, @PathVariable("id") Long id) {
+            @CookieValue(name = "sessionId", required = false) String sessionCookie, @PathVariable Long id) {
         try {
             Long userId = getUserIdFromSessionCookie(sessionCookie);
             // User needs to log in first
@@ -255,8 +256,7 @@ public class CourseController extends BaseController {
         }
     }
 
-    // TODO: change this back to POSTMApping and String instead of ?
-    @GetMapping("/{id}/import-from-canvas-quiz/{quizId}")
+    @PostMapping("/{id}/import-canvas-quiz/{quizId}")
     public ResponseEntity<String> importFromCanvasQuiz(
             @CookieValue(name = "sessionId", required = false) String sessionCookie,
             @PathVariable Long id, @PathVariable Long quizId) {
@@ -303,7 +303,8 @@ public class CourseController extends BaseController {
             // HttpMethod.GET, new HttpEntity<>(headers), String.class,
             // canvasCourseId, quizId);
             ResponseEntity<CanvasQuizStatisticsResponseWrapper> res = restTemplate.exchange(url,
-                    HttpMethod.GET, new HttpEntity<>(headers), CanvasQuizStatisticsResponseWrapper.class,
+                    HttpMethod.GET, new HttpEntity<>(headers),
+                    CanvasQuizStatisticsResponseWrapper.class,
                     canvasCourseId, quizId);
             if (!res.getStatusCode().is2xxSuccessful()) {
                 System.err.println(restTemplate.exchange(url,
@@ -324,9 +325,12 @@ public class CourseController extends BaseController {
             }
 
             quizStatisticsResponse = quizStatisticsResponseOpt.get();
+        } catch (HttpStatusCodeException e) {
+            return ResponseEntity.status(e.getStatusCode()).body("error retrieving quiz from Canvas API");
         } catch (RestClientException e) {
             System.err.println("couldn't retrieve quiz: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body("error retrieving quiz from Canvas API");
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body("{\"message\": \"error retrieving quiz from Canvas API\"}");
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("failed to get current course info");
         }

@@ -75,7 +75,7 @@ public class AssignmentController extends BaseController {
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getAssignmentInfoById(
-            @CookieValue(name = "sessionId", required = false) String sessionCookie, @PathVariable("id") Long id) {
+            @CookieValue(name = "sessionId", required = false) String sessionCookie, @PathVariable Long id) {
         try {
             Long userId = getUserIdFromSessionCookie(sessionCookie);
             // User needs to log in first
@@ -110,7 +110,7 @@ public class AssignmentController extends BaseController {
 
     @GetMapping("/{id}/questions")
     public ResponseEntity<?> getQuestionsByAssignmentId(
-            @CookieValue(name = "sessionId", required = false) String sessionCookie, @PathVariable("id") Long id) {
+            @CookieValue(name = "sessionId", required = false) String sessionCookie, @PathVariable Long id) {
         try {
             Long userId = getUserIdFromSessionCookie(sessionCookie);
             // User needs to log in first
