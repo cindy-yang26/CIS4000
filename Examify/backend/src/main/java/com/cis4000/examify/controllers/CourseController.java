@@ -3,11 +3,12 @@ package com.cis4000.examify.controllers;
 import com.cis4000.examify.models.Assignment;
 import com.cis4000.examify.models.Course;
 import com.cis4000.examify.models.Question;
+import com.cis4000.examify.repositories.AssignmentRepository;
 import com.cis4000.examify.repositories.CourseRepository;
+import com.cis4000.examify.repositories.QuestionRepository;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,9 +18,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,6 +33,12 @@ public class CourseController extends BaseController {
 
     @Autowired
     private CourseRepository courseRepository;
+
+    @Autowired
+    private AssignmentRepository assignmentRepository;
+
+    @Autowired
+    private QuestionRepository questionRepository;
 
     @PostMapping
     public ResponseEntity<?> createCourse(
@@ -180,18 +189,18 @@ public class CourseController extends BaseController {
 
     @PutMapping("/{id}/link-canvas")
     public ResponseEntity<?> linkCanvasCourse(
-        @CookieValue(name = "sessionId", required = false) String sessionCookie,
-        @PathVariable Long id,
-        @RequestBody Map<String, Object> payload) {
+            @CookieValue(name = "sessionId", required = false) String sessionCookie,
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> payload) {
         Long userId = getUserIdFromSessionCookie(sessionCookie);
         // User needs to log in first
         if (userId == null) {
             return notLoggedInResponse();
         }
-        
+
         Course course = courseRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Course not found"));
-        
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
         // Verify that this course belongs to the user
         if (!course.getUserId().equals(userId)) {
             return userDoesntHaveAccessResponse();
@@ -216,7 +225,7 @@ public class CourseController extends BaseController {
     @PutMapping("/{id}/rename")
     public ResponseEntity<?> updateCourse(@PathVariable Long id, @RequestBody Map<String, String> payload) {
         Course course = courseRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Course not found"));
+                .orElseThrow(() -> new RuntimeException("Course not found"));
 
         if (payload.containsKey("courseCode")) {
             course.setCourseCode(payload.get("courseCode"));
@@ -226,14 +235,13 @@ public class CourseController extends BaseController {
         return ResponseEntity.ok(course);
     }
 
-
     @GetMapping("/")
     public ResponseEntity<?> getAllCourses(@CookieValue(name = "sessionId", required = false) String sessionCookie) {
         Long userId = getUserIdFromSessionCookie(sessionCookie);
-            // User needs to log in first
-            if (userId == null) {
-                return notLoggedInResponse();
-            }
+        // User needs to log in first
+        if (userId == null) {
+            return notLoggedInResponse();
+        }
 
         try {
             List<Course> courses = courseRepository.findByUserId(userId);
@@ -245,6 +253,115 @@ public class CourseController extends BaseController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error getting all courses: " + e.getMessage());
         }
+    }
+
+    // TODO: change this back to POSTMApping and String instead of ?
+    @GetMapping("/{id}/import-from-canvas-quiz/{quizId}")
+    public ResponseEntity<String> importFromCanvasQuiz(
+            @CookieValue(name = "sessionId", required = false) String sessionCookie,
+            @PathVariable Long id, @PathVariable Long quizId) {
+        Long userId = getUserIdFromSessionCookie(sessionCookie);
+        // User needs to log in first
+        if (userId == null) {
+            return notLoggedInResponse();
+        }
+
+        // Verify user is logged in to access course
+        Course course;
+        try {
+            Optional<Course> courseOpt = courseRepository.findById(id);
+            if (courseOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            course = courseOpt.get();
+            if (!userId.equals(course.getUserId())) {
+                return userDoesntHaveAccessResponse();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("failed to get current course info");
+        }
+
+        // Canvas course information must have been set already in order to call this
+        // API endpoint
+        Long canvasCourseId = course.getCanvasCourseId();
+        String canvasToken = course.getCanvasToken();
+        if (canvasCourseId == null || canvasToken == null) {
+            return ResponseEntity.badRequest().body("Link a Canvas course and provide its token first");
+        }
+
+        // Query Canvas API to get questions, statistics, etc.
+        CanvasQuizStatisticsResponse quizStatisticsResponse;
+        RestTemplate restTemplate = new RestTemplate();
+        final String url = "https://canvas.instructure.com/api/v1/courses/{canvasCourseId}/quizzes/{quizId}/statistics";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + canvasToken);
+        try {
+            // The following is for testing purposes:
+            // return restTemplate.exchange(url,
+            // HttpMethod.GET, new HttpEntity<>(headers), String.class,
+            // canvasCourseId, quizId);
+            ResponseEntity<CanvasQuizStatisticsResponseWrapper> res = restTemplate.exchange(url,
+                    HttpMethod.GET, new HttpEntity<>(headers), CanvasQuizStatisticsResponseWrapper.class,
+                    canvasCourseId, quizId);
+            if (!res.getStatusCode().is2xxSuccessful()) {
+                System.err.println(restTemplate.exchange(url,
+                        HttpMethod.GET, new HttpEntity<>(headers), String.class,
+                        canvasCourseId, quizId).getBody());
+                return ResponseEntity.status(res.getStatusCode()).body("error retrieving quiz from Canvas API");
+            }
+            if (!res.hasBody()) {
+                return ResponseEntity.internalServerError().body("response from Canvas API had no body");
+            }
+
+            Optional<CanvasQuizStatisticsResponse> quizStatisticsResponseOpt = res.getBody().getData();
+            if (quizStatisticsResponseOpt.isEmpty()) {
+                System.err.println(restTemplate.exchange(url,
+                        HttpMethod.GET, new HttpEntity<>(headers), String.class,
+                        canvasCourseId, quizId).getBody());
+                return ResponseEntity.internalServerError().body("unexpected format returned by Canvas API");
+            }
+
+            quizStatisticsResponse = quizStatisticsResponseOpt.get();
+        } catch (RestClientException e) {
+            System.err.println("couldn't retrieve quiz: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body("error retrieving quiz from Canvas API");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("failed to get current course info");
+        }
+
+        // Import questions from quiz statistics response
+        List<Question> assignmentQuestions = new ArrayList<>();
+        try {
+            for (CanvasQuestionStatistics question : quizStatisticsResponse.questions) {
+                if (question != null) {
+                    Question savedQuestion = questionRepository.save(question.toQuestion(id));
+                    assignmentQuestions.add(savedQuestion);
+                }
+            }
+        } catch (Exception e) {
+            // TODO: remove questions already created?
+            System.err.println("Error creating questions: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("failed to import some questions");
+        }
+
+        // Create assignment
+        Assignment assignment = new Assignment();
+        assignment.setCourse(course);
+        assignment.setName("Canvas Quiz " + quizId); // TODO: figure out if we can get the name from Canvas
+        // assignment.setStatistics(quizStatisticsResponse.statistics);
+        assignment.setQuestions(assignmentQuestions);
+        assignment.setSemesterYear("25A");
+        try {
+            assignmentRepository.save(assignment);
+        } catch (Exception e) {
+            System.err.println("Error creating assignment: " + e.getMessage());
+            return ResponseEntity.internalServerError()
+                    .body("failed to create assignment with newly imported questions");
+        }
+
+        return ResponseEntity.ok().body("Successfully imported quiz from Canvas");
     }
 
     public static class CourseRequest {
@@ -276,4 +393,54 @@ public class CourseController extends BaseController {
             this.professor = professor;
         }
     }
+
+    private static class CanvasQuizStatisticsResponseWrapper {
+        @JsonProperty("quiz_statistics")
+        private List<CanvasQuizStatisticsResponse> quizzes;
+
+        Optional<CanvasQuizStatisticsResponse> getData() {
+            if (quizzes.isEmpty()) {
+                return Optional.empty();
+            } else {
+                return Optional.ofNullable(quizzes.get(0));
+            }
+        }
+    }
+
+    private static class CanvasQuizStatisticsResponse {
+        @JsonProperty("question_statistics")
+        List<CanvasQuestionStatistics> questions;
+        // @JsonProperty("submission_statistics")
+        // private CanvasOverallStatistics statistics;
+    }
+
+    private static class CanvasQuestionStatistics {
+        @JsonProperty("id")
+        String id;
+        @JsonProperty("question_type")
+        String type;
+        @JsonProperty("question_text")
+        String text;
+        // TODO: statistics?
+
+        protected Question toQuestion(Long courseId) {
+            Question q = new Question();
+            q.setCourseId(courseId);
+            q.setText(text);
+            q.setTitle("Canvas question " + id);
+            q.setText(text);
+            return q;
+        }
+    }
+
+    // private static class CanvasOverallStatistics {
+    // @JsonProperty("score_average")
+    // Double average;
+    // @JsonProperty("score_high")
+    // Double high;
+    // @JsonProperty("score_low")
+    // Double low;
+    // @JsonProperty("score_stdev")
+    // Double stdev;
+    // }
 }

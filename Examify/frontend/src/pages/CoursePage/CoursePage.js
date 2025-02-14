@@ -174,7 +174,8 @@ function LinkCanvas({ courseId }) {
       const response = await fetch(`http://localhost:8080/api/courses/${courseId}/link-canvas`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ canvasCourseId, canvasToken })
+          body: JSON.stringify({ canvasCourseId, canvasToken }),
+          credentials: 'include'
       });
 
       if (response.ok) {
