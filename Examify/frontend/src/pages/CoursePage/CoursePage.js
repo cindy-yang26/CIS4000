@@ -22,7 +22,7 @@ function CoursePage() {
   const [showImportCanvasQuiz, setShowImportCanvasQuiz] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async () => {
+  const handleLinkCanvas = async () => {
       const response = await fetch(`http://localhost:8080/api/courses/${courseId}/link-canvas`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -172,21 +172,16 @@ function CoursePage() {
           >
             Link Canvas
           </button>
+
           <button
             className="import-canvas-quiz-button"
             onClick={() => setShowImportCanvasQuiz(!showImportCanvasQuiz)}
           >
             {showImportCanvasQuiz ? "Close" : "Import quiz from Canvas"}
           </button>
-          <button
-            className="import-canvas-quiz-button"
-            onClick={() => setShowImportCanvasQuiz(!showImportCanvasQuiz)}
-          >
-            {showImportCanvasQuiz ? "Close" : "Import quiz from Canvas"}
-          </button>
+         
         </div>
 
-        {showLinkCanvas && <LinkCanvas courseId={courseId} setShowLinkCanvas={setShowLinkCanvas} />}
         {showImportCanvasQuiz && <ImportCanvasQuiz courseId={courseId} setShowImportCanvasQuiz={setShowImportCanvasQuiz} />}
 
         <div className="assignments-list">
@@ -263,7 +258,7 @@ function CoursePage() {
                   onChange={(e) => setCanvasToken(e.target.value)}
               />
               <div className="window-button-div">
-                <button className="link-canvas-window-button" onClick={handleSubmit}>Link Canvas</button>
+                <button className="link-canvas-window-button" onClick={handleLinkCanvas}>Link Canvas</button>
                 <button className="link-canvas-window-button" id="link-canvas-cancel" onClick={() => setShowLinkCanvas(false)}>
                   Cancel
                 </button>
@@ -272,63 +267,6 @@ function CoursePage() {
           </div>
         ): (<div></div>)}
       </div>
-    </div>
-  );
-}
-
-function LinkCanvas({ courseId }) {
-  const [canvasCourseId, setCanvasCourseId] = useState("");
-  const [canvasToken, setCanvasToken] = useState("");
-
-  const handleSubmit = async () => {
-    const response = await fetch(`http://localhost:8080/api/courses/${courseId}/link-canvas`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ canvasCourseId, canvasToken }),
-      credentials: 'include'
-    });
-
-    if (response.ok) {
-      alert("Canvas course linked successfully!");
-    } else {
-      const errorData = await response.json();
-      console.error("Failed to link Canvas course:", errorData);
-      alert(`Failed to link Canvas course: ${errorData.message || JSON.stringify(errorData)}`);
-    }
-  };
-
-  
-}
-
-function ImportCanvasQuiz({ courseId }) {
-  const [canvasQuizId, setCanvasQuizId] = useState("");
-
-  const handleSubmit = async () => {
-    const response = await fetch(`http://localhost:8080/api/courses/${courseId}/import-canvas-quiz/${canvasQuizId}`, {
-      method: "POST",
-      credentials: 'include'
-    });
-
-    if (response.ok) {
-      alert("Canvas quiz imported successfully!");
-      window.location.reload();
-    } else {
-      const errorData = await response.json();
-      alert(`Failed to import Canvas quiz: ${errorData.message || JSON.stringify(errorData)}`);
-      console.error("Failed to import Canvas quiz:", errorData);
-    }
-  };
-
-  return (
-    <div>
-      <h3>Import quiz from Canvas</h3>
-      <input
-        type="text"
-        placeholder="Enter Canvas Quiz ID"
-        value={canvasQuizId}
-        onChange={(e) => setCanvasQuizId(e.target.value)}
-      />
-      <button onClick={handleSubmit}>Import Quiz</button>
     </div>
   );
 }
