@@ -16,13 +16,25 @@ import com.cis4000.examify.repositories.AssignmentRepository;
 @Service
 public class LatexService {
     private final AssignmentRepository assignmentRepository;
+    private final PdfService pdfService;
 
-    public LatexService(AssignmentRepository assignmentRepository) {
+    public LatexService(AssignmentRepository assignmentRepository, PdfService pdfService) {
         this.assignmentRepository = assignmentRepository;
+        this.pdfService = pdfService;
     }
 
     public String sayHello() {
         return "Hello from Latex Service Gang!";
+    }
+
+    // Not working at the moment -- need to install pdflatex on system
+    public byte[] getPdf(String templateName, Long assignmentId) throws IOException {
+        String latex = getLatex(templateName, assignmentId);
+        try {
+            return pdfService.generatePdf(latex);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate PDF: " + e.getMessage(), e);
+        }
     }
 
     public String getLatex(String templateName, Long assignmentId) {

@@ -106,3 +106,24 @@ export const uploadAssignmentToCanvas = async (courseId, assignmentName, assignm
     throw error;
   }
 };
+
+export const downloadLatex = async (assignmentId, navigate) => {
+  try {
+    const response = await axios.get(
+      `http://localhost:8080/latex/default_template/assignment/${assignmentId}`, //TODO need to add option to change template
+      { 
+        withCredentials: true,
+        responseType: 'text'
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (error.response?.status === 401) {
+      console.log('Unauthorized: Please login');
+      navigate('/');
+      return null;
+    }
+    console.error('Failed to download LaTeX', error);
+    throw error;
+  }
+};
