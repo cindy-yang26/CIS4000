@@ -1,0 +1,42 @@
+\documentclass[11pt]{article}
+
+\newif\ifsolutions
+ % \solutionstrue % show the solutions
+\solutionsfalse % hide the solutions
+
+\newcommand{\coursenumber}{ {{course_number}}}
+\newcommand{\coursetitle}{{{course_title}}}
+\newcommand{\examtitle}{{{exam_title}}}
+\newcommand{\doctitle}{{{doc_title}}}
+
+% Sets Page Margins and space
+\addtolength{\textwidth}{1.00in}
+\addtolength{\textheight}{2.00in}
+\addtolength{\evensidemargin}{-0.50in}
+\addtolength{\oddsidemargin}{-0.50in}
+\addtolength{\topmargin}{-.50in}
+\setlength{\footskip}{0pt}
+
+\begin{document}
+% \fontfamily{qpl}\selectfont
+\thispagestyle{empty}
+\ifsolutions
+\begin{center}
+\Large\bf\coursenumber\\[2pt] \examtitle ~Solutions \\ \large\docdate
+\end{center}
+
+\hrule
+\paragraph{Important Note:} Do not distribute or share these solutions. Any violations will be referred to the Office of Student Conduct.
+\else 
+\begin{center}
+\Large\bf\coursenumber\\[2pt] \examtitle \\
+\end{center}
+
+\paragraph{Question 1}
+
+
+
+
+
+
+\end{document}
