@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../../components/Header/Header';
-import { fetchAssignmentInfo, fetchAssignmentQuestions, uploadAssignmentToCanvas } from '../../api/assignments';
+import { fetchAssignmentInfo, fetchAssignmentQuestions, uploadAssignmentToCanvas, downloadLatex } from '../../api/assignments';
+import { FaChevronLeft, FaEdit, FaDownload } from 'react-icons/fa';
 import { fetchCourseInfo } from '../../api/courses';
 import { editQuestion } from '../../api/questions';
-import { FaChevronLeft, FaEdit, FaTrash } from 'react-icons/fa';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
 import './AssignmentPage.css';
 
@@ -142,6 +142,24 @@ function AssignmentPage() {
     }
   };
 
+  const handleLatexDownload = async () => {
+    try {
+      const latex = await downloadLatex(assignmentId, navigate);
+      // Create a blob and download it
+      const blob = new Blob([latex], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `assignment_${assignmentId}.tex`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      alert('Failed to download LaTeX file.');
+      console.error(error);
+    }
+  };
 
   return (
     <MathJaxContext>
@@ -155,9 +173,14 @@ function AssignmentPage() {
             <h2 className="assignment-title">
               {assignmentName.replace(/-/g, ' ')} (Course: {courseName.replace(/-/g, ' ')})
             </h2>
-            <button className="upload-button" onClick={handleUploadToCanvas}>
-              Upload to Canvas
-            </button>
+            <div className="assignment-actions">
+              <button className="download-button" onClick={handleLatexDownload}>
+                <FaDownload /> LaTeX
+              </button>
+              <button className="upload-button" onClick={handleUploadToCanvas}>
+                Upload to Canvas
+              </button>
+            </div>
           </div>
 
           {assignmentStatistics && Object.keys(assignmentStatistics).length > 0 && (

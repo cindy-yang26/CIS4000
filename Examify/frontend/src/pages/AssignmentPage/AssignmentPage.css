@@ -136,3 +136,26 @@
 .upload-button:hover {
   background-color: #0056b3;
 }
+
+.assignment-actions {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.download-button {
+  background-color: #186097;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.download-button:hover {
+  background-color: rgb(115, 172, 230);
+}
