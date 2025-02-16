@@ -125,7 +125,7 @@ export const updateCourse = async (courseId, updatedData) => {
       });
 
       if (!response.ok) {
-          throw new Error("Failed to update course");
+          throw new Error("Failed to rename course");
       }
 
       return await response.json();
