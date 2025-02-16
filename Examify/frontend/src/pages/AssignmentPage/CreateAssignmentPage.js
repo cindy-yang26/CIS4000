@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../../components/Header/Header';
 import { createAssignment } from '../../api/assignments';
 import { fetchCourseInfo, fetchCourseQuestions } from '../../api/courses';
+import { FaChevronLeft } from 'react-icons/fa';
 import './CreateAssignmentPage.css';
 
 function CreateAssignmentPage() {
@@ -77,11 +78,21 @@ function CreateAssignmentPage() {
     }
   };
 
+  const handleReturnToCourse = () => {
+    navigate(`/course/${courseId}`);
+  };
+
   return (
     <div className="create-assignment-page">
       <Header />
       <div className="create-assignment-content">
-        <h2>Create Assignment for {courseName}</h2>
+        <div className="create-assignment-header">
+          <button className="back-button" onClick={handleReturnToCourse}>
+            <FaChevronLeft />
+          </button>
+          <h2>Create Assignment for {courseName}</h2>
+        </div>
+        <div className="create-assignment-form-div">
         <input
           type="text"
           placeholder="Enter Assignment Name"
@@ -89,6 +100,7 @@ function CreateAssignmentPage() {
           onChange={(e) => setName(e.target.value)}
           className="assignment-name-input"
         />
+        </div>
         <div className="questions-container">
           <div className="available-questions">
             <h3>Available Questions</h3>

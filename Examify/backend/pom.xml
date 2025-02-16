@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.3.5</version>
+		<version>3.4.2</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.cis4000</groupId>
@@ -29,6 +29,15 @@
 	<properties>
 		<java.version>17</java.version>
 	</properties>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.squareup.okhttp3</groupId>
+				<artifactId>okhttp</artifactId>
+				<version>4.12.0</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -57,16 +66,19 @@
 		<dependency>
 			<groupId>com.squareup.okhttp3</groupId>
 			<artifactId>okhttp</artifactId>
-			<version>4.10.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>2.15.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-crypto</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+			<version>6.2.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.pdfbox</groupId>
@@ -78,7 +90,7 @@
 			<artifactId>commons-io</artifactId>
 			<version>2.11.0</version>
 		</dependency>
-	</dependencies>
+ </dependencies>
 
 	<build>
 		<plugins>

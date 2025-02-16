@@ -22,6 +22,25 @@ export const createAssignment = async (assignmentData, navigate) => {
   }
 };
 
+export const updateAssignment = async (id, updatedData) => {
+  try {
+      const response = await fetch(`${API_BASE_URL}/${id}/rename`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedData)
+      });
+
+      if (!response.ok) {
+          throw new Error("Failed to rename assignment");
+      }
+
+      return await response.json();
+  } catch (error) {
+      console.error("Error renaming assignment:", error);
+      throw error;
+  }
+};
+
 export const fetchAssignmentInfo = async (id, navigate) => {
   try {
     const response = await axios.get(`${API_BASE_URL}/${id}`, { withCredentials: true });

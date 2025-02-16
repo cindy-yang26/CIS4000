@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -75,7 +76,7 @@ public class AssignmentController extends BaseController {
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getAssignmentInfoById(
-            @CookieValue(name = "sessionId", required = false) String sessionCookie, @PathVariable("id") Long id) {
+            @CookieValue(name = "sessionId", required = false) String sessionCookie, @PathVariable Long id) {
         try {
             Long userId = getUserIdFromSessionCookie(sessionCookie);
             // User needs to log in first
@@ -108,9 +109,29 @@ public class AssignmentController extends BaseController {
         }
     }
 
+    @PutMapping("/{id}/rename")
+    public ResponseEntity<?> updateAssignment(@PathVariable Long id, @RequestBody Map<String, String> payload) {
+        System.out.println("Rename assignment with ID: " + id);
+
+        Assignment assignment = assignmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Assignment not found with ID: " + id));
+
+        if (!payload.containsKey("name") || payload.get("name").trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Missing or empty 'name' field in request body.");
+        }
+
+        String newName = payload.get("name").trim();
+        assignment.setName(newName);
+
+        assignmentRepository.save(assignment);
+        assignment.setCourse(null); 
+        return ResponseEntity.ok(assignment);
+    }
+
+
     @GetMapping("/{id}/questions")
     public ResponseEntity<?> getQuestionsByAssignmentId(
-            @CookieValue(name = "sessionId", required = false) String sessionCookie, @PathVariable("id") Long id) {
+            @CookieValue(name = "sessionId", required = false) String sessionCookie, @PathVariable Long id) {
         try {
             Long userId = getUserIdFromSessionCookie(sessionCookie);
             // User needs to log in first

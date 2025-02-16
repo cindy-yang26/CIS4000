@@ -96,6 +96,16 @@ public class Question {
         private String min;
         private String max;
 
+        public Stats() {}
+
+        public Stats(String mean, String median, String stdDev, String min, String max) {
+            this.mean = mean;
+            this.median = median;
+            this.stdDev = stdDev;
+            this.min = min;
+            this.max = max;
+        }
+
         public String getMean() {
             return mean;
         }
