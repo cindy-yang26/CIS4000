@@ -24,7 +24,7 @@ public class Assignment {
     private String semesterYear;
 
     @Lob
-    @Column(name = "statistics", columnDefinition = "json")
+    @Column(name = "statistics", columnDefinition = "TEXT")
     @JsonRawValue
     private String statistics;
 
@@ -32,11 +32,7 @@ public class Assignment {
     private String comment;
 
     @ManyToMany
-    @JoinTable(
-        name = "assignment_question",
-        joinColumns = @JoinColumn(name = "assignment_id"),
-        inverseJoinColumns = @JoinColumn(name = "question_id")
-    )
+    @JoinTable(name = "assignment_question", joinColumns = @JoinColumn(name = "assignment_id"), inverseJoinColumns = @JoinColumn(name = "question_id"))
     private List<Question> questions;
 
     public Long getId() {
