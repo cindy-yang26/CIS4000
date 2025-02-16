@@ -25,7 +25,7 @@ public class LatexController {
         return latexService.sayHello();
     }
 
-    @GetMapping(value = "/{templateName}/assignment/{assignmentId}", produces = "text/plain")
+    @GetMapping(value = "/{templateName}/{assignmentId}", produces = "text/plain")
     public ResponseEntity<String> getLatexForAssignment(
             @PathVariable String templateName,
             @PathVariable Long assignmentId) {
@@ -37,7 +37,7 @@ public class LatexController {
         }
     }
 
-    @GetMapping(value = "/{templateName}/assignment/{assignmentId}/pdf")
+    @GetMapping(value = "/{templateName}/{assignmentId}/pdf")
     public ResponseEntity<byte[]> getPdfForAssignment(
             @PathVariable String templateName,
             @PathVariable Long assignmentId) {

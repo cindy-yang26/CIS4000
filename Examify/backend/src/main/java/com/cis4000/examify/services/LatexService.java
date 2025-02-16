@@ -53,25 +53,44 @@ public class LatexService {
             latexTemplate = latexTemplate.replace("{{exam_title}}", assignment.getName());
             latexTemplate = latexTemplate.replace("{{doc_title}}", assignment.getName());
 
-            // get all questions for assignmnent + build question section
-            List<Question> questions = assignment.getQuestions();
-            StringBuilder questionsContent = new StringBuilder();
-            for (int i = 0; i < questions.size(); i++) {
-                Question question = questions.get(i);
-                questionsContent.append("\\paragraph{Q").append(i + 1).append("}\n\n");
-                
-                String escapedText = escapeLatexSpecialChars(question.getText());
-                questionsContent.append(escapedText).append("\n\n");
-                questionsContent.append("\\vspace{2cm}\n\n"); // Space for answer
+            // Find positions of `%begin`, `%beginQuestion`, and `%endQuestion`
+            int beginIndex = latexTemplate.indexOf("%begin");
+            if (beginIndex == -1) {
+                throw new RuntimeException("Error: %begin not found in template.");
             }
 
-            // Insert questions content into template after the begin comment
-            int insertPos = latexTemplate.indexOf("% Begin\n") + "% Begin\n".length();
-            String finalLatex = latexTemplate.substring(0, insertPos) + 
-                               questionsContent.toString() + 
-                               latexTemplate.substring(insertPos);
+            int beginQuestionIndex = latexTemplate.indexOf("%beginQuestion", beginIndex);
+            int endQuestionIndex = latexTemplate.indexOf("%endQuestion", beginQuestionIndex);
+            if (beginQuestionIndex == -1 || endQuestionIndex == -1) {
+                throw new RuntimeException("Error: %beginQuestion or %endQuestion not found.");
+            }
 
-            return finalLatex;
+            // Extract question template between `%beginQuestion` and `%endQuestion`
+            String questionTemplate = latexTemplate.substring(beginQuestionIndex + "%beginQuestion".length(), endQuestionIndex).trim();
+
+            // Generate content for each question
+            StringBuilder questionsContent = new StringBuilder();
+            List<Question> questions = assignment.getQuestions();
+            for (int i = 0; i < questions.size(); i++) {
+                Question question = questions.get(i);
+
+                // Replace `{{questionName}}` in the extracted question template
+                String escaptedTitle = escapeLatexSpecialChars(question.getTitle());
+                String questionInstance = questionTemplate.replace("{{questionName}}", "Q" + (i + 1) + " " + escaptedTitle);
+
+                // Escape LaTeX special characters in question text
+                String escapedText = escapeLatexSpecialChars(question.getText());
+                questionInstance = questionInstance.replace("{{questionText}}", escapedText);    
+
+                // Append formatted question instance
+                questionsContent.append(questionInstance).append("\n");
+            }
+
+            // Construct final document
+            String beforeQuestions = latexTemplate.substring(0, beginQuestionIndex);
+            String afterQuestions = latexTemplate.substring(endQuestionIndex + "%endQuestion".length());
+
+            return beforeQuestions + "\n" + questionsContent.toString() + "\n" + afterQuestions;
 
         } catch (IOException e) {
             throw new RuntimeException("Error reading LaTeX template: " + e.getMessage());
@@ -79,15 +98,16 @@ public class LatexService {
     }
 
     private String escapeLatexSpecialChars(String text) {
-        return text.replace("&", "\\&")
-                  .replace("%", "\\%")
-                  .replace("$", "\\$")
-                  .replace("#", "\\#")
-                  .replace("_", "\\_")
-                  .replace("{", "\\{")
-                  .replace("}", "\\}")
-                  .replace("~", "\\textasciitilde")
-                  .replace("^", "\\textasciicircum")
-                  .replace("\\", "\\textbackslash");
+        return text.replace("\\", "\\\\")
+                   .replace("&", "\\&")
+                   .replace("%", "\\%")
+                   .replace("$", "\\$")
+                   .replace("#", "\\#")
+                   .replace("_", "\\_")
+                   .replace("{", "\\{")
+                   .replace("}", "\\}")
+                   .replace("~", "\\textasciitilde{}")
+                   .replace("^", "\\textasciicircum{}");  
     }
+    
 }
