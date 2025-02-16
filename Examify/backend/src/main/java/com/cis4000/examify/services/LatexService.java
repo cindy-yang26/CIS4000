@@ -4,35 +4,79 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
+import com.cis4000.examify.models.Assignment;
+import com.cis4000.examify.models.Question;
+import com.cis4000.examify.repositories.AssignmentRepository;
+
 @Service
 public class LatexService {
+    private final AssignmentRepository assignmentRepository;
+
+    public LatexService(AssignmentRepository assignmentRepository) {
+        this.assignmentRepository = assignmentRepository;
+    }
+
     public String sayHello() {
         return "Hello from Latex Service Gang!";
     }
 
-    public String getLatex(String templateName, String assignmentName) {
-        // Simulated LaTeX generation (replace this with actual logic)
+    public String getLatex(String templateName, Long assignmentId) {
         try {
-            // Load the template file from resources
+            // load latex template file
             Path templatePath = new ClassPathResource("templates/" + templateName + ".tex").getFile().toPath();
-            
-            // Read file contents as a string
             String latexTemplate = Files.readString(templatePath, StandardCharsets.UTF_8);
 
-            // (Optional) Replace placeholder text in the template with assignment-specific data
-            latexTemplate = latexTemplate.replace("{{course_number}}", assignmentName);
-            latexTemplate =  latexTemplate.replace("{{course_title}}", assignmentName);
-            latexTemplate = latexTemplate.replace("{{exam_title}}", assignmentName);
-            latexTemplate = latexTemplate.replace("{{doc_title}}", assignmentName);
+            // fetch assignment
+            Assignment assignment = assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new RuntimeException("Assignment not found with ID: " + assignmentId));
+            
+            // replace template variables
+            String courseCode = assignment.getCourse().getCourseCode();
+            latexTemplate = latexTemplate.replace("{{course_code}}", courseCode);
+            latexTemplate = latexTemplate.replace("{{exam_title}}", assignment.getName());
+            latexTemplate = latexTemplate.replace("{{doc_title}}", assignment.getName());
 
-            return latexTemplate;
+            // get all questions for assignmnent + build question section
+            List<Question> questions = assignment.getQuestions();
+            StringBuilder questionsContent = new StringBuilder();
+            for (int i = 0; i < questions.size(); i++) {
+                Question question = questions.get(i);
+                questionsContent.append("\\paragraph{Q").append(i + 1).append("}\n\n");
+                
+                // Escape special LaTeX characters in the question text
+                String escapedText = escapeLatexSpecialChars(question.getText());
+                questionsContent.append(escapedText).append("\n\n");
+                questionsContent.append("\\vspace{2cm}\n\n"); // Space for answer
+            }
+
+            // Insert questions content into template after the begin comment
+            int insertPos = latexTemplate.indexOf("% Begin\n") + "% Begin\n".length();
+            String finalLatex = latexTemplate.substring(0, insertPos) + 
+                               questionsContent.toString() + 
+                               latexTemplate.substring(insertPos);
+
+            return finalLatex;
+
         } catch (IOException e) {
-            e.printStackTrace();
-            return "Error: Could not read the LaTeX template file.";
+            throw new RuntimeException("Error reading LaTeX template: " + e.getMessage());
         }
+    }
+
+    private String escapeLatexSpecialChars(String text) {
+        return text.replace("&", "\\&")
+                  .replace("%", "\\%")
+                  .replace("$", "\\$")
+                  .replace("#", "\\#")
+                  .replace("_", "\\_")
+                  .replace("{", "\\{")
+                  .replace("}", "\\}")
+                  .replace("~", "\\textasciitilde")
+                  .replace("^", "\\textasciicircum")
+                  .replace("\\", "\\textbackslash");
     }
 }
