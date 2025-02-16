@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { login } from '../../api/auth';
 import LoginHeader from '../../components/Header/LoginHeader';
@@ -12,11 +12,24 @@ function LoginPage() {
   const handleLogin = async () => {
     try {
       await login(username, password);
-      navigate('/home')
+      navigate('/home');
     } catch (error) {
-      alert("Login failed");
+      alert("Login failed: ", error);
     }
   };
+
+  const tryCookieLogin = async () => {
+    try {
+      await login(username, password);
+      navigate('/home');
+    } catch (error) {
+      console.log("User is not logged in - no cookie found.");
+    }
+  }
+
+  useEffect(() => {
+    tryCookieLogin();
+  }, []);
 
   return (
     <div className="login-page">
