@@ -105,12 +105,14 @@ function CreateAssignmentPage() {
           <div className="available-questions">
             <h3>Available Questions</h3>
             <ul>
-              {availableQuestions.map((question) => (
+              {availableQuestions.length > 0 ? (availableQuestions.map((question) => (
                 <li key={question.id}>
                   <span>{question.title}</span>
                   <button onClick={() => handleAddToAssignment(question)}>Add</button>
                 </li>
-              ))}
+              ))) : (
+                <p>Add questions to {courseName} before creating an assignment!</p>
+              )}
             </ul>
           </div>
           <div className="selected-questions">

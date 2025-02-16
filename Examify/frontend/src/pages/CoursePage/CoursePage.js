@@ -20,7 +20,26 @@ function CoursePage() {
   const [canvasCourseId, setCanvasCourseId] = useState("");
   const [canvasToken, setCanvasToken] = useState("");
   const [showImportCanvasQuiz, setShowImportCanvasQuiz] = useState(false);
+  const [canvasQuizId, setCanvasQuizId] = useState("");
+
   const navigate = useNavigate();
+
+  const handleImportQuiz = async () => {
+    const response = await fetch(`http://localhost:8080/api/courses/${courseId}/import-canvas-quiz/${canvasQuizId}`, {
+      method: "POST",
+      credentials: 'include'
+    });
+
+    if (response.ok) {
+      alert("Canvas quiz imported successfully!");
+      window.location.reload();
+    } else {
+      const errorData = await response.json();
+      alert(`Failed to import Canvas quiz: ${errorData.message || JSON.stringify(errorData)}`);
+      console.error("Failed to import Canvas quiz:", errorData);
+    }
+  };
+
 
   const handleLinkCanvas = async () => {
       const response = await fetch(`http://localhost:8080/api/courses/${courseId}/link-canvas`, {
@@ -168,21 +187,19 @@ function CoursePage() {
          
           <button
             className="link-canvas-button"
-            onClick={() => setShowLinkCanvas(!showLinkCanvas)}
+            onClick={() => setShowLinkCanvas(true)}
           >
             Link Canvas
           </button>
 
           <button
             className="import-canvas-quiz-button"
-            onClick={() => setShowImportCanvasQuiz(!showImportCanvasQuiz)}
+            onClick={() => setShowImportCanvasQuiz(true)}
           >
-            {showImportCanvasQuiz ? "Close" : "Import quiz from Canvas"}
+            Import Quiz from Canvas
           </button>
          
         </div>
-
-        {showImportCanvasQuiz && <ImportCanvasQuiz courseId={courseId} setShowImportCanvasQuiz={setShowImportCanvasQuiz} />}
 
         <div className="assignments-list">
           {filteredAssignments.length > 0 ? (filteredAssignments.map((assignment, index) => (
@@ -236,7 +253,7 @@ function CoursePage() {
             </div>
           ))
           ) : (
-            <p>No assignments created yet</p>
+            <p></p>
           )}
         </div>
         {showLinkCanvas ? (
@@ -266,40 +283,27 @@ function CoursePage() {
             </div>
           </div>
         ): (<div></div>)}
+        {showImportCanvasQuiz ? (
+          <div className="modal-background">
+            <div className="link-canvas-window">
+              <h3 id="link-canvas-title">Import Quiz from Canvas</h3>
+              <input
+                className="link-canvas-input"
+                type="text"
+                placeholder="Enter Canvas Quiz ID"
+                value={canvasQuizId}
+                onChange={(e) => setCanvasQuizId(e.target.value)}
+              />
+              <div className="window-button-div">
+                <button className="link-canvas-window-button" id="import-quiz-button" onClick={handleImportQuiz}>Import Quiz</button>
+                <button className="link-canvas-window-button" id="import-quiz-cancel" onClick={() => setShowImportCanvasQuiz(false)}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        ): (<div></div>)}
       </div>
-    </div>
-  );
-}
-
-function ImportCanvasQuiz({ courseId }) {
-  const [canvasQuizId, setCanvasQuizId] = useState("");
-
-  const handleSubmit = async () => {
-    const response = await fetch(`http://localhost:8080/api/courses/${courseId}/import-canvas-quiz/${canvasQuizId}`, {
-      method: "POST",
-      credentials: 'include'
-    });
-
-    if (response.ok) {
-      alert("Canvas quiz imported successfully!");
-      window.location.reload();
-    } else {
-      const errorData = await response.json();
-      alert(`Failed to import Canvas quiz: ${errorData.message || JSON.stringify(errorData)}`);
-      console.error("Failed to import Canvas quiz:", errorData);
-    }
-  };
-
-  return (
-    <div>
-      <h3>Import quiz from Canvas</h3>
-      <input
-        type="text"
-        placeholder="Enter Canvas Quiz ID"
-        value={canvasQuizId}
-        onChange={(e) => setCanvasQuizId(e.target.value)}
-      />
-      <button onClick={handleSubmit}>Import Quiz</button>
     </div>
   );
 }
