@@ -3,6 +3,8 @@ package com.cis4000.examify.models;
 import jakarta.persistence.*;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonRawValue;
+
 @Entity
 @Table(name = "assignment")
 public class Assignment {
@@ -22,18 +24,15 @@ public class Assignment {
     private String semesterYear;
 
     @Lob
-    @Column(name = "statistics")
+    @Column(name = "statistics", columnDefinition = "TEXT")
+    @JsonRawValue
     private String statistics;
 
     @Column(name = "comment")
     private String comment;
 
     @ManyToMany
-    @JoinTable(
-        name = "assignment_question",
-        joinColumns = @JoinColumn(name = "assignment_id"),
-        inverseJoinColumns = @JoinColumn(name = "question_id")
-    )
+    @JoinTable(name = "assignment_question", joinColumns = @JoinColumn(name = "assignment_id"), inverseJoinColumns = @JoinColumn(name = "question_id"))
     private List<Question> questions;
 
     public Long getId() {

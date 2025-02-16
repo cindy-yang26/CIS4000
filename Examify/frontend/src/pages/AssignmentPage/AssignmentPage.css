@@ -33,6 +33,45 @@
   color: #333;
 }
 
+.assignment-statistics {
+  background-color: #d3d3d3; /* Matches .question-item background */
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+  font-size: 1em;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Consistent shadow */
+}
+
+.assignment-statistics h3 {
+  font-size: 1.4em;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.assignment-statistics ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.assignment-statistics li {
+  font-size: 0.95em;
+  color: #555;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.assignment-statistics li:last-child {
+  border-bottom: none; /* Remove border from last item */
+}
+
+.assignment-statistics strong {
+  color: #222;
+  font-weight: bold;
+}
+
+
 .questions-list {
   list-style-type: none;
   padding: 0;

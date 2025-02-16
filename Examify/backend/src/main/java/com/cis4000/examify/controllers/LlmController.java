@@ -42,7 +42,7 @@ public class LlmController {
     }
 
     private String generateQuestions(String text) throws IOException {
-        String prompt = String.format("""
+        String prompt = """
 Group the following text into distinct questions, ensuring sub-questions like 'Part a', 'Part b', etc., are grouped under their respective main question. Split it into as few main questions as possible. For each question, generate:
 - A title summarizing the main idea if one is not already provided.
 - 2-3 relevant tags that categorize the question.
@@ -55,8 +55,7 @@ Question: [Question text]
 Add `===END===` at the end of each question to denote its end:
 
 %s
-"""
-, text);
+""".formatted(text);
 
         ObjectMapper objectMapper = new ObjectMapper();
         String requestBody = objectMapper.writeValueAsString(
