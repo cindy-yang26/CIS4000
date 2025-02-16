@@ -48,7 +48,6 @@ public class LatexService {
                 Question question = questions.get(i);
                 questionsContent.append("\\paragraph{Q").append(i + 1).append("}\n\n");
                 
-                // Escape special LaTeX characters in the question text
                 String escapedText = escapeLatexSpecialChars(question.getText());
                 questionsContent.append(escapedText).append("\n\n");
                 questionsContent.append("\\vspace{2cm}\n\n"); // Space for answer

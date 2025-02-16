@@ -23,7 +23,7 @@ public class LatexController {
         return latexService.sayHello();
     }
 
-    @GetMapping(value = "/{templateName}/assignment/{assignmentId}", produces = "text/plain")
+    @GetMapping(value = "/{templateName}/{assignmentId}", produces = "text/plain")
     public ResponseEntity<String> getLatexForAssignment(
             @PathVariable String templateName,
             @PathVariable Long assignmentId) {
