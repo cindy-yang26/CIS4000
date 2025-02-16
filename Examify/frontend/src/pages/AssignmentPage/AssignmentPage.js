@@ -13,6 +13,7 @@ function AssignmentPage() {
   const navigate = useNavigate();
 
   const [assignmentName, setAssignmentName] = useState("");
+  const [assignmentStatistics, setAssignmentStatistics] = useState({});
   const [courseName, setCourseName] = useState("");
   const [questions, setQuestions] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -43,9 +44,10 @@ function AssignmentPage() {
   }, [courseId]);
 
   useEffect(() => {
-    const loadAssignmentName = async () => {
+    const loadAssignmentInfo = async () => {
       try {
         const assignmentInfo = await fetchAssignmentInfo(assignmentId, navigate);
+        setAssignmentStatistics(assignmentInfo.statistics);
         setAssignmentName(assignmentInfo.name);
       } catch (error) {
         alert('Failed to load assignment name.');
@@ -62,7 +64,7 @@ function AssignmentPage() {
       }
     };
 
-    loadAssignmentName();
+    loadAssignmentInfo();
     loadQuestions();
   }, [assignmentId]);
 
@@ -139,7 +141,7 @@ function AssignmentPage() {
       alert(error);
     }
   };
-  
+
 
   return (
     <MathJaxContext>
@@ -157,6 +159,19 @@ function AssignmentPage() {
               Upload to Canvas
             </button>
           </div>
+
+          {assignmentStatistics && Object.keys(assignmentStatistics).length > 0 && (
+            <div className="assignment-statistics">
+              <h3>Assignment Statistics</h3>
+              <ul>
+                {Object.entries(assignmentStatistics).map(([key, value]) => (
+                  <li key={key}>
+                    <strong>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</strong> {value ?? 'N/A'}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <ul className="questions-list">
             {questions.map((question) => (
