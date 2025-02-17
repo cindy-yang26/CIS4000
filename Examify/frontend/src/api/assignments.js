@@ -129,7 +129,7 @@ export const uploadAssignmentToCanvas = async (courseId, assignmentName, assignm
 export const downloadLatex = async (assignmentId, navigate) => {
   try {
     const response = await axios.get(
-      `http://localhost:8080/latex/default_template/assignment/${assignmentId}`, //TODO need to add option to change template
+      `http://localhost:8080/latex/default_template/${assignmentId}`, //TODO need to add option to change template
       { 
         withCredentials: true,
         responseType: 'text'

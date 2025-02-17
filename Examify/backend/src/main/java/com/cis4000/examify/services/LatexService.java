@@ -97,17 +97,19 @@ public class LatexService {
         }
     }
 
+    
     private String escapeLatexSpecialChars(String text) {
-        return text.replace("\\", "\\\\")
-                   .replace("&", "\\&")
-                   .replace("%", "\\%")
-                   .replace("$", "\\$")
-                   .replace("#", "\\#")
-                   .replace("_", "\\_")
-                   .replace("{", "\\{")
-                   .replace("}", "\\}")
-                   .replace("~", "\\textasciitilde{}")
-                   .replace("^", "\\textasciicircum{}");  
+        return text; // Function does nothing for now since we assume everything is LaTex.
+        // return text.replace("\\", "\\\\")
+        //            .replace("&", "\\&")
+        //            .replace("%", "\\%")
+        //            .replace("$", "\\$")
+        //            .replace("#", "\\#")
+        //            .replace("_", "\\_")
+        //            .replace("{", "\\{")
+        //            .replace("}", "\\}")
+        //            .replace("~", "\\textasciitilde{}")
+        //            .replace("^", "\\textasciicircum{}");  
     }
     
 }

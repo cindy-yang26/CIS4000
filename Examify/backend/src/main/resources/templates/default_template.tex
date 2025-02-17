@@ -1,5 +1,8 @@
 \documentclass[11pt]{article}
 
+\usepackage{amsmath}
+\usepackage{geometry}
+
 \newif\ifsolutions
  % \solutionstrue % show the solutions
 \solutionsfalse % hide the solutions
@@ -11,13 +14,12 @@
 % Sets Page Margins and space
 \addtolength{\textwidth}{1.00in}
 \addtolength{\textheight}{2.00in}
-\addtolength{\evensidemargin}{-0.50in}
-\addtolength{\oddsidemargin}{-0.50in}
-\addtolength{\topmargin}{-.50in}
+\addtolength{\topmargin}{-2.50in}
 \setlength{\footskip}{0pt}
+\geometry{top = 1 in}
+\geometry{left=1in, right=1in}
 
 \begin{document}
-% \fontfamily{qpl}\selectfont
 \thispagestyle{empty}
 \ifsolutions
 \begin{center}
@@ -30,13 +32,13 @@
 \begin{center}
 \Large\bf\coursecode\\[2pt] \examtitle \\
 \end{center}
-% Begin
+% begin
 
 %beginQuestion
 \paragraph{{{questionName}}}
 {{questionText}}
 
-\vspace{2cm} % Space for answer
+\newpage
 %endQuestion
 
 
