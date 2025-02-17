@@ -33,7 +33,7 @@ public class LatexController {
             String latex = latexService.getLatex(templateName, assignmentId);
             return ResponseEntity.ok(latex);
         } catch (RuntimeException e) {
-            System.out.println(e.getMessage());
+            System.out.println("JOEVER:" + e.getMessage());
             return ResponseEntity.badRequest().body("Error generating LaTeX: " + e.getMessage());
         }
     }

@@ -188,8 +188,14 @@ public class LatexService {
     }
 
     private String questionTypeText(Question question) {
+        if (question == null || question.getQuestionType() == null) {
+            return "";
+        }
+        
+        String questionType = question.getQuestionType();  // Store it to avoid multiple calls
         StringBuilder latex = new StringBuilder();
-        switch (question.getQuestionType()) {
+
+        switch (questionType) {
             case "multiple_choice_question":
                 latex.append("\\begin{enumerate}[label=\\alph*)]\n");
                 for (String s : question.getOptions()) {
@@ -206,6 +212,8 @@ public class LatexService {
                                         "\\hspace{2 in} \\textbf{True} \\hspace{1 in} \\textbf{False} \\\\ \n");
                 break;
             case "numerical_question":
+                break;
+            default:
                 break;
         }
         return latex.toString();

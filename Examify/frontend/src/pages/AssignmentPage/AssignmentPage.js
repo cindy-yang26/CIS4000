@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../../components/Header/Header';
-import { fetchAssignmentInfo, fetchAssignmentQuestions, uploadAssignmentToCanvas, downloadLatex } from '../../api/assignments';
+import DownloadDropdown from '../../components/DownloadDropdown';
+import { fetchAssignmentInfo, fetchAssignmentQuestions, uploadAssignmentToCanvas, downloadLatex, downloadDocs } from '../../api/assignments';
 import { FaChevronLeft, FaEdit, FaDownload } from 'react-icons/fa';
 import { fetchCourseInfo } from '../../api/courses';
 import { editQuestion } from '../../api/questions';
@@ -215,7 +216,6 @@ function AssignmentPage() {
   };
   
   
-
   const handleLatexDownload = async () => {
     try {
       const latex = await downloadLatex(assignmentId, navigate);
@@ -235,6 +235,14 @@ function AssignmentPage() {
     }
   };
 
+  const handleDocsDownload = async () => {
+    try {
+      await downloadDocs(assignmentId, navigate);
+    } catch (error) {
+      alert('Failed to download DOCX file.');
+      console.error(error);
+    }
+  };
 
   return (
     <MathJaxContext>
@@ -249,9 +257,10 @@ function AssignmentPage() {
               {assignmentName.replace(/-/g, ' ')} (Course: {courseName.replace(/-/g, ' ')})
             </h2>
             <div className="assignment-actions">
-              <button className="download-button" onClick={handleLatexDownload}>
-                <FaDownload /> LaTeX
-              </button>
+              <DownloadDropdown 
+                onLatexDownload={handleLatexDownload}
+                onDocsDownload={handleDocsDownload}
+              />
               <button className="upload-button" onClick={handleUploadToCanvas}>
                 Upload to Canvas
               </button>

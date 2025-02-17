@@ -170,3 +170,38 @@ export const downloadLatex = async (assignmentId, navigate) => {
     throw error;
   }
 };
+
+export const downloadDocs = async (assignmentId, navigate) => {
+  try {
+    const response = await axios.get(
+      `http://localhost:8080/latex/default_template/${assignmentId}/docs`,
+      { 
+        withCredentials: true,
+        responseType: 'blob'  // Important: Use blob for binary data
+      }
+    );
+    
+    // Create a blob URL and trigger download
+    const blob = new Blob([response.data], { 
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `assignment_${assignmentId}.docx`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    
+    return response.data;
+  } catch (error) {
+    if (error.response?.status === 401) {
+      console.log('Unauthorized: Please login');
+      navigate('/');
+      return null;
+    }
+    console.error('Failed to download DOCX', error);
+    throw error;
+  }
+};

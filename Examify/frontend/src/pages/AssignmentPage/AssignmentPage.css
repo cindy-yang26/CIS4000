@@ -171,6 +171,43 @@
   justify-content: center;
 }
 
-.cancel-question-button {
-  
+.download-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.download-dropdown-content {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: white;
+  min-width: 160px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+  border-radius: 5px;
+  z-index: 1000;
+  margin-top: 4px;
+}
+
+.download-dropdown-content button {
+  width: 100%;
+  padding: 12px 16px;
+  text-align: left;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #333;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.download-dropdown-content button:hover {
+  background-color: #f5f5f5;
+}
+
+.download-dropdown-content button:first-child {
+  border-radius: 5px 5px 0 0;
+}
+
+.download-dropdown-content button:last-child {
+  border-radius: 0 0 5px 5px;
 }
