@@ -73,7 +73,7 @@
     font-size: 0.8em;
     float: left;
     text-align: left;
-    margin-bottom: 40px;
+    margin-bottom: 25px;
   }
   
   a {
@@ -126,4 +126,35 @@
   
   .create-account-button:hover {
     background-color: white;
+  }
+
+  .error-message {
+    background-color: #ffebe9;
+    border: 2px solid rgba(255, 129, 130, 0.4);
+    border-radius: 6px;
+    color: #cf222e;
+    margin: 10px 0;
+    padding: 10px;
+    font-size: 14px;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+  }
+  
+  .field-error {
+    color: #cf222e;
+    font-size: 12px;
+    margin-top: -20px;
+    margin-bottom: 15px;
+    text-align: left;
+  }
+  
+  .input-error {
+    border-color: #cf222e !important;
+  }
+  
+  .input-error:focus {
+    border-color: #cf222e !important;
+    box-shadow: 0 0 0 3px rgba(207, 34, 46, 0.3);
+    outline: none;
   }

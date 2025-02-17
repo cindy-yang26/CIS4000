@@ -8,14 +8,25 @@ function SignUpPage() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
   const handleSignUp = async () => {
     try {
+      setErrors({});
       await signup(username, email, password);
-      navigate('/home'); 
+      navigate('/home');
     } catch (error) {
-      alert(error);
+      const errorMessage = error.message || "Signup failed";
+      if (errorMessage.includes("Username")) {
+        setErrors(prev => ({ ...prev, username: errorMessage }));
+      } else if (errorMessage.includes("Email")) {
+        setErrors(prev => ({ ...prev, email: errorMessage }));
+      } else if (errorMessage.includes("Password")) {
+        setErrors(prev => ({ ...prev, password: errorMessage }));
+      } else {
+        setErrors(prev => ({ ...prev, general: errorMessage }));
+      }
     }
   };
 
@@ -31,14 +42,40 @@ function SignUpPage() {
 
             <h2 className="create-acc">Create your account</h2>
 
+            {errors.general && <div className="error-message">{errors.general}</div>}
+
             <label htmlFor="username">Username</label>
-            <input type="text" id="username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Enter username" />
+            <input 
+              type="text" 
+              id="username" 
+              className={errors.username ? 'input-error' : ''}
+              placeholder="Enter username" 
+              value={username} 
+              onChange={(e) => setUsername(e.target.value)} 
+            />
+            {errors.username && <div className="field-error">{errors.username}</div>}
 
             <label htmlFor="email">Email</label>
-            <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter email" />
+            <input 
+              type="email" 
+              id="email" 
+              className={errors.email ? 'input-error' : ''}
+              placeholder="Enter email"
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+            />
+            {errors.email && <div className="field-error">{errors.email}</div>}
 
             <label htmlFor="password">Password</label>
-            <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter password" />
+            <input 
+              type="password" 
+              id="password" 
+              className={errors.password ? 'input-error' : ''}
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              placeholder="Enter password" 
+            />
+            {errors.password && <div className="field-error">{errors.password}</div>}
 
             <button className="signup-button" onClick={handleSignUp}>Sign Up</button>
 

@@ -63,10 +63,9 @@
     display: block;
     width: 80%;
     padding: 8px;
-    border-radius: 5px;
+    border-radius: 6px;
     border: 1px solid #ccc;
     font-size: 1em;
-    margin-bottom: 15px;
   }
   
   .signup-button {
@@ -88,3 +87,37 @@
     background-color: #1c6ab7;
   }
   
+  .error-message {
+    background-color: #ffebe9;
+    border: 2px solid rgba(255, 129, 130, 0.4);
+    border-radius: 6px;
+    color: #cf222e;
+    margin: 10px 0;
+    padding: 10px;
+    font-size: 14px;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+  }
+  
+  .field-error {
+    color: #cf222e;
+    font-size: 12px;
+    margin-top: 5px; 
+    margin-bottom: 15px;
+    text-align: left;
+    width: 80%;      
+    margin-left: 0px;
+    margin-right: auto;
+  }
+  
+  .input-error {
+    border-color: #cf222e !important;
+    margin-bottom: 5px;
+  }
+  
+  .input-error:focus {
+    border-color: #cf222e !important;
+    box-shadow: 0 0 0 3px rgba(207, 34, 46, 0.3);
+    outline: none;
+  }

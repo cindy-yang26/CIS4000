@@ -7,20 +7,23 @@ import './LoginPage.css';
 function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleLogin = async () => {
     try {
+      setError('');
       await login(username, password);
       navigate('/home');
     } catch (error) {
-      alert("Login failed: ", error);
+      const errorMessage = error.response?.data || "Login failed. Please try again.";
+      setError(errorMessage);
     }
   };
 
   const tryCookieLogin = async () => {
     try {
-      await login(username, password);
+      await login();
       navigate('/home');
     } catch (error) {
       console.log("User is not logged in - no cookie found.");
@@ -37,15 +40,30 @@ function LoginPage() {
       <div className="login-container">
         <div className="login-shadow-box">
           <div className="login-box">
-
             <h1 className="login-welcome">Welcome back!</h1>
             <p className="login-welcome-text">Your all-in-one assignment design studio awaits...</p>
 
+            {error && <div className="error-message">{error}</div>}
+
             <label htmlFor="username">Username</label>
-            <input type="text" id="username" placeholder="Enter username" value={username} onChange={(e) => setUsername(e.target.value)} />
+            <input 
+              type="text" 
+              id="username" 
+              className={error ? 'input-error' : ''}
+              placeholder="Enter username" 
+              value={username} 
+              onChange={(e) => setUsername(e.target.value)} 
+            />
             
             <label htmlFor="password">Password</label>
-            <input type="password" id="password" placeholder="Enter password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <input 
+              type="password" 
+              id="password" 
+              className={error ? 'input-error' : ''}
+              placeholder="Enter password" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+            />
 
             <div className="forgot-pw"><Link to="" className="link"><span className="text">Forgot password?</span></Link></div>
 
