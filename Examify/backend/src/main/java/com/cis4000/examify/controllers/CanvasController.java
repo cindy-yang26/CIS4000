@@ -82,7 +82,7 @@ public class CanvasController extends BaseController {
         Map<String, Object> quizData = new HashMap<>();
         quizData.put("title", name);
         quizData.put("description", description);
-        quizData.put("quiz_type", "assignment"); // Fix quiz_type
+        quizData.put("quiz_type", "assignment");
         quizData.put("published", true);
         quizData.put("time_limit", 60);
         quizData.put("due_at", "2025-02-20T23:59:00Z");
@@ -97,7 +97,6 @@ public class CanvasController extends BaseController {
             String responseBody = response.getBody();
             System.out.println("Successfully uploaded quiz to Canvas: " + responseBody);
 
-            // Extract quiz_id from response
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonResponse = objectMapper.readTree(responseBody);
             if (!jsonResponse.has("id")) {
@@ -107,7 +106,6 @@ public class CanvasController extends BaseController {
 
             int quizId = jsonResponse.get("id").asInt();
 
-            // Upload questions to the quiz
             uploadQuestionsToQuiz(Long.parseLong(courseId), quizId, assignment);
 
             return ResponseEntity.ok(responseBody);
@@ -117,9 +115,8 @@ public class CanvasController extends BaseController {
         }
     }
 
-    // Assumes that the current user is logged in and can access the course to which assignment belongs
     public void uploadQuestionsToQuiz(Long canvasCourseId, int quizId, @NonNull Assignment assignment) {
-        List<Question> questions = assignment.getQuestions(); // Retrieve questions from assignment
+        List<Question> questions = assignment.getQuestions();
     
         if (questions.isEmpty()) {
             System.out.println("No questions found for assignment ID: " + assignment.getId());
@@ -164,7 +161,7 @@ public class CanvasController extends BaseController {
     
                 default:
                     System.err.println("Unknown question type: " + q.getQuestionType());
-                    continue;  // Skip uploading if question type is unknown
+                    continue;
             }
     
             Map<String, Object> requestBody = new HashMap<>();
@@ -201,9 +198,40 @@ public class CanvasController extends BaseController {
     }
 
     private List<Map<String, Object>> formatNumericalAnswers(Question q) {
-        return List.of(
-            Map.of("answer_text", q.getCorrectAnswer())
-        );
+        List<Map<String, Object>> answers = new ArrayList<>();
+        
+        try {
+            double exactAnswer = Double.parseDouble(q.getCorrectAnswer());
+    
+            Map<String, Object> exactAnswerMap = new HashMap<>();
+            exactAnswerMap.put("answer_exact", exactAnswer);
+            exactAnswerMap.put("answer_error_margin", 0);
+            exactAnswerMap.put("answer_weight", 100);
+            exactAnswerMap.put("numerical_answer_type", "exact_answer");  
+            answers.add(exactAnswerMap);
+
+            double rangeMargin = 0.0;
+            Map<String, Object> rangeAnswerMap = new HashMap<>();
+            rangeAnswerMap.put("answer_range_start", exactAnswer - rangeMargin);
+            rangeAnswerMap.put("answer_range_end", exactAnswer + rangeMargin);
+            rangeAnswerMap.put("answer_weight", 100);
+            rangeAnswerMap.put("numerical_answer_type", "range_answer");
+            answers.add(rangeAnswerMap);
+    
+            double approximateMargin = 0.0;
+            Map<String, Object> approximateAnswerMap = new HashMap<>();
+            approximateAnswerMap.put("answer_approximate", exactAnswer);
+            approximateAnswerMap.put("answer_precision", approximateMargin);
+            approximateAnswerMap.put("answer_weight", 100);
+            approximateAnswerMap.put("numerical_answer_type", "precision_answer");
+            answers.add(approximateAnswerMap);
+    
+        } catch (NumberFormatException e) {
+            System.err.println("Invalid numerical answer format: " + q.getCorrectAnswer());
+        }
+        
+        return answers;
     }
+    
 
 }

@@ -345,6 +345,7 @@ public class CourseController extends BaseController {
             if (question != null) {
                 Question newQuestion = question.toQuestion(id);
                 newQuestion.setText(stripHtmlTags(newQuestion.getText()));
+                newQuestion.setCorrectAnswer(getCorrectAnswer(question));
 
                 try {
                     Long questionId = Long.parseLong(question.id); 
@@ -411,26 +412,6 @@ public class CourseController extends BaseController {
         }
     }
 
-    // private static class CanvasQuizStatisticsResponseWrapper {
-    //     @JsonProperty("quiz_statistics")
-    //     private List<CanvasQuizStatisticsResponse> quizzes;
-
-    //     Optional<CanvasQuizStatisticsResponse> getData() {
-    //         if (quizzes.isEmpty()) {
-    //             return Optional.empty();
-    //         } else {
-    //             return Optional.ofNullable(quizzes.get(0));
-    //         }
-    //     }
-    // }
-
-    // private static class CanvasQuizStatisticsResponse {
-    //     @JsonProperty("question_statistics")
-    //     List<CanvasQuizQuestion> questions;
-    //     // @JsonProperty("submission_statistics")
-    //     // private CanvasOverallStatistics statistics;
-    // }
-
     private static String getQuizTitle(Long courseId, Long quizId, String canvasToken) {
         String url = "https://canvas.instructure.com/api/v1/courses/" + courseId + "/quizzes/" + quizId;
         
@@ -457,6 +438,70 @@ public class CourseController extends BaseController {
         return text.replaceAll("<p>", "").replaceAll("</p>", "").trim();
     }
 
+    private static String getCorrectAnswer(CanvasQuizQuestion question) {
+        if (question.answers == null || question.answers.isEmpty()) {
+            return "N/A";
+        }
+
+        switch (question.type) {
+            case "multiple_choice_question":
+                return getMCQCorrectAnswer(question.answers);
+            case "true_false_question":
+                return getTrueFalseCorrectAnswer(question.answers);
+            case "numerical_question":
+                return getNumericalCorrectAnswer(question.answers);
+            default:
+                return "N/A"; 
+        }
+    }
+
+    private static String getMCQCorrectAnswer(List<Map<String, Object>> answers) {
+        for (Map<String, Object> answer : answers) {
+            Object weightObj = answer.get("weight");
+            String text = (String) answer.get("text");
+    
+            int weight = getWeightAsInteger(weightObj);
+    
+            if (weight == 100 && text != null && !text.isEmpty()) {
+                return text;
+            }
+        }
+        return "N/A";
+    }
+
+    private static String getTrueFalseCorrectAnswer(List<Map<String, Object>> answers) {
+        for (Map<String, Object> answer : answers) {
+            Object weightObj = answer.get("weight");
+            String text = (String) answer.get("text");
+    
+            int weight = getWeightAsInteger(weightObj);
+    
+            if (weight == 100 && text != null) {
+                return text;
+            }
+        }
+        return "N/A";
+    }
+
+    private static String getNumericalCorrectAnswer(List<Map<String, Object>> answers) {
+        for (Map<String, Object> answer : answers) {
+            if (answer.containsKey("exact")) {
+                return answer.get("exact").toString();
+            }
+        }
+        return "N/A";
+    }
+
+    private static int getWeightAsInteger(Object weightObj) {
+        if (weightObj instanceof Integer) {
+            return (Integer) weightObj;
+        } else if (weightObj instanceof Double) {
+            return ((Double) weightObj).intValue();
+        } else {
+            return 0;
+        }
+    }
+
     private static class CanvasQuizQuestion {
         @JsonProperty("id")
         String id;
@@ -466,24 +511,59 @@ public class CourseController extends BaseController {
         String text;
         @JsonProperty("question_name")
         String name;
-
-        protected Question toQuestion(Long courseId) {
+        @JsonProperty("answers")
+        List<Map<String, Object>> answers;
+    
+        protected Question toQuestion(Long assignmentId) {
             Question q = new Question();
-            q.setCourseId(courseId);
-            q.setText(text);
+            q.setCourseId(assignmentId);
+            q.setText(stripHtmlTags(text));
             q.setTitle(name != null ? name : "Canvas question " + id);
+            q.setQuestionType(determineQuestionType(type));
+    
+            // Extracting correct answer(s) and options
+            if (answers != null && !answers.isEmpty()) {
+                extractAnswers(q, answers);
+            }
+    
             return q;
         }
-    }
-
-    // private static class CanvasOverallStatistics {
-    // @JsonProperty("score_average")
-    // Double average;
-    // @JsonProperty("score_high")
-    // Double high;
-    // @JsonProperty("score_low")
-    // Double low;
-    // @JsonProperty("score_stdev")
-    // Double stdev;
-    // }
+    
+        private String determineQuestionType(String canvasType) {
+            switch (canvasType) {
+                case "multiple_choice_question":
+                    return "multiple_choice_question";
+                case "true_false_question":
+                    return "true_false_question";
+                case "essay_question":
+                    return "essay_question";
+                case "numerical_question":
+                    return "numerical_question";
+                default:
+                    return "essay_question";
+            }
+        }
+    
+        private void extractAnswers(Question q, List<Map<String, Object>> answers) {
+            List<String> choices = new ArrayList<>();
+            String correctAnswer = null;
+        
+            for (Map<String, Object> answer : answers) {
+                String text = (String) answer.get("text");
+                Object weightObj = answer.get("weight");
+                int weight = getWeightAsInteger(weightObj);
+        
+                if (text != null && !text.trim().isEmpty()) {
+                    choices.add(text);
+                }
+        
+                if (weight == 100 && text != null && !text.trim().isEmpty()) {
+                    correctAnswer = text;
+                }
+            }
+        
+            q.setOptions(choices);
+            q.setCorrectAnswer(correctAnswer != null ? correctAnswer : "N/A");
+        }
+    } 
 }

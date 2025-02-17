@@ -317,19 +317,22 @@ function QuestionsPage() {
                 <div className="question-text">
                   <h3 className="question-title">{question.title}</h3> 
                   <h4 className="question-type-display">{formatQuestionType(question.questionType)}</h4> 
-                  <div className="question-tags">
-                    {(question.tags || []).map((tag, index) => (
-                      <span key={index} className="tag-item">
-                        {tag}
-                        <button
-                          className="delete-tag-button"
-                          onClick={() => handleDeleteTag(question.id, tag)}
-                        >
-                          ✕
-                        </button>
-                      </span>
-                    ))}
-                  </div>
+                  {question.tags && question.tags.length > 0 && (
+                    <div className="question-tags">
+                        {question.tags.map((tag, index) => (
+                          <span key={index} className="tag-item">
+                            {tag}
+                            <button
+                              className="delete-tag-button"
+                              onClick={() => handleDeleteTag(question.id, tag)}
+                            >
+                              ✕
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
 
                   
                   <MathJax>{question.text}</MathJax>
