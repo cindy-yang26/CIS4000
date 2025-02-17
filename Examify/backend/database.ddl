@@ -75,3 +75,9 @@ CREATE TABLE sessions (
     PRIMARY KEY (cookie),
     FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
 );
+
+CREATE TABLE question_options (
+    question_id BIGINT NOT NULL,
+    option VARCHAR(255) NOT NULL,
+    FOREIGN KEY (question_id) REFERENCES question(id) ON DELETE CASCADE
+);

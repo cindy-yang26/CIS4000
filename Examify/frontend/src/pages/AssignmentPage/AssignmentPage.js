@@ -22,8 +22,11 @@ function AssignmentPage() {
     text: '',
     comment: '',
     tags: '',
+    questionType: 'essay_question',
+    correctAnswer: '',
     stats: { mean: '', median: '', stdDev: '', min: '', max: '' },
   });
+  
   const [editingQuestion, setEditingQuestion] = useState(null);
 
   useEffect(() => {
@@ -74,37 +77,78 @@ function AssignmentPage() {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-
+  
     const tagsArray = formFields.tags.split(',').map((tag) => tag.trim()).filter((tag) => tag);
+    let optionsArray = formFields.options ? formFields.options.split(',').map(opt => opt.trim()) : [];
 
+    if (!formFields.title.trim()) {
+      alert("Title cannot be empty.");
+      return;
+    }
+  
+    if (formFields.questionType === "multiple_choice_question") {
+      if (!formFields.options || formFields.options.split(',').length < 2) {
+        alert("Multiple Choice Questions must have at least 2 options.");
+        return;
+      }
+      if (!formFields.correctAnswer.trim()) {
+        alert("MCQs must have a correct answer.");
+        return;
+      }
+      if (!optionsArray.includes(formFields.correctAnswer.trim())) {
+        alert("Correct answer must be one of the provided answer choices.");
+        return;
+      }
+    }
+  
+    if (formFields.questionType === "true_false_question" && !formFields.correctAnswer) {
+      alert("True/False questions must have a correct answer.");
+      return;
+    }
+  
+    if (formFields.questionType === "numerical_question" && (formFields.correctAnswer === "" || isNaN(formFields.correctAnswer))) {
+      alert("Numerical questions must have a valid numerical answer.");
+      return;
+    }
+  
     const questionData = {
       title: formFields.title,
       text: formFields.text,
       comment: formFields.comment,
       tags: tagsArray,
+      questionType: formFields.questionType,
+      correctAnswer: formFields.correctAnswer || "",
       stats: { ...formFields.stats },
+      options: formFields.options ? formFields.options.split(',').map(opt => opt.trim()) : [],
+      correctAnswer: formFields.questionType === "true_false_question"
+      ? (formFields.correctAnswer === "False" ? "False" : "True")
+      : formFields.correctAnswer || "",
     };
-
+  
     try {
       if (editingQuestion) {
         await editQuestion(editingQuestion.id, questionData, navigate);
-        const updatedQuestions = await fetchAssignmentQuestions(assignmentId, navigate);
-        setQuestions(updatedQuestions);
       }
-
+  
+      const updatedQuestions = await fetchAssignmentQuestions(assignmentId, navigate);
+      setQuestions(updatedQuestions);
+  
       setFormFields({
         title: '',
         text: '',
         comment: '',
         tags: '',
+        questionType: 'essay_question',
+        correctAnswer: '',
         stats: { mean: '', median: '', stdDev: '', min: '', max: '' },
       });
       setShowForm(false);
     } catch (error) {
-      alert('Failed to save question.');
+      alert("Failed to save question");
       console.error(error);
     }
   };
+  
 
   const handleEditQuestion = (question) => {
     setEditingQuestion(question);
@@ -112,11 +156,19 @@ function AssignmentPage() {
       title: question.title,
       text: question.text,
       comment: question.comment || '',
-      tags: (question.tags || []).join(', '),
+      tags: question.tags.join(', '),
+      questionType: question.questionType || 'essay_question',
       stats: { ...question.stats },
+      options: Array.isArray(question.options) ? question.options.join(', ') : '',
+      correctAnswer: question.questionType === "true_false_question"
+      ? (question.correctAnswer === "True" || question.correctAnswer === "False"
+        ? question.correctAnswer
+        : "True")
+      : question.correctAnswer || '',
     });
     setShowForm(true);
   };
+  
 
   const handleDeleteTag = (questionId, tagToDelete) => {
     setQuestions(
@@ -142,6 +194,20 @@ function AssignmentPage() {
     }
   };
 
+
+  const formatQuestionType = (questionType) => {
+    const typeMap = {
+      "multiple_choice_question": "MCQ",
+      "essay_question": "Long Response",
+      "true_false_question": "True/False",
+      "numerical_question": "Numerical",
+    };
+    
+    return typeMap[questionType] || "Long Response"; 
+  };
+  
+  
+
   const handleLatexDownload = async () => {
     try {
       const latex = await downloadLatex(assignmentId, navigate);
@@ -160,6 +226,7 @@ function AssignmentPage() {
       console.error(error);
     }
   };
+
 
   return (
     <MathJaxContext>
@@ -201,6 +268,7 @@ function AssignmentPage() {
               <li key={question.id} className="question-item">
                 <div className="question-text">
                   <h3 className="question-title">{question.title}</h3>
+                  <h4 className="question-type-display">{formatQuestionType(question.questionType)}</h4>
                   <div className="question-tags">
                     {(question.tags || []).map((tag, index) => (
                       <span key={index} className="tag-item">
@@ -215,6 +283,12 @@ function AssignmentPage() {
                     ))}
                   </div>
                   <MathJax>{question.text}</MathJax>
+                  {question.questionType === "multiple_choice_question" && (
+                    <p><strong>Choices:</strong> {Array.isArray(question.options) ? question.options.join(', ') : 'No options provided'}</p>
+                  )}
+                  {question.correctAnswer && (
+                    <p><strong>Correct Answer:</strong> {question.correctAnswer}</p>
+                  )}
                   <div className="question-stats">
                     Mean: {question.stats?.mean || 'N/A'},
                     Median: {question.stats?.median || 'N/A'},
@@ -250,6 +324,20 @@ function AssignmentPage() {
                   setFormFields({ ...formFields, title: e.target.value })
                 }
               />
+              <div className="question-type-container">
+                  <label htmlFor="questionType">Question Type:</label>
+                  <select 
+                    id="questionType"
+                    className="question-type-selector"
+                    value={formFields.questionType}
+                    onChange={(e) => setFormFields({ ...formFields, questionType: e.target.value })}
+                  >
+                    <option value="multiple_choice_question">Multiple Choice</option>
+                    <option value="essay_question">Long Response</option>
+                    <option value="true_false_question">True/False</option>
+                    <option value="numerical_question">Numerical</option>
+                  </select>
+              </div>
               <textarea
                 placeholder="Enter your question"
                 value={formFields.text}
@@ -258,6 +346,63 @@ function AssignmentPage() {
                 }
                 rows="3"
               />
+              {formFields.questionType === "essay_question" && (
+                  <div>
+                    <label>Correct Answer:</label>
+                    <input
+                      type="text"
+                      placeholder="Enter correct answer"
+                      value={formFields.correctAnswer || ''}
+                      onChange={(e) => setFormFields({ ...formFields, correctAnswer: e.target.value })}
+                    />
+                  </div>
+                )}
+
+
+              {formFields.questionType === "multiple_choice_question" && (
+                  <div className="mcq-options">
+                    <label>Answer Choices (comma-separated):</label>
+                    <input
+                      type="text"
+                      placeholder="Option1, Option2, Option3, ..."
+                      value={formFields.options || ''}
+                      onChange={(e) => setFormFields({ ...formFields, options: e.target.value })}
+                    />
+                    <label>Correct Answer:</label>
+                    <input
+                      type="text"
+                      placeholder="Enter correct answer"
+                      value={formFields.correctAnswer || ''}
+                      onChange={(e) => setFormFields({ ...formFields, correctAnswer: e.target.value })}
+                    />
+                  </div>
+                )}
+
+                {formFields.questionType === "true_false_question" && (
+                  <div className="tf-options">
+                    <label>Correct Answer:</label>
+                    <select
+                      value={formFields.correctAnswer || 'True'}
+                      onChange={(e) => setFormFields({ ...formFields, correctAnswer: e.target.value })}
+                    >
+                      <option value="True">True</option>
+                      <option value="False">False</option>
+                    </select>
+                  </div>
+                )}
+
+                {formFields.questionType === "numerical_question" && (
+                  <div className="numerical-answer">
+                    <label>Correct Answer:</label>
+                    <input
+                      type="number"
+                      placeholder="Enter correct numerical value"
+                      value={formFields.correctAnswer || ''}
+                      onChange={(e) => setFormFields({ ...formFields, correctAnswer: e.target.value })}
+                    />
+                  </div>
+                )}
+
               <textarea
                 placeholder="Enter a comment"
                 value={formFields.comment}

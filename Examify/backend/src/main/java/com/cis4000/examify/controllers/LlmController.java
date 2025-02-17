@@ -43,19 +43,28 @@ public class LlmController {
 
     private String generateQuestions(String text) throws IOException {
         String prompt = """
-Group the following text into distinct questions, ensuring sub-questions like 'Part a', 'Part b', etc., are grouped under their respective main question. Split it into as few main questions as possible. For each question, generate:
-- A title summarizing the main idea if one is not already provided.
-- 2-3 relevant tags that categorize the question.
+                Group the following text into distinct questions, ensuring sub-questions like 'Part a', 'Part b', etc., are grouped under their respective main question. Split it into as few main questions as possible. For each question, generate:
+                - A title summarizing the main idea if one is not already provided.
+                - 2-3 relevant tags that categorize the question.
+                - Identify the **question type**: multiple_choice_question, true_false_question, numerical_question, or essay_question.
+                - Extract answer choices for **MCQ** questions and enclose them in a **structured list format**.
+                - Extract the **correct answer** if available, otherwise, set it to "N/A".
+                - Remove any multiple-choice letter labels (A, B, C, D) and format choices **cleanly**.
+                - Ensure true/false questions do **not** include "(True/False?)" in the text.
 
-Format each question as follows:
-Title: [Generated or provided title]
-Tags: [Tag1, Tag2, Tag3]
-Question: [Question text]
+                Format each question as follows:
 
-Add `===END===` at the end of each question to denote its end:
+                Title: [Generated or provided title]  
+                Tags: [Tag1, Tag2, Tag3]  
+                Question Type: [multiple_choice_question | true_false_question | numerical_question | essay_question]  
+                Question: [Question text]  
+                Choices: [Choice 1 || Choice 2 || Choice 3 || Choice 4]  (Only for MCQ)  
+                Correct Answer: [Correct Answer]  
 
-%s
-""".formatted(text);
+                Add `===END===` at the end of each question to denote its end:
+
+                %s
+                """.formatted(text);
 
         ObjectMapper objectMapper = new ObjectMapper();
         String requestBody = objectMapper.writeValueAsString(

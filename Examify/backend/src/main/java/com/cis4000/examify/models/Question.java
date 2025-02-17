@@ -23,6 +23,33 @@ public class Question {
     @Column(columnDefinition = "TEXT")
     private String comment;
 
+    @Column(nullable = true, name = "question_type")
+    private String questionType;
+
+    @ElementCollection
+    @CollectionTable(name = "question_options", joinColumns = @JoinColumn(name = "question_id"))
+    @Column(name = "option_text")  
+    private List<String> options;
+
+    @Column(name = "correct_answer")
+    private String correctAnswer;
+
+    public List<String> getOptions() {
+        return options;
+    }
+
+    public void setOptions(List<String> options) {
+        this.options = options;
+    }
+
+    public String getCorrectAnswer() {
+        return correctAnswer;
+    }
+
+    public void setCorrectAnswer(String correctAnswer) {
+        this.correctAnswer = correctAnswer;
+    }
+
     @ElementCollection
     @CollectionTable(name = "question_tags", joinColumns = @JoinColumn(name = "question_id"))
     @Column(name = "tag")
@@ -85,6 +112,14 @@ public class Question {
 
     public void setStats(Stats stats) {
         this.stats = stats;
+    }
+
+    public String getQuestionType() {
+        return questionType;
+    }
+
+    public void setQuestionType(String questionType) {
+        this.questionType = questionType;
     }
 
     @Embeddable
