@@ -140,6 +140,7 @@
     border-radius: 10px;
     padding: 10px;
     font-size: 1em;
+    width: 80%;
   }
   
   .submit-question-button {
@@ -279,6 +280,83 @@
     margin-left: 3px;
   }
   
+.question-type-container {
+  display: flex;
+  flex-direction: column;
+  width: 80%;
+}
+
+.question-type-container label {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.question-type-selector {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #ccc;
+  border-radius: 5px;
+  background-color: #fff;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.question-type-selector:hover {
+  border-color: #007bff;
+}
+
+.question-type-selector:focus {
+  outline: none;
+  border-color: #0056b3;
+  box-shadow: 0 0 5px rgba(0, 91, 187, 0.5);
+}
+
+.question-type-selector option {
+  font-size: 14px;
+  padding: 5px;
+}
+
+.question-type-display {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #555;
+  margin-top: 4px;
+}
+
+.tf-options {
+  gap: 10px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.tf-options label {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.tf-options select {
+  padding: 8px 12px;
+  border-radius: 5px;
+  border: 2px solid #ccc;
+  font-size: 14px;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+.tf-options select:hover {
+  border-color: #007bff;
+}
+
+
+.tf-options select:focus {
+  outline: none;
+  border-color: #0056b3;
+  box-shadow: 0 0 5px rgba(0, 91, 187, 0.5);
+}
+
   
 
   
