@@ -38,6 +38,30 @@ public class LatexController {
         }
     }
 
+    @GetMapping(value = "/{templateName}/{assignmentId}/docs", produces = "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+    public ResponseEntity<byte[]> getDocsForAssignment(@PathVariable String templateName, 
+                                                       @PathVariable Long assignmentId) {
+        try {
+            // Call service to generate the .docx content (in byte[] format)
+            byte[] docxFile = latexService.getDocxContent(templateName, assignmentId);
+
+            // Set headers to indicate that this is a downloadable file
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "attachment; filename=assignment_" + assignmentId + ".docx");
+
+            return ResponseEntity
+                    .ok()
+                    .headers(headers)
+                    .body(docxFile);  // Explicitly return the byte[] as the body
+
+        } catch (Exception e) {
+            // Handle the case where there's an error generating the DOCX file
+            return ResponseEntity.badRequest()
+                .contentType(MediaType.TEXT_PLAIN)
+                .body(("Error generating Docs: " + e.getMessage()).getBytes());
+        }
+    }
+
     @GetMapping(value = "/{templateName}/{assignmentId}/pdf")
     public ResponseEntity<byte[]> getPdfForAssignment(
             @PathVariable String templateName,
