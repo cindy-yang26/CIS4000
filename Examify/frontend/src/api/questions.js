@@ -62,31 +62,45 @@ export const deleteQuestion = async (id, navigate) => {
 
 export const uploadFileContentToBackend = async (courseId, fileContent, navigate) => {
   try {
-    const response = await axios.post('http://localhost:8080/api/documents', { content: fileContent }, {
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await axios.post(
+      'http://localhost:8080/api/documents',
+      { content: fileContent },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
       },
-    }, { withCredentials: true });
+      { withCredentials: true }
+    );
 
-    console.log(response.data)
+    console.log(response.data);
 
     const questionsData = response.data
       .split('===END===')
       .filter((block) => block.trim() !== '')
       .map((block) => {
         const titleMatch = block.match(/Title:\s*(.+)/i);
-        const questionMatch = block.match(/Question:\s*([\s\S]+)/i);
+        const questionMatch = block.match(/Question:\s*([\s\S]+?)(?:Choices:|Correct Answer:|$)/i);
+        const choicesMatch = block.match(/Choices:\s*([\s\S]+?)\s*Correct Answer:/i);
+        const correctAnswerMatch = block.match(/Correct Answer:\s*(.+)/i);
         const tagsMatch = block.match(/Tags:\s*(.+)/i);
-        console.log("HI: " + tagsMatch)
+        const questionTypeMatch = block.match(/Question Type:\s*(.+)/i);
 
         return {
           courseId: courseId,
           title: titleMatch ? titleMatch[1].trim() : 'Untitled Question',
           text: questionMatch ? questionMatch[1].trim() : '',
           comment: '',
-          tags: tagsMatch && tagsMatch[1]
-            ? tagsMatch[1].split(',').map((tag) => tag.trim()).filter((tag) => tag !== '')
-            : [],
+          tags:
+            tagsMatch && tagsMatch[1]
+              ? tagsMatch[1].split(',').map((tag) => tag.trim()).filter((tag) => tag !== '')
+              : [],
+          questionType: questionTypeMatch ? questionTypeMatch[1].trim() : 'essay_question',
+          options:
+            choicesMatch && choicesMatch[1]
+              ? choicesMatch[1].split('||').map((option) => option.trim()).filter((option) => option !== '')
+              : [],
+          correctAnswer: correctAnswerMatch ? correctAnswerMatch[1].trim() : 'N/A',
           stats: { mean: '', median: '', stdDev: '', min: '', max: '' },
         };
       });

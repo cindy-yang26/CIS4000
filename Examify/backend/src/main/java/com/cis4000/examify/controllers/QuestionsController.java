@@ -82,6 +82,9 @@ public class QuestionsController extends BaseController {
         question.setText(questionRequest.getText());
         question.setComment(questionRequest.getComment());
         question.setTags(questionRequest.getTags());
+        question.setQuestionType(questionRequest.getQuestionType());
+        question.setOptions(questionRequest.getOptions());
+        question.setCorrectAnswer(questionRequest.getCorrectAnswer());
 
         Question.Stats stats = question.getStats();
 
@@ -128,6 +131,33 @@ public class QuestionsController extends BaseController {
         private String comment;
         private List<String> tags;
         private Stats stats;
+        private String questionType;
+        private String correctAnswer;
+        private List<String> options;
+
+        public List<String> getOptions() {
+            return options;
+        }
+
+        public void setOptions(List<String> options) {
+            this.options = options;
+        }
+
+        public String getCorrectAnswer() {
+            return correctAnswer;
+        }
+
+        public void setCorrectAnswer(String correctAnswer) {
+            this.correctAnswer = correctAnswer;
+        }
+
+        public String getQuestionType() {
+            return questionType;
+        }
+
+        public void setQuestionType(String questionType) {
+            this.questionType = questionType;
+        }
 
         public String getTitle() {
             return title;

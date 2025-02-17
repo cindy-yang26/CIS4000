@@ -1,5 +1,6 @@
 package com.cis4000.examify.controllers;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -119,43 +120,90 @@ public class CanvasController extends BaseController {
     // Assumes that the current user is logged in and can access the course to which assignment belongs
     public void uploadQuestionsToQuiz(Long canvasCourseId, int quizId, @NonNull Assignment assignment) {
         List<Question> questions = assignment.getQuestions(); // Retrieve questions from assignment
-
+    
         if (questions.isEmpty()) {
             System.out.println("No questions found for assignment ID: " + assignment.getId());
             return;
         }
-
+    
         String questionUrl = "https://canvas.instructure.com/api/v1/courses/" + canvasCourseId + "/quizzes/" + quizId + "/questions";
-
         Course course = assignment.getCourse();
-
         String token = course.getCanvasToken();
-
+    
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + token);
         headers.setContentType(MediaType.APPLICATION_JSON);
-
+    
         RestTemplate restTemplate = new RestTemplate();
-
+    
         for (Question q : questions) {
             Map<String, Object> questionData = new HashMap<>();
             questionData.put("question_name", q.getTitle());
             questionData.put("question_text", q.getText());
-            questionData.put("question_type", "essay_question");
             questionData.put("points_possible", 10);
-
+    
+            switch (q.getQuestionType()) {
+                case "multiple_choice_question":
+                    questionData.put("question_type", "multiple_choice_question");
+                    questionData.put("answers", formatMultipleChoiceAnswers(q));
+                    break;
+    
+                case "true_false_question":
+                    questionData.put("question_type", "true_false_question");
+                    questionData.put("answers", formatTrueFalseAnswers(q));
+                    break;
+    
+                case "essay_question":
+                    questionData.put("question_type", "essay_question");
+                    break;
+    
+                case "numerical_question":
+                    questionData.put("question_type", "numerical_question");
+                    questionData.put("answers", formatNumericalAnswers(q));
+                    break;
+    
+                default:
+                    System.err.println("Unknown question type: " + q.getQuestionType());
+                    continue;  // Skip uploading if question type is unknown
+            }
+    
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("question", questionData);
-
+    
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-
+    
             try {
                 restTemplate.exchange(questionUrl, HttpMethod.POST, entity, String.class);
-                System.out.println("Uploaded Question: " + q.getTitle());
+                System.out.println("Uploaded Question: " + q.getTitle() + " as " + q.getQuestionType());
             } catch (Exception e) {
-                System.err.println("Error uploading question: " + e.getMessage());
+                System.err.println("Error uploading question: " + q.getTitle() + " -> " + e.getMessage());
             }
         }
+    }    
+
+    private List<Map<String, Object>> formatMultipleChoiceAnswers(Question q) {
+        List<Map<String, Object>> answers = new ArrayList<>();
+        
+        for (String option : q.getOptions()) {
+            Map<String, Object> answer = new HashMap<>();
+            answer.put("answer_text", option);
+            answer.put("answer_weight", option.equals(q.getCorrectAnswer()) ? 100 : 0);
+            answers.add(answer);
+        }
+        return answers;
+    }
+
+    private List<Map<String, Object>> formatTrueFalseAnswers(Question q) {
+        return List.of(
+            Map.of("answer_text", "True", "answer_weight", "True".equals(q.getCorrectAnswer()) ? 100 : 0),
+            Map.of("answer_text", "False", "answer_weight", "False".equals(q.getCorrectAnswer()) ? 100 : 0)
+        );
+    }
+
+    private List<Map<String, Object>> formatNumericalAnswers(Question q) {
+        return List.of(
+            Map.of("answer_text", q.getCorrectAnswer())
+        );
     }
 
 }
