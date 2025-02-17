@@ -43,20 +43,21 @@ function CoursePage() {
 
 
   const handleLinkCanvas = async () => {
-      const response = await fetch(`http://localhost:8080/api/courses/${courseId}/link-canvas`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ canvasCourseId, canvasToken })
-      });
+    const response = await fetch(`http://localhost:8080/api/courses/${courseId}/link-canvas`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: 'include',
+      body: JSON.stringify({ canvasCourseId, canvasToken })
+    });
 
-      if (response.ok) {
-          alert("Canvas course linked successfully!");
-          setShowLinkCanvas(false);
-      } else {
-        const errorData = await response.json();
-        console.error("Failed to link Canvas course:", errorData);
-        alert(`Failed to link Canvas course: ${errorData.message || JSON.stringify(errorData)}`);
-      }
+    if (response.ok) {
+      alert("Canvas course linked successfully!");
+      setShowLinkCanvas(false);
+    } else {
+      const errorData = await response.json();
+      console.error("Failed to link Canvas course:", errorData);
+      alert(`Failed to link Canvas course: ${errorData.message || JSON.stringify(errorData)}`);
+    }
   };
 
   useEffect(() => {
@@ -112,7 +113,7 @@ function CoursePage() {
       const updatedAssignment = await renameAssignment(assignment.id, { name: editedAssignmentName });
 
       if (updatedAssignment) {
-          setAssignments(assignments.map((a) => (a.id === assignment.id ? updatedAssignment : a)));
+        setAssignments(assignments.map((a) => (a.id === assignment.id ? updatedAssignment : a)));
       }
       setEditingAssignmentId(null);
       setMenuVisible(null);
@@ -184,7 +185,7 @@ function CoursePage() {
             View All Questions
           </button>
 
-         
+
           <button
             className="link-canvas-button"
             onClick={() => setShowLinkCanvas(true)}
@@ -198,7 +199,7 @@ function CoursePage() {
           >
             Import Quiz from Canvas
           </button>
-         
+
         </div>
 
         <div className="assignments-list">
@@ -213,7 +214,7 @@ function CoursePage() {
                     onChange={(e) => setEditedAssignmentName(e.target.value)}
                     onBlur={() => handleRenameAssignment(assignment)}
                     onKeyDown={(e) => e.key === "Enter" && handleRenameAssignment(assignment)}
-                    onClick={(e) => e.stopPropagation()} 
+                    onClick={(e) => e.stopPropagation()}
                     autoFocus
                   />
                 ) : (
@@ -229,7 +230,7 @@ function CoursePage() {
               />
               {menuVisible === index && (
                 <div className="course-menu">
-                  <button 
+                  <button
                     className="course-menu-item rename"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -237,13 +238,14 @@ function CoursePage() {
                       setEditedAssignmentName(assignment.name);
                     }}
                   >
-                      <TiEdit /> Rename
+                    <TiEdit /> Rename
                   </button>
                   <button
                     className="course-menu-item delete"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDeleteAssignment(assignment.id, e)}
+                      handleDeleteAssignment(assignment.id, e)
+                    }
                     }
                   >
                     <FiTrash2 /> Delete
@@ -261,18 +263,18 @@ function CoursePage() {
             <div className="link-canvas-window">
               <h3 id="link-canvas-title">Link Canvas Course</h3>
               <input
-                  className="link-canvas-input"
-                  type="text"
-                  placeholder="Enter Canvas Course ID"
-                  value={canvasCourseId}
-                  onChange={(e) => setCanvasCourseId(e.target.value)}
+                className="link-canvas-input"
+                type="text"
+                placeholder="Enter Canvas Course ID"
+                value={canvasCourseId}
+                onChange={(e) => setCanvasCourseId(e.target.value)}
               />
               <input
-                  className="link-canvas-input"
-                  type="password"
-                  placeholder="Enter Canvas Token"
-                  value={canvasToken}
-                  onChange={(e) => setCanvasToken(e.target.value)}
+                className="link-canvas-input"
+                type="password"
+                placeholder="Enter Canvas Token"
+                value={canvasToken}
+                onChange={(e) => setCanvasToken(e.target.value)}
               />
               <div className="window-button-div">
                 <button className="link-canvas-window-button" onClick={handleLinkCanvas}>Link Canvas</button>
@@ -282,7 +284,7 @@ function CoursePage() {
               </div>
             </div>
           </div>
-        ): (<div></div>)}
+        ) : (<div></div>)}
         {showImportCanvasQuiz ? (
           <div className="modal-background">
             <div className="link-canvas-window">
@@ -302,7 +304,7 @@ function CoursePage() {
               </div>
             </div>
           </div>
-        ): (<div></div>)}
+        ) : (<div></div>)}
       </div>
     </div>
   );
