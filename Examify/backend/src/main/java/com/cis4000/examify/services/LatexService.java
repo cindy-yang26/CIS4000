@@ -5,7 +5,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
@@ -53,9 +56,12 @@ public class LatexService {
             
             // replace template variables
             String courseCode = assignment.getCourse().getCourseCode();
+            LocalDate today = LocalDate.now();
+            String formattedDate = formatPrettyDate(today);
             latexTemplate = latexTemplate.replace("{{course_code}}", courseCode);
             latexTemplate = latexTemplate.replace("{{exam_title}}", assignment.getName());
             latexTemplate = latexTemplate.replace("{{doc_title}}", assignment.getName());
+            latexTemplate = latexTemplate.replace("{{doc_date}}", formattedDate);
 
             // Find positions of `%begin`, `%beginQuestion`, and `%endQuestion`
             int beginIndex = latexTemplate.indexOf("%begin");
@@ -84,10 +90,22 @@ public class LatexService {
 
                 // Escape LaTeX special characters in question text
                 String escapedText = escapeLatexSpecialChars(question.getText());
-                questionInstance = questionInstance.replace("{{questionText}}", escapedText);    
 
+                // new line before more data
+                escapedText += "\n";
+
+                // insert optional question type text
+                String questionTypeOptionalText = questionTypeText(question);
+                escapedText += questionTypeOptionalText + "\n";
+
+                // insert optional solution text
+                escapedText += questionSolutionText(question);
+
+                questionInstance = questionInstance.replace("{{questionText}}", escapedText);   
+                
                 // Append formatted question instance
                 questionsContent.append(questionInstance).append("\n");
+                
             }
 
             // Construct final document
@@ -167,6 +185,64 @@ public class LatexService {
         //            .replace("}", "\\}")
         //            .replace("~", "\\textasciitilde{}")
         //            .replace("^", "\\textasciicircum{}");  
+    }
+
+    private String questionTypeText(Question question) {
+        StringBuilder latex = new StringBuilder();
+        switch (question.getQuestionType()) {
+            case "multiple_choice_question":
+                latex.append("\\begin{enumerate}[label=\\alph*)]\n");
+                for (String s : question.getOptions()) {
+                    latex.append("\\item ");
+                    latex.append(s);
+                    latex.append("\n");
+                }
+                latex.append("\\end{enumerate}\n");
+            case "essay_question":
+                break;
+            case "true_false_question":
+                latex.append("(Circle One)\n \n");
+                latex.append("\\vspace{0.2 in}\n" + //
+                                        "\\hspace{2 in} \\textbf{True} \\hspace{1 in} \\textbf{False} \\\\ \n");
+                break;
+            case "numerical_question":
+                break;
+        }
+        return latex.toString();
+    }
+
+    private String questionSolutionText(Question question) {
+        StringBuilder latex = new StringBuilder();
+        String answer = Objects.requireNonNullElse(question.getCorrectAnswer(), "N/A");
+        latex.append("\\ifsolutions\n");
+        latex.append("\\vspace{0.2 in}\n");
+        latex.append("\\noindent \\textbf{Solution:} ");
+        latex.append(answer);
+        latex.append("\n");
+        latex.append("\\else\n");
+        if ("essay_question".equals(question.getQuestionType()) || "numerical_question".equals(question.getQuestionType())) {
+            latex.append("\\vspace{5 in}\n");
+        }
+        latex.append("\\fi\n");
+        return latex.toString();
+    }
+
+    private static String formatPrettyDate(LocalDate date) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, MMMM d");
+        String daySuffix = getDaySuffix(date.getDayOfMonth());
+        return date.format(formatter) + daySuffix;
+    }
+
+    private static String getDaySuffix(int day) {
+        if (day >= 11 && day <= 13) {
+            return "th";
+        }
+        switch (day % 10) {
+            case 1:  return "st";
+            case 2:  return "nd";
+            case 3:  return "rd";
+            default: return "th";
+        }
     }
     
 }
