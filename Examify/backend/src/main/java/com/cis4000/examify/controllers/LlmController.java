@@ -59,7 +59,8 @@ public class LlmController {
                 Question Type: [multiple_choice_question | true_false_question | numerical_question | essay_question]  
                 Question: [Question text]  
                 Choices: [Choice 1 || Choice 2 || Choice 3 || Choice 4]  (Only for MCQ)  
-                Correct Answer: [Correct Answer]  
+                Correct Answer: [TRUE_FALSE || True] (Only for True/False)
+                Correct Answer: [Answer] (For MCQ/Numerical)
 
                 Add `===END===` at the end of each question to denote its end:
 

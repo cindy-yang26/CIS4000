@@ -294,8 +294,23 @@ function AssignmentPage() {
                   </div>
                   <MathJax>{question.text}</MathJax>
                   {question.questionType === "multiple_choice_question" && (
-                    <p><strong>Choices:</strong> {Array.isArray(question.options) ? question.options.join(', ') : 'No options provided'}</p>
-                  )}
+                  <div style={{marginTop: '5px'}}>
+                    <strong>Choices:</strong>
+                    <ul style={{ marginTop: "5px", paddingLeft: "0px", listStyleType: "none" }}>
+                      {Array.isArray(question.options) && question.options.length > 0
+                        ? question.options.map((choice, index) => (
+                            <li 
+                              key={index} 
+                              style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: 'flex-start' }}
+                            >
+                              <strong>{String.fromCharCode(65 + index)})</strong>
+                              <span>{choice}</span>
+                            </li>
+                          ))
+                        : <li>No options provided</li>}
+                    </ul>
+                  </div>
+                )}
                   {question.correctAnswer && (
                     <p><strong>Correct Answer:</strong> {question.correctAnswer}</p>
                   )}

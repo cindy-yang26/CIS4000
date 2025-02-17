@@ -32,6 +32,7 @@ function CoursePage() {
 
     if (response.ok) {
       alert("Canvas quiz imported successfully!");
+      setShowImportCanvasQuiz(false);
       window.location.reload();
     } else {
       const errorData = await response.json();
@@ -50,6 +51,7 @@ function CoursePage() {
 
       if (response.ok) {
           alert("Canvas course linked successfully!");
+          setShowLinkCanvas(false);
       } else {
         const errorData = await response.json();
         console.error("Failed to link Canvas course:", errorData);
@@ -267,7 +269,7 @@ function CoursePage() {
               />
               <input
                   className="link-canvas-input"
-                  type="text"
+                  type="password"
                   placeholder="Enter Canvas Token"
                   value={canvasToken}
                   onChange={(e) => setCanvasToken(e.target.value)}

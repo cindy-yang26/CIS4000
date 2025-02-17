@@ -86,6 +86,12 @@ export const uploadFileContentToBackend = async (courseId, fileContent, navigate
         const tagsMatch = block.match(/Tags:\s*(.+)/i);
         const questionTypeMatch = block.match(/Question Type:\s*(.+)/i);
 
+        let correctAnswer = correctAnswerMatch ? correctAnswerMatch[1].trim() : 'N/A';
+
+        if (correctAnswer.includes('TRUE_FALSE ||')) {
+          correctAnswer = correctAnswer.replace('TRUE_FALSE ||', '').trim();
+        }
+
         return {
           courseId: courseId,
           title: titleMatch ? titleMatch[1].trim() : 'Untitled Question',
