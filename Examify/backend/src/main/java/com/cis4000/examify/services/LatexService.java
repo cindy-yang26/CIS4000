@@ -1,11 +1,15 @@
 package com.cis4000.examify.services;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
@@ -94,6 +98,59 @@ public class LatexService {
 
         } catch (IOException e) {
             throw new RuntimeException("Error reading LaTeX template: " + e.getMessage());
+        }
+    }
+
+    // Google Docs Version
+    public byte[] getDocxContent(String templateName, Long assignmentId) {
+        try {
+            // Create a new DOCX document
+            XWPFDocument document = new XWPFDocument();
+    
+            // Add a title paragraph
+            XWPFParagraph titleParagraph = document.createParagraph();
+            XWPFRun titleRun = titleParagraph.createRun();
+            titleRun.setBold(true);
+            titleRun.setText("Assignment Title: ");
+    
+            // Fetch assignment from the database
+            Assignment assignment = assignmentRepository.findById(assignmentId)
+                    .orElseThrow(() -> new RuntimeException("Assignment not found with ID: " + assignmentId));
+            
+            String courseCode = assignment.getCourse().getCourseCode();
+            String assignmentName = assignment.getName();
+            
+            // Add assignment details
+            XWPFParagraph detailsParagraph = document.createParagraph();
+            XWPFRun detailsRun = detailsParagraph.createRun();
+            detailsRun.setText("Course: " + courseCode + " - Assignment: " + assignmentName);
+    
+            // Add questions to the document
+            List<Question> questions = assignment.getQuestions();
+            for (int i = 0; i < questions.size(); i++) {
+                Question question = questions.get(i);
+    
+                // Add question number and title
+                XWPFParagraph questionTitleParagraph = document.createParagraph();
+                XWPFRun questionTitleRun = questionTitleParagraph.createRun();
+                questionTitleRun.setBold(true);
+                questionTitleRun.setText("Q" + (i + 1) + " " + question.getTitle());
+    
+                // Add question text
+                XWPFParagraph questionTextParagraph = document.createParagraph();
+                XWPFRun questionTextRun = questionTextParagraph.createRun();
+                questionTextRun.setText(question.getText());
+            }
+    
+            // Use ByteArrayOutputStream to capture the document's byte content
+            try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+                document.write(byteArrayOutputStream); // Write the document to the byte stream
+                document.close();
+                return byteArrayOutputStream.toByteArray(); // Return the byte array
+            }
+    
+        } catch (IOException e) {
+            throw new RuntimeException("Error creating DOCX content: " + e.getMessage(), e);
         }
     }
 
