@@ -198,19 +198,19 @@ public class CourseController extends BaseController {
             @CookieValue(name = "sessionId", required = false) String sessionCookie,
             @PathVariable Long id,
             @RequestBody Map<String, Object> payload) {
-        // Long userId = getUserIdFromSessionCookie(sessionCookie);
-        // // User needs to log in first
-        // if (userId == null) {
-        //     return notLoggedInResponse();
-        // }
+        Long userId = getUserIdFromSessionCookie(sessionCookie);
+        // User needs to log in first
+        if (userId == null) {
+            return notLoggedInResponse();
+        }
 
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
         // Verify that this course belongs to the user
-        // if (!course.getUserId().equals(userId)) {
-        //     return userDoesntHaveAccessResponse();
-        // }
+        if (!course.getUserId().equals(userId)) {
+            return userDoesntHaveAccessResponse();
+        }
 
         if (!payload.containsKey("canvasCourseId") || !payload.containsKey("canvasToken")) {
             return ResponseEntity.badRequest().body("Canvas Course ID and Token are required.");
@@ -264,7 +264,7 @@ public class CourseController extends BaseController {
     @PostMapping("/{id}/import-canvas-quiz/{quizId}")
     public ResponseEntity<String> importFromCanvasQuiz(
             @CookieValue(name = "sessionId", required = false) String sessionCookie,
-            @PathVariable Long id, @PathVariable Long quizId) {        
+            @PathVariable Long id, @PathVariable Long quizId) {
         Long userId = getUserIdFromSessionCookie(sessionCookie);
         if (userId == null) {
             return notLoggedInResponse();
@@ -300,41 +300,51 @@ public class CourseController extends BaseController {
         List<CanvasQuizQuestion> canvasQuestions;
         try {
             ResponseEntity<List<CanvasQuizQuestion>> response = restTemplate.exchange(
-                    questionsUrl, HttpMethod.GET, new HttpEntity<>(headers), 
-                    new ParameterizedTypeReference<List<CanvasQuizQuestion>>() {}, canvasCourseId, quizId);
-            
+                    questionsUrl, HttpMethod.GET, new HttpEntity<>(headers),
+                    new ParameterizedTypeReference<List<CanvasQuizQuestion>>() {
+                    }, canvasCourseId, quizId);
+
             canvasQuestions = response.getBody();
             if (canvasQuestions == null) {
                 return ResponseEntity.internalServerError().body("Response from Canvas API had no body");
             }
+        } catch (HttpStatusCodeException e) {
+            return ResponseEntity.status(e.getStatusCode()).body("{\"message\": \"error when querying Canvas API\"}");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                     .body("{\"message\": \"Error retrieving quiz questions from Canvas API\"}");
         }
 
         // Fetch statistics from Canvas
-        String statsUrl = "https://canvas.instructure.com/api/v1/courses/" + canvasCourseId + "/quizzes/" + quizId + "/statistics";
+        String statsUrl = "https://canvas.instructure.com/api/v1/courses/" + canvasCourseId + "/quizzes/" + quizId
+                + "/statistics";
         Map<Long, Question.Stats> questionStatsMap = new HashMap<>();
         try {
-            ResponseEntity<Map> response = restTemplate.exchange(statsUrl, HttpMethod.GET, new HttpEntity<>(headers), Map.class);
+            ResponseEntity<Map> response = restTemplate.exchange(statsUrl, HttpMethod.GET, new HttpEntity<>(headers),
+                    Map.class);
             if (response.getBody() != null && response.getBody().containsKey("quiz_statistics")) {
-                List<Map<String, Object>> quizStatisticsList = (List<Map<String, Object>>) response.getBody().get("quiz_statistics");
+                List<Map<String, Object>> quizStatisticsList = (List<Map<String, Object>>) response.getBody()
+                        .get("quiz_statistics");
 
                 if (!quizStatisticsList.isEmpty()) {
-                    List<Map<String, Object>> questionStats = (List<Map<String, Object>>) quizStatisticsList.get(0).get("question_statistics");
+                    List<Map<String, Object>> questionStats = (List<Map<String, Object>>) quizStatisticsList.get(0)
+                            .get("question_statistics");
 
                     for (Map<String, Object> questionStat : questionStats) {
                         Long questionId = Long.parseLong(questionStat.get("id").toString());
                         Question.Stats stats = StatisticsExtractor.extractStatistics(questionStat);
 
                         System.out.println("Retrieved Stats for Question ID: " + questionId);
-                        System.out.println("Mean: " + stats.getMean() + ", Median: " + stats.getMedian() + 
-                                        ", StdDev: " + stats.getStdDev() + ", Min: " + stats.getMin() + ", Max: " + stats.getMax());
+                        System.out.println("Mean: " + stats.getMean() + ", Median: " + stats.getMedian() +
+                                ", StdDev: " + stats.getStdDev() + ", Min: " + stats.getMin() + ", Max: "
+                                + stats.getMax());
 
                         questionStatsMap.put(questionId, stats);
                     }
                 }
             }
+        } catch (HttpStatusCodeException e) {
+            return ResponseEntity.status(e.getStatusCode()).body("{\"message\": \"Failed to retrieve quiz statistics from Canvas\"}");
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Failed to retrieve quiz statistics from Canvas");
         }
@@ -347,7 +357,7 @@ public class CourseController extends BaseController {
                 newQuestion.setText(stripHtmlTags(newQuestion.getText()));
 
                 try {
-                    Long questionId = Long.parseLong(question.id); 
+                    Long questionId = Long.parseLong(question.id);
 
                     if (questionStatsMap.containsKey(questionId)) {
                         newQuestion.setStats(questionStatsMap.get(questionId));
@@ -412,35 +422,36 @@ public class CourseController extends BaseController {
     }
 
     // private static class CanvasQuizStatisticsResponseWrapper {
-    //     @JsonProperty("quiz_statistics")
-    //     private List<CanvasQuizStatisticsResponse> quizzes;
+    // @JsonProperty("quiz_statistics")
+    // private List<CanvasQuizStatisticsResponse> quizzes;
 
-    //     Optional<CanvasQuizStatisticsResponse> getData() {
-    //         if (quizzes.isEmpty()) {
-    //             return Optional.empty();
-    //         } else {
-    //             return Optional.ofNullable(quizzes.get(0));
-    //         }
-    //     }
+    // Optional<CanvasQuizStatisticsResponse> getData() {
+    // if (quizzes.isEmpty()) {
+    // return Optional.empty();
+    // } else {
+    // return Optional.ofNullable(quizzes.get(0));
+    // }
+    // }
     // }
 
     // private static class CanvasQuizStatisticsResponse {
-    //     @JsonProperty("question_statistics")
-    //     List<CanvasQuizQuestion> questions;
-    //     // @JsonProperty("submission_statistics")
-    //     // private CanvasOverallStatistics statistics;
+    // @JsonProperty("question_statistics")
+    // List<CanvasQuizQuestion> questions;
+    // // @JsonProperty("submission_statistics")
+    // // private CanvasOverallStatistics statistics;
     // }
 
     private static String getQuizTitle(Long courseId, Long quizId, String canvasToken) {
         String url = "https://canvas.instructure.com/api/v1/courses/" + courseId + "/quizzes/" + quizId;
-        
+
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + canvasToken);
 
         try {
-            ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), Map.class);
-            
+            ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers),
+                    Map.class);
+
             if (response.getBody() != null && response.getBody().containsKey("title")) {
                 return response.getBody().get("title").toString();
             } else {
@@ -453,7 +464,8 @@ public class CourseController extends BaseController {
     }
 
     private static String stripHtmlTags(String text) {
-        if (text == null) return "";
+        if (text == null)
+            return "";
         return text.replaceAll("<p>", "").replaceAll("</p>", "").trim();
     }
 
