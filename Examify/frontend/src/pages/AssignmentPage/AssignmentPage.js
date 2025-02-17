@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../../components/Header/Header';
-import { fetchAssignmentInfo, fetchAssignmentQuestions, uploadAssignmentToCanvas } from '../../api/assignments';
+import { fetchAssignmentInfo, fetchAssignmentQuestions, uploadAssignmentToCanvas, downloadLatex } from '../../api/assignments';
+import { FaChevronLeft, FaEdit, FaDownload } from 'react-icons/fa';
 import { fetchCourseInfo } from '../../api/courses';
 import { editQuestion } from '../../api/questions';
-import { FaChevronLeft, FaEdit, FaTrash } from 'react-icons/fa';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
 import './AssignmentPage.css';
 
@@ -13,6 +13,7 @@ function AssignmentPage() {
   const navigate = useNavigate();
 
   const [assignmentName, setAssignmentName] = useState("");
+  const [assignmentStatistics, setAssignmentStatistics] = useState({});
   const [courseName, setCourseName] = useState("");
   const [questions, setQuestions] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -46,9 +47,10 @@ function AssignmentPage() {
   }, [courseId]);
 
   useEffect(() => {
-    const loadAssignmentName = async () => {
+    const loadAssignmentInfo = async () => {
       try {
         const assignmentInfo = await fetchAssignmentInfo(assignmentId, navigate);
+        setAssignmentStatistics(assignmentInfo.statistics);
         setAssignmentName(assignmentInfo.name);
       } catch (error) {
         alert('Failed to load assignment name.');
@@ -65,7 +67,7 @@ function AssignmentPage() {
       }
     };
 
-    loadAssignmentName();
+    loadAssignmentInfo();
     loadQuestions();
   }, [assignmentId]);
 
@@ -192,6 +194,7 @@ function AssignmentPage() {
     }
   };
 
+
   const formatQuestionType = (questionType) => {
     const typeMap = {
       "multiple_choice_question": "MCQ",
@@ -205,6 +208,26 @@ function AssignmentPage() {
   
   
 
+  const handleLatexDownload = async () => {
+    try {
+      const latex = await downloadLatex(assignmentId, navigate);
+      // Create a blob and download it
+      const blob = new Blob([latex], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `assignment_${assignmentId}.tex`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      alert('Failed to download LaTeX file.');
+      console.error(error);
+    }
+  };
+
+
   return (
     <MathJaxContext>
       <div className="assignment-page">
@@ -217,10 +240,28 @@ function AssignmentPage() {
             <h2 className="assignment-title">
               {assignmentName.replace(/-/g, ' ')} (Course: {courseName.replace(/-/g, ' ')})
             </h2>
-            <button className="upload-button" onClick={handleUploadToCanvas}>
-              Upload to Canvas
-            </button>
+            <div className="assignment-actions">
+              <button className="download-button" onClick={handleLatexDownload}>
+                <FaDownload /> LaTeX
+              </button>
+              <button className="upload-button" onClick={handleUploadToCanvas}>
+                Upload to Canvas
+              </button>
+            </div>
           </div>
+
+          {assignmentStatistics && Object.keys(assignmentStatistics).length > 0 && (
+            <div className="assignment-statistics">
+              <h3>Assignment Statistics</h3>
+              <ul>
+                {Object.entries(assignmentStatistics).map(([key, value]) => (
+                  <li key={key}>
+                    <strong>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</strong> {value ?? 'N/A'}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <ul className="questions-list">
             {questions.map((question) => (

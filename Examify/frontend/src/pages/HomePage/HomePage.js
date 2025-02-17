@@ -95,7 +95,7 @@ function HomePage() {
         <div className="courses-header">
           <h1 className="courses-title">My Courses</h1>
           <button className="new-course-button" onClick={() => setShowAddForm(!showAddForm)}>
-            <FaPlus /> <span className="add-course">{showAddForm ? "Close" : "Add Course"}</span>
+            <FaPlus /><span className="add-course">{showAddForm ? "Cancel" : "Add Course"}</span>
           </button>
         </div>
 
@@ -113,7 +113,7 @@ function HomePage() {
               value={newCourse.professor}
               onChange={(e) => setNewCourse({ ...newCourse, professor: e.target.value })}
             />
-            <button onClick={handleAddCourse}>Submit</button>
+            <button onClick={handleAddCourse}>Create</button>
           </div>
         )}
 
@@ -165,7 +165,7 @@ function HomePage() {
                     <TiEdit /> Rename
                   </button>
                   <button className="home-menu-item delete" onClick={(e) => {
-                  e.stopPropagation();
+                    e.stopPropagation();
                     handleDeleteCourse(course);
                     }}>
                     <FiTrash2 /> Delete

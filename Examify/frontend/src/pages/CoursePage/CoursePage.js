@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../../components/Header/Header';
 import { FaFolder, FaPlus, FaChevronLeft } from 'react-icons/fa';
-import { deleteAssignment } from '../../api/assignments';
+import { deleteAssignment, updateAssignment } from '../../api/assignments';
 import './CoursePage.css';
 import { FiMoreVertical, FiTrash2 } from 'react-icons/fi';
 import { TiEdit } from 'react-icons/ti';
@@ -15,8 +15,47 @@ function CoursePage() {
   const [menuVisible, setMenuVisible] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showLinkCanvas, setShowLinkCanvas] = useState(false);
+  const [editingAssignmentId, setEditingAssignmentId] = useState(null);
+  const [editedAssignmentName, setEditedAssignmentName] = useState("");
+  const [canvasCourseId, setCanvasCourseId] = useState("");
+  const [canvasToken, setCanvasToken] = useState("");
   const [showImportCanvasQuiz, setShowImportCanvasQuiz] = useState(false);
+  const [canvasQuizId, setCanvasQuizId] = useState("");
+
   const navigate = useNavigate();
+
+  const handleImportQuiz = async () => {
+    const response = await fetch(`http://localhost:8080/api/courses/${courseId}/import-canvas-quiz/${canvasQuizId}`, {
+      method: "POST",
+      credentials: 'include'
+    });
+
+    if (response.ok) {
+      alert("Canvas quiz imported successfully!");
+      window.location.reload();
+    } else {
+      const errorData = await response.json();
+      alert(`Failed to import Canvas quiz: ${errorData.message || JSON.stringify(errorData)}`);
+      console.error("Failed to import Canvas quiz:", errorData);
+    }
+  };
+
+
+  const handleLinkCanvas = async () => {
+      const response = await fetch(`http://localhost:8080/api/courses/${courseId}/link-canvas`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ canvasCourseId, canvasToken })
+      });
+
+      if (response.ok) {
+          alert("Canvas course linked successfully!");
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to link Canvas course:", errorData);
+        alert(`Failed to link Canvas course: ${errorData.message || JSON.stringify(errorData)}`);
+      }
+  };
 
   useEffect(() => {
     const loadCourseName = async () => {
@@ -59,6 +98,28 @@ function CoursePage() {
 
   const handleCreateAssignment = () => {
     navigate(`/course/${courseId}/create-assignment`);
+  };
+
+  const handleRenameAssignment = async (assignment) => {
+    if (!editedAssignmentName.trim()) {
+      alert("Assignment name cannot be empty.");
+      return;
+    }
+
+    try {
+      console.log(`Renaming assignment ID: ${assignment.id}, New Name: ${editedAssignmentName}`);
+
+      const updatedAssignment = await updateAssignment(assignment.id, { name: editedAssignmentName });
+
+      if (updatedAssignment) {
+          setAssignments(assignments.map((a) => (a.id === assignment.id ? updatedAssignment : a)));
+      }
+      setEditingAssignmentId(null);
+      setMenuVisible(null);
+    } catch (error) {
+      console.error("Error renaming assignment:", error);
+      alert("Failed to rename assignment.");
+    }
   };
 
   const handleDeleteAssignment = async (assignmentId, e) => {
@@ -122,42 +183,68 @@ function CoursePage() {
           <button className="view-questions-button" onClick={handleViewQuestions}>
             View All Questions
           </button>
+
+         
           <button
             className="link-canvas-button"
-            onClick={() => setShowLinkCanvas(!showLinkCanvas)}
+            onClick={() => setShowLinkCanvas(true)}
           >
-            {showLinkCanvas ? "Close" : "Link Canvas"}
+            Link Canvas
           </button>
+
           <button
             className="import-canvas-quiz-button"
-            onClick={() => setShowImportCanvasQuiz(!showImportCanvasQuiz)}
+            onClick={() => setShowImportCanvasQuiz(true)}
           >
-            {showImportCanvasQuiz ? "Close" : "Import quiz from Canvas"}
+            Import Quiz from Canvas
           </button>
+         
         </div>
-
-        {showLinkCanvas && <LinkCanvas courseId={courseId} setShowLinkCanvas={setShowLinkCanvas} />}
-        {showImportCanvasQuiz && <ImportCanvasQuiz courseId={courseId} setShowImportCanvasQuiz={setShowImportCanvasQuiz} />}
 
         <div className="assignments-list">
           {filteredAssignments.length > 0 ? (filteredAssignments.map((assignment, index) => (
             <div key={assignment.id} className="assignment-card" onClick={() => handleViewAssignment(assignment.id)}>
               <div className="course-assignment-info">
                 <FaFolder className="assignment-icon" />
-                <span className="assignment-name">{assignment.name}</span>
+                {editingAssignmentId === assignment.id ? (
+                  <input
+                    type="text"
+                    value={editedAssignmentName}
+                    onChange={(e) => setEditedAssignmentName(e.target.value)}
+                    onBlur={() => handleRenameAssignment(assignment)}
+                    onKeyDown={(e) => e.key === "Enter" && handleRenameAssignment(assignment)}
+                    onClick={(e) => e.stopPropagation()} 
+                    autoFocus
+                  />
+                ) : (
+                  <span className="assignment-name">{assignment.name}</span>
+                )}
               </div>
               <FiMoreVertical
                 className="assignment-options-icon"
-                onClick={(e) => toggleMenu(index, e)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleMenu(index, e);
+                }}
               />
               {menuVisible === index && (
                 <div className="course-menu">
-                  {/* <button className="course-menu-item rename">
+                  <button 
+                    className="course-menu-item rename"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingAssignmentId(assignment.id);
+                      setEditedAssignmentName(assignment.name);
+                    }}
+                  >
                       <TiEdit /> Rename
-                    </button> */}
+                  </button>
                   <button
                     className="course-menu-item delete"
-                    onClick={(e) => handleDeleteAssignment(assignment.id, e)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteAssignment(assignment.id, e)}
+                    }
                   >
                     <FiTrash2 /> Delete
                   </button>
@@ -166,84 +253,57 @@ function CoursePage() {
             </div>
           ))
           ) : (
-            <p>No assignments created yet</p>
+            <p></p>
           )}
         </div>
+        {showLinkCanvas ? (
+          <div className="modal-background">
+            <div className="link-canvas-window">
+              <h3 id="link-canvas-title">Link Canvas Course</h3>
+              <input
+                  className="link-canvas-input"
+                  type="text"
+                  placeholder="Enter Canvas Course ID"
+                  value={canvasCourseId}
+                  onChange={(e) => setCanvasCourseId(e.target.value)}
+              />
+              <input
+                  className="link-canvas-input"
+                  type="text"
+                  placeholder="Enter Canvas Token"
+                  value={canvasToken}
+                  onChange={(e) => setCanvasToken(e.target.value)}
+              />
+              <div className="window-button-div">
+                <button className="link-canvas-window-button" onClick={handleLinkCanvas}>Link Canvas</button>
+                <button className="link-canvas-window-button" id="link-canvas-cancel" onClick={() => setShowLinkCanvas(false)}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        ): (<div></div>)}
+        {showImportCanvasQuiz ? (
+          <div className="modal-background">
+            <div className="link-canvas-window">
+              <h3 id="link-canvas-title">Import Quiz from Canvas</h3>
+              <input
+                className="link-canvas-input"
+                type="text"
+                placeholder="Enter Canvas Quiz ID"
+                value={canvasQuizId}
+                onChange={(e) => setCanvasQuizId(e.target.value)}
+              />
+              <div className="window-button-div">
+                <button className="link-canvas-window-button" id="import-quiz-button" onClick={handleImportQuiz}>Import Quiz</button>
+                <button className="link-canvas-window-button" id="import-quiz-cancel" onClick={() => setShowImportCanvasQuiz(false)}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        ): (<div></div>)}
       </div>
-    </div>
-  );
-}
-
-function LinkCanvas({ courseId }) {
-  const [canvasCourseId, setCanvasCourseId] = useState("");
-  const [canvasToken, setCanvasToken] = useState("");
-
-  const handleSubmit = async () => {
-    const response = await fetch(`http://localhost:8080/api/courses/${courseId}/link-canvas`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ canvasCourseId, canvasToken }),
-      credentials: 'include'
-    });
-
-    if (response.ok) {
-      alert("Canvas course linked successfully!");
-    } else {
-      const errorData = await response.json();
-      console.error("Failed to link Canvas course:", errorData);
-      alert(`Failed to link Canvas course: ${errorData.message || JSON.stringify(errorData)}`);
-    }
-  };
-
-  return (
-    <div>
-      <h3>Link Canvas Course</h3>
-      <input
-        type="text"
-        placeholder="Enter Canvas Course ID"
-        value={canvasCourseId}
-        onChange={(e) => setCanvasCourseId(e.target.value)}
-      />
-      <input
-        type="text"
-        placeholder="Enter Canvas Token"
-        value={canvasToken}
-        onChange={(e) => setCanvasToken(e.target.value)}
-      />
-      <button onClick={handleSubmit}>Link Canvas</button>
-    </div>
-  );
-}
-
-function ImportCanvasQuiz({ courseId }) {
-  const [canvasQuizId, setCanvasQuizId] = useState("");
-
-  const handleSubmit = async () => {
-    const response = await fetch(`http://localhost:8080/api/courses/${courseId}/import-canvas-quiz/${canvasQuizId}`, {
-      method: "POST",
-      credentials: 'include'
-    });
-
-    if (response.ok) {
-      alert("Canvas quiz imported successfully!");
-      window.location.reload();
-    } else {
-      const errorData = await response.json();
-      alert(`Failed to import Canvas quiz: ${errorData.message || JSON.stringify(errorData)}`);
-      console.error("Failed to import Canvas quiz:", errorData);
-    }
-  };
-
-  return (
-    <div>
-      <h3>Import quiz from Canvas</h3>
-      <input
-        type="text"
-        placeholder="Enter Canvas Quiz ID"
-        value={canvasQuizId}
-        onChange={(e) => setCanvasQuizId(e.target.value)}
-      />
-      <button onClick={handleSubmit}>Import Quiz</button>
     </div>
   );
 }

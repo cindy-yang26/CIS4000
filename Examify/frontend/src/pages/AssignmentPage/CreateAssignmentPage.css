@@ -13,8 +13,22 @@
   margin-top: 20px;
 }
 
-.assignment-name-input {
+.create-assignment-header {
+  display: flex;
+}
+ 
+.back-button {
+  margin-top: 12px;
+}
+
+.create-assignment-form-div {
   width: 100%;
+  justify-content: center;
+}
+
+.assignment-name-input {
+  margin: auto;
+  width: 70%;
   padding: 10px;
   margin-bottom: 20px;
   border: 1px solid #ccc;

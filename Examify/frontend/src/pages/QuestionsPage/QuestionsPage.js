@@ -275,10 +275,12 @@ function QuestionsPage() {
         <Header />
         <div className="questions-content">
           <div className="questions-header">
-            <button className="back-button" onClick={handleReturnToCourse}>
-              <FaChevronLeft />
-            </button>
-            <h2 className="course-title">Questions for {courseName}</h2>
+            <div className="questions-subheader">
+              <button className="questions-back-button" onClick={handleReturnToCourse}>
+                <FaChevronLeft />
+              </button>
+              <h2 className="course-title">Questions for {courseName}</h2>
+            </div>
             <div className="button-container">
               <button className="add-question-button" onClick={handleAddQuestion}>
                 <FaPlus />

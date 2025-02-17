@@ -1,0 +1,45 @@
+\documentclass[11pt]{article}
+
+\usepackage{amsmath}
+\usepackage{geometry}
+
+\newif\ifsolutions
+ % \solutionstrue % show the solutions
+\solutionsfalse % hide the solutions
+
+\newcommand{\coursecode}{{{course_code}}}
+\newcommand{\examtitle}{{{exam_title}}}
+\newcommand{\doctitle}{{{doc_title}}}
+
+% Sets Page Margins and space
+\addtolength{\textwidth}{1.00in}
+\addtolength{\textheight}{2.00in}
+\addtolength{\topmargin}{-2.50in}
+\setlength{\footskip}{0pt}
+\geometry{top = 1 in}
+\geometry{left=1in, right=1in}
+
+\begin{document}
+\thispagestyle{empty}
+\ifsolutions
+\begin{center}
+\Large\bf\coursecode\\[2pt] \examtitle ~Solutions \\ \large\docdate
+\end{center}
+
+\hrule
+\paragraph{Important Note:} Do not distribute or share these solutions. Any violations will be referred to the Office of Student Conduct.
+\else 
+\begin{center}
+\Large\bf\coursecode\\[2pt] \examtitle \\
+\end{center}
+% begin
+
+%beginQuestion
+\paragraph{{{questionName}}}
+{{questionText}}
+
+\newpage
+%endQuestion
+
+
+\end{document}
