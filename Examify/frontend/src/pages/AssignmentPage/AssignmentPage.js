@@ -79,6 +79,10 @@ function AssignmentPage() {
     navigate(`/course/${courseId}`);
   };
 
+  const cancelEdit = () => {
+    setShowForm(false);
+  }
+
   const handleFormSubmit = async (e) => {
     e.preventDefault();
   
@@ -414,6 +418,9 @@ function AssignmentPage() {
 
                 <button type="submit" className="submit-question-button">
                   Save Changes
+                </button>
+                <button onClick={cancelEdit} className="cancel-question-button">
+                  Cancel
                 </button>
 
               </form>
