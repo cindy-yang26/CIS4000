@@ -7,6 +7,7 @@ import CoursePage from './pages/CoursePage/CoursePage';
 import QuestionsPage from './pages/QuestionsPage/QuestionsPage';
 import AssignmentPage from './pages/AssignmentPage/AssignmentPage';
 import CreateAssignmentPage from './pages/AssignmentPage/CreateAssignmentPage';
+import EditAssignmentPage from './pages/AssignmentPage/EditAssignmentPage';
 
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
         <Route path="/course/:courseId/questions" element={<QuestionsPage />} />
         <Route path="/course/:courseId/assignment/:assignmentId" element={<AssignmentPage />} />
         <Route path="/course/:courseId/create-assignment" element={<CreateAssignmentPage />} />
+        <Route path="/course/:courseId/assignment/:assignmentId/edit-assignment" element={<EditAssignmentPage />} />
       </Routes>
     </Router>
   );

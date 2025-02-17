@@ -110,7 +110,7 @@ public class AssignmentController extends BaseController {
     }
 
     @PutMapping("/{id}/rename")
-    public ResponseEntity<?> updateAssignment(@PathVariable Long id, @RequestBody Map<String, String> payload) {
+    public ResponseEntity<?> renameAssignment(@PathVariable Long id, @RequestBody Map<String, String> payload) {
         System.out.println("Rename assignment with ID: " + id);
 
         Assignment assignment = assignmentRepository.findById(id)
@@ -125,6 +125,31 @@ public class AssignmentController extends BaseController {
 
         assignmentRepository.save(assignment);
         assignment.setCourse(null); 
+        return ResponseEntity.ok(assignment);
+    }
+
+    @PutMapping("/{id}/update-questions")
+    public ResponseEntity<?> updateAssignmentQuestions(@PathVariable Long id, @RequestBody Map<String, List<Long>> payload) {
+        System.out.println("Updating questions for assignment ID: " + id);
+
+        Assignment assignment = assignmentRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Assignment not found with ID: " + id));
+
+        if (!payload.containsKey("questionIds")) {
+            return ResponseEntity.badRequest().body("Missing 'questionIds' field in request body.");
+        }
+
+        List<Long> questionIds = payload.get("questionIds");
+        List<Question> questions = questionRepository.findAllById(questionIds);
+
+        if (questions.size() != questionIds.size()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Some question IDs provided do not exist in the database.");
+        }
+
+        assignment.setQuestions(questions);
+        assignmentRepository.save(assignment);
+
         return ResponseEntity.ok(assignment);
     }
 

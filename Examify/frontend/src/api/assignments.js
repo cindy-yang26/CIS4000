@@ -22,7 +22,7 @@ export const createAssignment = async (assignmentData, navigate) => {
   }
 };
 
-export const updateAssignment = async (id, updatedData) => {
+export const renameAssignment = async (id, updatedData) => {
   try {
       const response = await fetch(`${API_BASE_URL}/${id}/rename`, {
           method: "PUT",
@@ -38,6 +38,30 @@ export const updateAssignment = async (id, updatedData) => {
   } catch (error) {
       console.error("Error renaming assignment:", error);
       throw error;
+  }
+};
+
+export const updateAssignmentQuestions = async (assignmentId, questionIds, navigate) => {
+  try {
+    const response = await axios.put(
+      `${API_BASE_URL}/${assignmentId}/update-questions`,
+      { questionIds },
+      { withCredentials: true }
+    );
+
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      if (error.response.status === 401) {
+        console.log("Unauthorized: Please login");
+        navigate("/");
+        return null;
+      } else if (error.response.status === 403) {
+        console.log("Access denied: No permission to update assignment questions");
+      }
+    }
+    console.error("Failed to update assignment questions", error);
+    throw error;
   }
 };
 

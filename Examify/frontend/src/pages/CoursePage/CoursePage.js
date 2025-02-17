@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../../components/Header/Header';
 import { FaFolder, FaPlus, FaChevronLeft } from 'react-icons/fa';
-import { deleteAssignment, updateAssignment } from '../../api/assignments';
+import { deleteAssignment, renameAssignment } from '../../api/assignments';
 import './CoursePage.css';
 import { FiMoreVertical, FiTrash2 } from 'react-icons/fi';
 import { TiEdit } from 'react-icons/ti';
@@ -107,9 +107,7 @@ function CoursePage() {
     }
 
     try {
-      console.log(`Renaming assignment ID: ${assignment.id}, New Name: ${editedAssignmentName}`);
-
-      const updatedAssignment = await updateAssignment(assignment.id, { name: editedAssignmentName });
+      const updatedAssignment = await renameAssignment(assignment.id, { name: editedAssignmentName });
 
       if (updatedAssignment) {
           setAssignments(assignments.map((a) => (a.id === assignment.id ? updatedAssignment : a)));
