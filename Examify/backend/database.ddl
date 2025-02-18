@@ -36,6 +36,7 @@ CREATE TABLE question (
     title VARCHAR(255) NOT NULL,
     text TEXT NOT NULL,
     comment TEXT,
+    question_type VARCHAR(255),
     mean VARCHAR(255),
     median VARCHAR(255),
     std_dev VARCHAR(255),
