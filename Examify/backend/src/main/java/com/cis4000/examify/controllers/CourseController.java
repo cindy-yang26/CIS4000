@@ -29,6 +29,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -156,6 +157,39 @@ public class CourseController extends BaseController {
 
             List<Question> questions = course.getQuestions();
             return ResponseEntity.ok(questions);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error fetching assignments for course: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/tags")
+    public ResponseEntity<?> getQuestionTagsByCourseId(
+            @CookieValue(name = "sessionId", required = false) String sessionCookie, @PathVariable Long id) {
+        try {
+            Long userId = getUserIdFromSessionCookie(sessionCookie);
+            // User needs to log in first
+            if (userId == null) {
+                return notLoggedInResponse();
+            }
+
+            Course course = courseRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
+
+            // Verify that this course belongs to the user
+            if (!course.getUserId().equals(userId)) {
+                return userDoesntHaveAccessResponse();
+            }
+
+            List<Question> questions = course.getQuestions();
+            HashSet<String> tags = new HashSet<>();
+            for (Question q : questions) {
+                tags.addAll(q.getTags());
+            }
+
+            return ResponseEntity.ok(tags);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
@@ -344,7 +378,8 @@ public class CourseController extends BaseController {
                 }
             }
         } catch (HttpStatusCodeException e) {
-            return ResponseEntity.status(e.getStatusCode()).body("{\"message\": \"Failed to retrieve quiz statistics from Canvas\"}");
+            return ResponseEntity.status(e.getStatusCode())
+                    .body("{\"message\": \"Failed to retrieve quiz statistics from Canvas\"}");
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Failed to retrieve quiz statistics from Canvas");
         }
@@ -463,7 +498,7 @@ public class CourseController extends BaseController {
             case "numerical_question":
                 return getNumericalCorrectAnswer(question.answers);
             default:
-                return "N/A"; 
+                return "N/A";
         }
     }
 
@@ -471,9 +506,9 @@ public class CourseController extends BaseController {
         for (Map<String, Object> answer : answers) {
             Object weightObj = answer.get("weight");
             String text = (String) answer.get("text");
-    
+
             int weight = getWeightAsInteger(weightObj);
-    
+
             if (weight == 100 && text != null && !text.isEmpty()) {
                 return text;
             }
@@ -485,9 +520,9 @@ public class CourseController extends BaseController {
         for (Map<String, Object> answer : answers) {
             Object weightObj = answer.get("weight");
             String text = (String) answer.get("text");
-    
+
             int weight = getWeightAsInteger(weightObj);
-    
+
             if (weight == 100 && text != null) {
                 return text;
             }
@@ -525,22 +560,22 @@ public class CourseController extends BaseController {
         String name;
         @JsonProperty("answers")
         List<Map<String, Object>> answers;
-    
+
         protected Question toQuestion(Long assignmentId) {
             Question q = new Question();
             q.setCourseId(assignmentId);
             q.setText(stripHtmlTags(text));
             q.setTitle(name != null ? name : "Canvas question " + id);
             q.setQuestionType(determineQuestionType(type));
-    
+
             // Extracting correct answer(s) and options
             if (answers != null && !answers.isEmpty()) {
                 extractAnswers(q, answers);
             }
-    
+
             return q;
         }
-    
+
         private String determineQuestionType(String canvasType) {
             switch (canvasType) {
                 case "multiple_choice_question":
@@ -555,27 +590,27 @@ public class CourseController extends BaseController {
                     return "essay_question";
             }
         }
-    
+
         private void extractAnswers(Question q, List<Map<String, Object>> answers) {
             List<String> choices = new ArrayList<>();
             String correctAnswer = null;
-        
+
             for (Map<String, Object> answer : answers) {
                 String text = (String) answer.get("text");
                 Object weightObj = answer.get("weight");
                 int weight = getWeightAsInteger(weightObj);
-        
+
                 if (text != null && !text.trim().isEmpty()) {
                     choices.add(text);
                 }
-        
+
                 if (weight == 100 && text != null && !text.trim().isEmpty()) {
                     correctAnswer = text;
                 }
             }
-        
+
             q.setOptions(choices);
             q.setCorrectAnswer(correctAnswer != null ? correctAnswer : "N/A");
         }
-    } 
+    }
 }
