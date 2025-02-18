@@ -21,6 +21,8 @@ function CoursePage() {
   const [canvasToken, setCanvasToken] = useState("");
   const [showImportCanvasQuiz, setShowImportCanvasQuiz] = useState(false);
   const [canvasQuizId, setCanvasQuizId] = useState("");
+  const [attemptDelete, setAttemptDelete] = useState(false)
+  
 
   const navigate = useNavigate();
 
@@ -129,6 +131,7 @@ function CoursePage() {
       await deleteAssignment(assignmentId, navigate);
       setAssignments(assignments.filter((assignment) => assignment.id !== assignmentId));
       setMenuVisible(null);
+      setAttemptDelete(false);
     } catch (error) {
       alert('Failed to delete assignment');
       console.error(error);
@@ -244,12 +247,39 @@ function CoursePage() {
                     className="course-menu-item delete"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDeleteAssignment(assignment.id, e)
+                      setAttemptDelete(true);
+                      setMenuVisible(null)
                     }
                     }
                   >
                     <FiTrash2 /> Delete
                   </button>
+                </div>
+              )}
+              {attemptDelete && (
+                <div className="modal-background">
+                  <div className="delete-confirmation-window">
+                    <h3 id="link-canvas-title">Delete Assignment?</h3>
+                    <p>This action can not be undone</p>
+                    <div className="window-button-div">
+                      <button 
+                        className="link-canvas-window-button" id="add-course-button" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteAssignment(assignment.id, e)
+                        }}
+                      >
+                        Delete
+                      </button>
+                      <button 
+                        className="link-canvas-window-button" id="add-course-cancel"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAttemptDelete(false)
+                          setMenuVisible(null)
+                        }}>Cancel</button>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

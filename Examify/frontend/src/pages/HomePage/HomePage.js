@@ -17,6 +17,7 @@ function HomePage() {
   const [newCourse, setNewCourse] = useState({ courseCode: "", professor: "" });
   const [editingCourseId, setEditingCourseId] = useState(null);
   const [editedCourseCode, setEditedCourseCode] = useState("");
+  const [attemptDelete, setAttemptDelete] = useState(false)
 
   useEffect(() => {
     const loadCourses = async () => {
@@ -69,6 +70,7 @@ function HomePage() {
     deleteCourse(idToDelete, navigate);
     setCourses(courses.filter((course) => course.id !== idToDelete));
     setMenuVisible(null);
+    setAttemptDelete(false);
   };
 
   const toggleMenu = (index) => {
@@ -80,7 +82,6 @@ function HomePage() {
   };
 
   const filteredCourses = courses.filter((course, index) => {
-    // const title = course.courseCode || ''; 
     const title = course.courseCode;
     return (
       title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -95,27 +96,9 @@ function HomePage() {
         <div className="courses-header">
           <h1 className="courses-title">My Courses</h1>
           <button className="new-course-button" onClick={() => setShowAddForm(!showAddForm)}>
-            <FaPlus /><span className="add-course">{showAddForm ? "Cancel" : "Add Course"}</span>
+            <FaPlus /><span className="add-course">Add Course</span>
           </button>
         </div>
-
-        {showAddForm && (
-          <div className="add-course-form">
-            <input
-              type="text"
-              placeholder="Course Code"
-              value={newCourse.courseCode}
-              onChange={(e) => setNewCourse({ ...newCourse, courseCode: e.target.value })}
-            />
-            <input
-              type="text"
-              placeholder="Professor Name"
-              value={newCourse.professor}
-              onChange={(e) => setNewCourse({ ...newCourse, professor: e.target.value })}
-            />
-            <button onClick={handleAddCourse}>Create</button>
-          </div>
-        )}
 
         <div className="courses-search-div">
           <input
@@ -166,15 +149,69 @@ function HomePage() {
                   </button>
                   <button className="home-menu-item delete" onClick={(e) => {
                     e.stopPropagation();
-                    handleDeleteCourse(course);
+                    setAttemptDelete(true);
+                    setMenuVisible(null)
                     }}>
                     <FiTrash2 /> Delete
                   </button>
                 </div>
               )}
+              {attemptDelete && (
+                <div className="modal-background">
+                  <div className="delete-confirmation-window">
+                    <h3 id="link-canvas-title">Delete Course?</h3>
+                    <p>This action can not be undone</p>
+                    <div className="window-button-div">
+                      <button 
+                        className="link-canvas-window-button" id="add-course-button" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteCourse(course)
+                        }}
+                      >
+                        Delete
+                      </button>
+                      <button 
+                        className="link-canvas-window-button" id="add-course-cancel"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAttemptDelete(false)
+                          setMenuVisible(null)
+                        }}>Cancel</button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
+        {showAddForm ? (
+          <div className="modal-background">
+            <div className="link-canvas-window">
+              <h3 id="link-canvas-title">Add a Course</h3>
+              <input
+                className="link-canvas-input"
+                type="text"
+                placeholder="Course Code"
+                value={newCourse.courseCode}
+                onChange={(e) => setNewCourse({ ...newCourse, courseCode: e.target.value })}
+              />
+              <input
+                className="link-canvas-input"
+                type="text"
+                placeholder="Professor Name"
+                value={newCourse.professor}
+                onChange={(e) => setNewCourse({ ...newCourse, professor: e.target.value })}
+              />
+              <div className="window-button-div">
+                <button className="link-canvas-window-button" id="add-course-button" onClick={handleAddCourse}>Add Course</button>
+                <button className="link-canvas-window-button" id="add-course-cancel" onClick={() => setShowAddForm(false)}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div></div>
+        )}
       </div>
     </div>
   );

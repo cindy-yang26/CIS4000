@@ -25,6 +25,8 @@ function QuestionsPage() {
     stats: { mean: '', median: '', stdDev: '', min: '', max: '' },
   });
   const [searchQuery, setSearchQuery] = useState('');
+  const [attemptDelete, setAttemptDelete] = useState(false)
+  
 
   useEffect(() => {
     const loadCourseName = async () => {
@@ -196,6 +198,7 @@ function QuestionsPage() {
       await deleteQuestion(id, navigate);
       const updatedQuestions = await fetchCourseQuestions(courseId, navigate);
       setQuestions(updatedQuestions);
+      setAttemptDelete(false);
     } catch (error) {
       alert(error);
       console.error(error);
@@ -378,10 +381,40 @@ function QuestionsPage() {
                   <button className="edit-button" onClick={() => handleEditQuestion(question)}>
                     <FaEdit />
                   </button>
-                  <button className="delete-button" onClick={() => handleDeleteQuestion(question.id)}>
+                  <button
+                    className="delete-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setAttemptDelete(true)}
+                    }>
                     <FaTrash />
                   </button>
                 </div>
+                {attemptDelete && (
+                <div className="modal-background">
+                  <div className="delete-confirmation-window">
+                    <h3 id="link-canvas-title">Delete Question?</h3>
+                    <p>This action can not be undone</p>
+                    <div className="window-button-div">
+                      <button 
+                        className="link-canvas-window-button" id="add-course-button" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteQuestion(question.id)
+                        }}
+                      >
+                        Delete
+                      </button>
+                      <button 
+                        className="link-canvas-window-button" id="add-course-cancel"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAttemptDelete(false)
+                        }}>Cancel</button>
+                    </div>
+                  </div>
+                </div>
+              )}
               </li>
             ))}
           </ul>
