@@ -65,7 +65,7 @@ function LoginPage() {
               onChange={(e) => setPassword(e.target.value)} 
             />
 
-            <div className="forgot-pw"><Link to="" className="link"><span className="text">Forgot password?</span></Link></div>
+            <div className="forgot-pw"><Link to="/reset-password" className="link"><span className="text">Forgot password?</span></Link></div>
 
             <button className="login-button" onClick={handleLogin}>Log In</button>
             

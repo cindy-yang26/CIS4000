@@ -8,6 +8,7 @@ import QuestionsPage from './pages/QuestionsPage/QuestionsPage';
 import AssignmentPage from './pages/AssignmentPage/AssignmentPage';
 import CreateAssignmentPage from './pages/AssignmentPage/CreateAssignmentPage';
 import EditAssignmentPage from './pages/AssignmentPage/EditAssignmentPage';
+import ResetPasswordPage from './pages/LoginPage/ResetPasswordPage';
 
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/course/:courseId" element={<CoursePage />} />
         <Route path="/course/:courseId/questions" element={<QuestionsPage />} />

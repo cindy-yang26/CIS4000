@@ -32,6 +32,22 @@ export const signup = async (username, email, password) => {
   }
 };
 
+export const resetPassword = async (username, email, newPassword) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/reset-password`, {
+      username,
+      email,
+      newPassword
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Password reset failed", error);
+    throw error.response?.data || "Password reset failed. Please try again.";
+  }
+};
+
+
 export const logout = async () => {
   try {
     const response = await axios.post(`${API_BASE_URL}/logout`, {},
