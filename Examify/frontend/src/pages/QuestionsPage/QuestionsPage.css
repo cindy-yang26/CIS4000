@@ -363,6 +363,40 @@
   box-shadow: 0 0 5px rgba(0, 91, 187, 0.5);
 }
 
-  
+.autocomplete-container {
+  position: relative;
+  width: 100%;
+}
 
-  
+.autocomplete-container {
+  position: relative;
+  width: 100%;
+}
+
+.autocomplete-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  max-height: 150px;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.autocomplete-dropdown li {
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+}
+
+
+.autocomplete-dropdown li:hover {
+  background: #f0f0f0;
+}
+
+.autocomplete-dropdown strong {
+  font-weight: 900;
+  color: #007bff; /* Optional: Change color for emphasis */
+}

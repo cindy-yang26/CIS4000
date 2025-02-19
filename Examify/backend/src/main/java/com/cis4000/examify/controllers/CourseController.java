@@ -179,7 +179,7 @@ public class CourseController extends BaseController {
                     .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
 
             // Verify that this course belongs to the user
-            if (!course.getUserId().equals(userId)) {
+            if (!userId.equals(course.getUserId())) {
                 return userDoesntHaveAccessResponse();
             }
 

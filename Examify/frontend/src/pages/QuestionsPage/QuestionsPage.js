@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { fetchCourseInfo, fetchCourseQuestions } from '../../api/courses';
+import { fetchCourseInfo, fetchCourseQuestions, getAllTags } from '../../api/courses';
 import { createQuestion, editQuestion, deleteQuestion, uploadFileContentToBackend } from '../../api/questions';
 import Header from '../../components/Header/Header';
 import { FaChevronLeft, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
@@ -26,7 +26,10 @@ function QuestionsPage() {
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [attemptDelete, setAttemptDelete] = useState(false)
-  
+  const [tags, setTags] = useState([])
+  const [filteredTags, setFilteredTags] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
 
   useEffect(() => {
     const loadCourseName = async () => {
@@ -58,6 +61,53 @@ function QuestionsPage() {
 
     loadQuestions();
   }, [courseId]);
+
+
+  useEffect(() => {
+    const loadTags = async () => {
+      try {
+        const tagSet = await getAllTags(courseId, navigate);
+        if (tagSet == null) {
+          return;
+        }
+        console.log(tagSet);
+        setTags(tagSet);
+      } catch (error) {
+        alert('Failed to load tags.');
+        console.error(error);
+      }
+    };
+    loadTags();
+  }, [showForm]);
+
+
+  const handleTagSearch = (input) => {
+    if (!input.trim()) {
+      setFilteredTags(tags);
+      return;
+    }
+  
+    const inputTags = input.split(',').map(tag => tag.trim());
+    const lastTag = inputTags[inputTags.length - 1];
+  
+    const matchingTags = tags.filter(tag =>
+      tag.toLowerCase().includes(lastTag.toLowerCase())
+    );
+  
+    setFilteredTags(matchingTags);
+  };
+  
+
+  const handleTagSelect = (selectedTag) => {
+    const currentTags = formFields.tags.split(',').map(tag => tag.trim());
+    
+    if (!currentTags.includes(selectedTag)) {
+      currentTags[currentTags.length - 1] = selectedTag;
+      setFormFields({ ...formFields, tags: currentTags.join(', ') });
+    }
+    
+    setShowSuggestions(false);
+  };
 
   const handleReturnToCourse = () => {
     navigate(`/course/${courseId}`);
@@ -171,6 +221,26 @@ function QuestionsPage() {
       console.error(error);
     }
   };
+
+  // const splitTagHighlight = (tag, searchTerm) => {
+  //   if (!searchTerm) return tag; // No highlight needed if empty
+  
+  //   const lowerTag = tag.toLowerCase();
+  //   const lowerSearch = searchTerm.toLowerCase();
+  //   const index = lowerTag.indexOf(lowerSearch);
+  
+  //   if (index === -1) return tag; // No match found, return tag as is
+  
+  //   return (
+  //     <div>
+  //       {tag.substring(0, index)}
+  //       <span style={{ fontWeight: "bold" }}>
+  //         {tag.substring(index, index + searchTerm.length)}
+  //       </span>
+  //       {tag.substring(index + searchTerm.length)}
+  //     </div>
+  //   );
+  // };
   
 
   const handleEditQuestion = (question) => {
@@ -335,8 +405,6 @@ function QuestionsPage() {
                         ))}
                       </div>
                     )}
-
-
                   
                   <MathJax>{question.text}</MathJax>
                   
@@ -510,23 +578,45 @@ function QuestionsPage() {
                   </div>
                 )} 
 
-<textarea
-                placeholder="Enter a comment"
-                value={formFields.comment}
-                onChange={(e) =>
-                  setFormFields({ ...formFields, comment: e.target.value })
-                }
-                rows="2"
-              />
-
-                <input
-                  type="text"
-                  placeholder="Enter tags (comma-separated)"
-                  value={formFields.tags}
+                <textarea
+                  placeholder="Enter a comment"
+                  value={formFields.comment}
                   onChange={(e) =>
-                    setFormFields({ ...formFields, tags: e.target.value })
+                    setFormFields({ ...formFields, comment: e.target.value })
                   }
+                  rows="2"
                 />
+
+                <div className="autocomplete-container">
+                  <input
+                    type="text"
+                    placeholder="Enter tags (comma-separated)"
+                    value={formFields.tags}
+                    onChange={(e) => {
+                      setFormFields({ ...formFields, tags: e.target.value });
+                      handleTagSearch(e.target.value);
+                    }}
+                    onFocus={() => {
+                      handleTagSearch(formFields.tags); // Show suggestions on focus
+                      setShowSuggestions(true);
+                    }}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} // Delay hiding for clicks to register
+                  />
+                  {showSuggestions && filteredTags.length > 0 && (
+                    <ul className="autocomplete-dropdown">
+                      {filteredTags.map((tag, index) => (
+                        <li
+                          key={index}
+                          onMouseDown={() => handleTagSelect(tag)}
+                        >
+                          {tag}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+
                 <div className="stats-fields">
                   <label>
                     Mean:

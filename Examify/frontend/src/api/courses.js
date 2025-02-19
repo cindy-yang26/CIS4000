@@ -40,6 +40,26 @@ export const fetchAllCourses = async (navigate) => {
   }
 }
 
+export const getAllTags = async (courseId, navigate) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/${courseId}/tags`, { withCredentials: true });
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      if (error.response.status === 401) {
+        console.log('Unauthorized: Please login');
+        navigate('/');
+        return null;
+      } else if (error.response.status === 403) {
+        // TODO: display page telling user it doesn't have access
+      }
+    }
+    console.error('Error fetching tags for course', error);
+    throw error;
+  }
+}
+
+
 export const fetchCourseInfo = async (id, navigate) => {
   try {
     const response = await axios.get(`${API_BASE_URL}/${id}`, { withCredentials: true });
