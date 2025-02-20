@@ -222,27 +222,6 @@ function QuestionsPage() {
     }
   };
 
-  // const splitTagHighlight = (tag, searchTerm) => {
-  //   if (!searchTerm) return tag; // No highlight needed if empty
-  
-  //   const lowerTag = tag.toLowerCase();
-  //   const lowerSearch = searchTerm.toLowerCase();
-  //   const index = lowerTag.indexOf(lowerSearch);
-  
-  //   if (index === -1) return tag; // No match found, return tag as is
-  
-  //   return (
-  //     <div>
-  //       {tag.substring(0, index)}
-  //       <span style={{ fontWeight: "bold" }}>
-  //         {tag.substring(index, index + searchTerm.length)}
-  //       </span>
-  //       {tag.substring(index + searchTerm.length)}
-  //     </div>
-  //   );
-  // };
-  
-
   const handleEditQuestion = (question) => {
     setEditingQuestion(question);
     setFormFields({

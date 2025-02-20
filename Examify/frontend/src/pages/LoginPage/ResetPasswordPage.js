@@ -106,7 +106,7 @@ function ResetPasswordPage() {
                 {success && <div className="error-message" id="success">{success}</div>}
     
                 <Link to="/">
-                <button className="login-button">Login</button>
+                <button className="login-button">Back to Login</button>
                 </Link>
             </div>
         </div>
