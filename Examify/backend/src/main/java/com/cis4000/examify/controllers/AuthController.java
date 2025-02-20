@@ -139,6 +139,26 @@ public class AuthController {
                 .body("User registered successfully!");
     }
 
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest resetRequest) {
+        Optional<User> userOptional = userRepository.findByUsername(resetRequest.getUsername());
+
+        if (userOptional.isEmpty() || !userOptional.get().getEmail().equals(resetRequest.getEmail())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect username or email");
+        }
+
+        if (resetRequest.getNewPassword() == null || resetRequest.getNewPassword().length() < 8) {
+            return ResponseEntity.badRequest().body("Error: New password must be at least 8 characters long");
+        }
+
+        User user = userOptional.get();
+        user.setPassword(passwordEncoder.encode(resetRequest.getNewPassword()));
+        userRepository.save(user);
+
+        return ResponseEntity.ok("Password successfully reset!");
+    }
+
+
     // TODO: this is unused ancd should probably be deleted
     // @GetMapping("/redirect")
     // public RedirectView redirectToLogin() {
@@ -207,6 +227,36 @@ public class AuthController {
 
         public void setPassword(String password) {
             this.password = password;
+        }
+    }
+
+    public static class ResetPasswordRequest {
+        private String username;
+        private String email;
+        private String updatedPassword;
+
+        public String getUsername() { 
+            return username; 
+        }
+
+        public void setUsername(String username) { 
+            this.username = username; 
+        }
+
+        public String getEmail() { 
+            return email; 
+        }
+
+        public void setEmail(String email) { 
+            this.email = email; 
+        }
+
+        public String getNewPassword() { 
+            return updatedPassword; 
+        }
+
+        public void setNewPassword(String newPassword) { 
+            this.updatedPassword = newPassword; 
         }
     }
 }
