@@ -50,6 +50,18 @@ public class Question {
         this.correctAnswer = correctAnswer;
     }
 
+    @Column(name = "original_question_id", nullable = true)
+    private Long originalQuestionId;
+
+    public Long getOriginalQuestionId() {
+        return originalQuestionId;
+    }
+
+    public void setOriginalQuestionId(Long originalQuestionId) {
+        this.originalQuestionId = originalQuestionId;
+    }
+
+
     @ElementCollection
     @CollectionTable(name = "question_tags", joinColumns = @JoinColumn(name = "question_id"))
     @Column(name = "tag")
@@ -131,7 +143,13 @@ public class Question {
         private String min;
         private String max;
 
-        public Stats() {}
+        public Stats() {
+            this.mean = "N/A";
+            this.median = "N/A";
+            this.stdDev = "N/A";
+            this.min = "N/A";
+            this.max = "N/A";
+        }
 
         public Stats(String mean, String median, String stdDev, String min, String max) {
             this.mean = mean;

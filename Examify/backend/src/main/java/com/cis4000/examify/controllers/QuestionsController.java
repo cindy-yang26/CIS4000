@@ -3,19 +3,39 @@ package com.cis4000.examify.controllers;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.cis4000.examify.models.Question;
 import com.cis4000.examify.repositories.QuestionRepository;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import okhttp3.OkHttpClient;
+import okhttp3.MediaType;
+import okhttp3.Request;
+import okhttp3.Response;
+
 import com.cis4000.examify.repositories.CourseRepository;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/questions")
 public class QuestionsController extends BaseController {
+
+    @Value("${openai.api.key}")
+    private String apiKey;
+
+    private static final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
+    private static final String MODEL = "gpt-3.5-turbo";
 
     @Autowired
     private QuestionRepository questionRepository;
@@ -32,6 +52,97 @@ public class QuestionsController extends BaseController {
             return course.getUserId() != null && course.getUserId().equals(userId);
         }).orElse(false);
     }
+
+    @PostMapping("{id}/create-variant")
+public ResponseEntity<?> createQuestionVariant(@CookieValue(name = "sessionId", required = false) String sessionCookie,
+                                               @PathVariable Long id) {
+    Long userId = getUserIdFromSessionCookie(sessionCookie);
+    if (userId == null) {
+        return notLoggedInResponse();
+    }
+
+    Optional<Question> originalQuestionOpt = questionRepository.findById(id);
+    if (originalQuestionOpt.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Original question not found");
+    }
+
+    Question originalQuestion = originalQuestionOpt.get();
+
+    if (!belongsToUser(originalQuestion, userId)) {
+        return userDoesntHaveAccessResponse();
+    }
+
+    // ✅ Directly call the internal obfuscation method (no API request needed!)
+    String obfuscatedText;
+    try {
+        obfuscatedText = generateObfuscatedText(originalQuestion.getText());
+    } catch (IOException e) {
+        System.out.println("Obfuscation failed: " + e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to generate obfuscated variant.");
+    }
+
+    Question variant = new Question();
+    variant.setCourseId(originalQuestion.getCourseId());
+    variant.setTitle(originalQuestion.getTitle() + " (Variant)");
+    variant.setText(obfuscatedText);
+    variant.setComment(originalQuestion.getComment());
+    variant.setTags(new ArrayList<>(originalQuestion.getTags())); 
+    variant.setQuestionType(originalQuestion.getQuestionType());
+    variant.setCorrectAnswer(originalQuestion.getCorrectAnswer());
+    variant.setOriginalQuestionId(originalQuestion.getId());
+    variant.setStats(new com.cis4000.examify.models.Question.Stats());
+
+    if (originalQuestion.getOptions() != null) {
+        variant.setOptions(new ArrayList<>(originalQuestion.getOptions()));
+    } else {
+        variant.setOptions(new ArrayList<>()); 
+    }
+
+    questionRepository.save(variant);
+
+    return ResponseEntity.ok("Variant created successfully");
+}
+
+private String generateObfuscatedText(String questionText) throws IOException {
+    String prompt = """
+            Transform the following question into a new version while ensuring it remains logically equivalent. 
+            - **Modify numerical values** (e.g., 5 → 7, 10 → 12) while keeping calculations consistent.
+            - **Change variables or labels** (e.g., "X" → "Y", "velocity" → "speed").
+            - **Rephrase some wording** but ensure the question remains natural and clear.
+            - **Mathematical notations and equations should remain valid**.
+            - **Do NOT alter the question type** (e.g., multiple-choice remains multiple-choice).
+            
+            %s
+            """.formatted(questionText);
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    String requestBody = objectMapper.writeValueAsString(
+            new ChatCompletionRequest("gpt-3.5-turbo", "You are a helpful assistant.", prompt)
+    );
+
+    OkHttpClient client = new OkHttpClient();
+    Request request = new Request.Builder()
+            .url("https://api.openai.com/v1/chat/completions")
+            .post(okhttp3.RequestBody.create(requestBody, okhttp3.MediaType.get("application/json")))
+            .addHeader("Authorization", "Bearer " + apiKey)
+            .addHeader("Content-Type", "application/json")
+            .build();
+
+    try (Response response = client.newCall(request).execute()) {
+        if (!response.isSuccessful()) {
+            throw new IOException("Unexpected code: " + response);
+        }
+
+        // ✅ Read response body only ONCE and store it in a variable
+        String responseBodyString = response.body().string();
+        System.out.println("Obfuscation API Response: " + responseBodyString);
+
+        JsonNode responseBody = objectMapper.readTree(responseBodyString);
+        return responseBody.get("choices").get(0).get("message").get("content").asText().trim();
+    }
+}
+
+
 
     @PostMapping
     public ResponseEntity<?> createQuestion(@CookieValue(name = "sessionId", required = false) String sessionCookie,
@@ -124,6 +235,30 @@ public class QuestionsController extends BaseController {
         questionRepository.deleteById(id);
         return ResponseEntity.ok("Question deleted successfully");
     }
+
+    @GetMapping("{id}/variants")
+    public ResponseEntity<?> getQuestionVariants(@CookieValue(name = "sessionId", required = false) String sessionCookie,
+                                                 @PathVariable Long id) {
+        Long userId = getUserIdFromSessionCookie(sessionCookie);
+        if (userId == null) {
+            return notLoggedInResponse();
+        }
+
+        Optional<Question> originalQuestionOpt = questionRepository.findById(id);
+        if (originalQuestionOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Original question not found");
+        }
+
+        Question originalQuestion = originalQuestionOpt.get();
+        if (!belongsToUser(originalQuestion, userId)) {
+            return userDoesntHaveAccessResponse();
+        }
+
+        List<Question> variants = questionRepository.findByOriginalQuestionId(id);
+        return ResponseEntity.ok(variants);
+    }
+
+    
 
     public static class QuestionRequest {
         private String title;
@@ -245,6 +380,69 @@ public class QuestionsController extends BaseController {
             public void setMax(String max) {
                 this.max = max;
             }
+        }
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private static class ChatCompletionRequest {
+        @JsonProperty("model")
+        private String model;
+
+        @JsonProperty("messages")
+        private Message[] messages;
+
+        public ChatCompletionRequest(String model, String systemMessage, String userMessage) {
+            this.model = model;
+            this.messages = new Message[]{
+                    new Message("system", systemMessage),
+                    new Message("user", userMessage)
+            };
+        }
+
+        public String getModel() {
+            return model;
+        }
+
+        public void setModel(String model) {
+            this.model = model;
+        }
+
+        public Message[] getMessages() {
+            return messages;
+        }
+
+        public void setMessages(Message[] messages) {
+            this.messages = messages;
+        }
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private static class Message {
+        @JsonProperty("role")
+        private String role;
+
+        @JsonProperty("content")
+        private String content;
+
+        public Message(String role, String content) {
+            this.role = role;
+            this.content = content;
+        }
+
+        public String getRole() {
+            return role;
+        }
+
+        public void setRole(String role) {
+            this.role = role;
+        }
+
+        public String getContent() {
+            return content;
+        }
+
+        public void setContent(String content) {
+            this.content = content;
         }
     }
 }

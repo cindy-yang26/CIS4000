@@ -35,13 +35,13 @@ public class StatisticsExtractor {
     
         List<Double> values = new ArrayList<>();
         
-        List<Map<String, Object>> answers = (List<Map<String, Object>>) questionStat.get("answers");
-        for (Map<String, Object> answer : answers) {
-            if (answer.containsKey("value")) {
-                List<Double> answerValues = (List<Double>) answer.get("value");
-                values.addAll(answerValues);
-            }
-        }
+        // List<Map<String, Object>> answers = (List<Map<String, Object>>) questionStat.get("answers");
+        // for (Map<String, Object> answer : answers) {
+        //     if (answer.containsKey("value")) {
+        //         List<Double> answerValues = (List<Double>) answer.get("value");
+        //         values.addAll(answerValues);
+        //     }
+        // }
     
         for (int i = 0; i < correctCount; i++) values.add(1.0);
         for (int i = 0; i < incorrectCount; i++) values.add(0.0);
@@ -49,8 +49,8 @@ public class StatisticsExtractor {
         double mean = values.stream().mapToDouble(v -> v).average().orElse(0.0);
         double stdDev = calculateStandardDeviation(values, mean);
         double median = calculateMedian(values);
-        double min = values.isEmpty() ? 0.0 : Collections.min(values);
-        double max = values.isEmpty() ? 0.0 : Collections.max(values);
+        double min = incorrectCount > 0 ? 0 : 1;
+        double max = correctCount > 0 ? 1 : 0;
     
         return new Question.Stats(
             df.format(mean), 
@@ -88,7 +88,6 @@ public class StatisticsExtractor {
 
     private static Question.Stats extractTrueFalseStats(Map<String, Object> questionStat) {
         double mean = Double.parseDouble(questionStat.getOrDefault("correct_student_ratio", "0.0").toString());
-        double stdDev = Double.parseDouble(questionStat.getOrDefault("stdev", "0.0").toString());
     
         int correctCount = Integer.parseInt(questionStat.getOrDefault("correct_student_count", "0").toString());
         int incorrectCount = Integer.parseInt(questionStat.getOrDefault("incorrect_student_count", "0").toString());
@@ -101,6 +100,7 @@ public class StatisticsExtractor {
         for (int i = 0; i < incorrectCount; i++) scores.add(0);
     
         double median = calculateMedian(scores);
+        double stdDev = calculateStandardDeviation(scores, mean);
     
         return new Question.Stats(
             df.format(mean), 

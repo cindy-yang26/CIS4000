@@ -3,8 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { fetchCourseInfo, fetchCourseQuestions, getAllTags } from '../../api/courses';
 import { createQuestion, editQuestion, deleteQuestion, uploadFileContentToBackend } from '../../api/questions';
 import Header from '../../components/Header/Header';
-import { FaChevronLeft, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
+import { FaChevronLeft, FaEdit, FaTrash, FaPlus, FaEye } from 'react-icons/fa';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
+import { fetchQuestionVariants, createQuestionVariant } from "../../api/variants";
 import './QuestionsPage.css';
 import mammoth from 'mammoth';
 
@@ -29,7 +30,9 @@ function QuestionsPage() {
   const [tags, setTags] = useState([])
   const [filteredTags, setFilteredTags] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-
+  const [expandedQuestion, setExpandedQuestion] = useState(null);
+  const [variants, setVariants] = useState({});
+  const [loadingVariants, setLoadingVariants] = useState({});
 
   useEffect(() => {
     const loadCourseName = async () => {
@@ -198,12 +201,19 @@ function QuestionsPage() {
     try {
       if (editingQuestion) {
         await editQuestion(editingQuestion.id, questionData, navigate);
+        if (editingQuestion.originalQuestionId) {
+          const updatedVariants = await fetchQuestionVariants(editingQuestion.originalQuestionId);
+          setVariants((prev) => ({
+            ...prev,
+            [editingQuestion.originalQuestionId]: updatedVariants,
+          }));
+        } else {
+          const updatedQuestions = await fetchCourseQuestions(courseId, navigate);
+          setQuestions(updatedQuestions);
+        }
       } else {
         await createQuestion(questionData, navigate);
       }
-  
-      const updatedQuestions = await fetchCourseQuestions(courseId, navigate);
-      setQuestions(updatedQuestions);
   
       setFormFields({
         title: '',
@@ -222,7 +232,7 @@ function QuestionsPage() {
     }
   };
 
-  const handleEditQuestion = (question) => {
+  const handleEditQuestion = (question, originalQuestionId = null) => {
     setEditingQuestion(question);
     setFormFields({
       title: question.title,
@@ -242,11 +252,18 @@ function QuestionsPage() {
   };
   
 
-  const handleDeleteQuestion = async (id) => {
+  const handleDeleteQuestion = async (id, originalQuestionId = null) => {
     try {
       await deleteQuestion(id, navigate);
-      const updatedQuestions = await fetchCourseQuestions(courseId, navigate);
-      setQuestions(updatedQuestions);
+      if (originalQuestionId) {
+        setVariants((prev) => ({
+          ...prev,
+          [originalQuestionId]: prev[originalQuestionId].filter((variant) => variant.id !== id),
+        }));
+      } else {
+        const updatedQuestions = await fetchCourseQuestions(courseId, navigate);
+        setQuestions(updatedQuestions);
+      }
       setAttemptDelete(false);
     } catch (error) {
       alert(error);
@@ -320,6 +337,37 @@ function QuestionsPage() {
     }
   };
 
+  const handleViewVariants = async (questionId) => {
+    if (expandedQuestion === questionId) {
+      setExpandedQuestion(null);
+      return;
+    }
+
+    setExpandedQuestion(questionId);
+    setLoadingVariants((prev) => ({ ...prev, [questionId]: true }));
+
+    try {
+      const data = await fetchQuestionVariants(questionId);
+      setVariants((prev) => ({ ...prev, [questionId]: data }));
+    } catch (error) {
+      alert("Failed to load question variants.");
+      console.error(error);
+    }
+
+    setLoadingVariants((prev) => ({ ...prev, [questionId]: false }));
+  };
+
+  const handleCreateVariant = async (question) => {
+    try {
+      await createQuestionVariant(question.id);
+      alert("Variant created successfully!");
+      handleViewVariants(question.id); 
+    } catch (error) {
+      alert("Error creating variant.");
+      console.error(error);
+    }
+  };
+
 
   return (
     <MathJaxContext>
@@ -367,7 +415,17 @@ function QuestionsPage() {
             {filteredQuestions.map((question) => (
               <li key={question.id} className="question-item">
                 <div className="question-text">
-                  <h3 className="question-title">{question.title}</h3> 
+                  <div className="question-header">
+                    <h3 className="question-title">{question.title}</h3> 
+                    <div className="variant-controls">
+                      <button className="view-variants-button" onClick={() => handleViewVariants(question.id)}>
+                        <FaEye /> {expandedQuestion === question.id ? "Hide Variants" : "View Variants"}
+                      </button>
+                      <button className="create-variant-button" onClick={() => handleCreateVariant(question)}>
+                        <FaPlus /> Create Variant
+                      </button>
+                    </div>
+                  </div>
                   <h4 className="question-type-display">{formatQuestionType(question.questionType)}</h4> 
                   {question.tags && question.tags.length > 0 && (
                     <div className="question-tags">
@@ -410,6 +468,55 @@ function QuestionsPage() {
                     <p><strong>Correct Answer:</strong> {question.correctAnswer}</p>
                   )}
 
+{expandedQuestion === question.id && (
+  <div className="variants-list">
+    {loadingVariants[question.id] ? (
+      <p>Loading variants...</p>
+    ) : variants[question.id]?.length > 0 ? (
+      variants[question.id].map((variant) => (
+        <div key={variant.id} className="variant-item">
+          <h4>Variant:</h4>
+          <MathJax>{variant.text}</MathJax>
+
+          {/* Show Answer Choices if MCQ */}
+          {variant.questionType === "multiple_choice_question" && variant.options?.length > 0 && (
+            <div style={{ marginTop: '5px' }}>
+              <strong>Choices:</strong>
+              <ul style={{ marginTop: "5px", paddingLeft: "0px", listStyleType: "none" }}>
+                {variant.options.map((choice, index) => (
+                  <li key={index} style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: 'flex-start' }}>
+                    <strong>{String.fromCharCode(65 + index)})</strong>
+                    <span>{choice}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Correct Answer */}
+          {variant.correctAnswer && (
+            <p><strong>Correct Answer:</strong> {variant.correctAnswer}</p>
+          )}
+
+          {/* Edit & Delete Buttons */}
+          <div className="variant-actions">
+            <button className="edit-button" onClick={() => handleEditQuestion(variant)}>
+              <FaEdit />
+            </button>
+            <button className="delete-button" onClick={() => handleDeleteQuestion(variant.id, question.id)}>
+              <FaTrash />
+            </button>
+          </div>
+        </div>
+      ))
+    ) : (
+      <p>No variants available.</p>
+    )}
+  </div>
+)}
+
+
+
                   
                   <div className="question-stats">
                     Mean: {question.stats?.mean || 'N/A'},
@@ -446,7 +553,6 @@ function QuestionsPage() {
                       <button 
                         className="link-canvas-window-button" id="add-course-button" 
                         onClick={(e) => {
-                          e.stopPropagation();
                           handleDeleteQuestion(question.id)
                         }}
                       >
@@ -455,7 +561,6 @@ function QuestionsPage() {
                       <button 
                         className="link-canvas-window-button" id="add-course-cancel"
                         onClick={(e) => {
-                          e.stopPropagation();
                           setAttemptDelete(false)
                         }}>Cancel</button>
                     </div>

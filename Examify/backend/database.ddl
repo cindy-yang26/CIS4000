@@ -42,7 +42,9 @@ CREATE TABLE question (
     std_dev VARCHAR(255),
     min VARCHAR(255),
     max VARCHAR(255),
+    original_question_id BIGINT NULL,
     FOREIGN KEY (course_id) REFERENCES course(id) ON DELETE CASCADE
+    FOREIGN KEY (original_question_id) REFERENCES question(id) ON DELETE SET NULL
 );
 
 CREATE TABLE assignment_question (
@@ -60,13 +62,12 @@ CREATE TABLE question_tags (
     FOREIGN KEY (question_id) REFERENCES question(id) ON DELETE CASCADE
 );
 
-CREATE TABLE variation (
-    variation_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    question_id BIGINT NOT NULL,
-    assignment_id BIGINT NULL, -- Nullable assignment_id
-    text TEXT,
-    FOREIGN KEY (question_id) REFERENCES question(id) ON DELETE CASCADE,
-    FOREIGN KEY (assignment_id) REFERENCES assignment(id) ON DELETE SET NULL
+CREATE TABLE question_variant (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    original_question_id BIGINT NOT NULL,
+    variant_question_id BIGINT NOT NULL,
+    FOREIGN KEY (original_question_id) REFERENCES question(id) ON DELETE CASCADE,
+    FOREIGN KEY (variant_question_id) REFERENCES question(id) ON DELETE CASCADE
 );
 
 CREATE TABLE sessions (
