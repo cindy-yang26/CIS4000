@@ -1,0 +1,40 @@
+/* Toggle button styling */
+.toggle-missing-stats-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+.toggle-missing-stats-button:hover {
+  background-color: #0056b3;
+}
+
+/* Missing stats dropdown styling */
+.missing-stats-dropdown {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  margin-bottom: 20px;
+}
+
+.missing-stat-entry {
+  margin-bottom: 15px;
+}
+
+.missing-stat-entry h4 {
+  margin-bottom: 10px;
+}
+
+.missing-stat-entry input {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}

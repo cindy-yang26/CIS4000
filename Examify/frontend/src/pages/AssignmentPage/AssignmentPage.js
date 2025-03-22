@@ -271,6 +271,12 @@ function AssignmentPage() {
             >
               Select or remove questions
             </button>
+            <button 
+              className="difficulty-button"
+              onClick={() => navigate(`/course/${courseId}/assignment/${assignmentId}/difficulty`)}
+            >
+              View Assignment Difficulty
+            </button>
           </div>
 
           {assignmentStatistics && Object.keys(assignmentStatistics).length > 0 && (
