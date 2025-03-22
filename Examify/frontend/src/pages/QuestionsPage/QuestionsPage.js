@@ -281,7 +281,9 @@ function QuestionsPage() {
     );
   };
 
-  const filteredQuestions = questions.filter((question) => {
+  const filteredQuestions = questions
+    .filter((question) => question.originalQuestionId == null)
+    .filter((question) => {
     const title = question.title || '';
     const text = question.text || '';
     const tags = question.tags || [];
@@ -414,7 +416,7 @@ function QuestionsPage() {
           <ul className="questions-list">
             {filteredQuestions.map((question) => (
               <li key={question.id} className="question-item">
-                <div className="question-text">
+                <div className="question-text" style={{width: "100%"}}>
                   <div className="question-header">
                     <h3 className="question-title">{question.title}</h3> 
                     <div className="variant-controls">
@@ -475,7 +477,7 @@ function QuestionsPage() {
     ) : variants[question.id]?.length > 0 ? (
       variants[question.id].map((variant) => (
         <div key={variant.id} className="variant-item">
-          <h4>Variant:</h4>
+          <h4>{variant.title}</h4>
           <MathJax>{variant.text}</MathJax>
 
           {/* Show Answer Choices if MCQ */}

@@ -1,6 +1,7 @@
 package com.cis4000.examify.controllers;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +25,7 @@ import com.cis4000.examify.repositories.CourseRepository;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -72,10 +74,9 @@ public ResponseEntity<?> createQuestionVariant(@CookieValue(name = "sessionId", 
         return userDoesntHaveAccessResponse();
     }
 
-    // ✅ Directly call the internal obfuscation method (no API request needed!)
-    String obfuscatedText;
+    ObfuscationResult obfuscationResult;
     try {
-        obfuscatedText = generateObfuscatedText(originalQuestion.getText());
+        obfuscationResult = generateObfuscatedText(originalQuestion.getText());
     } catch (IOException e) {
         System.out.println("Obfuscation failed: " + e.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to generate obfuscated variant.");
@@ -83,17 +84,24 @@ public ResponseEntity<?> createQuestionVariant(@CookieValue(name = "sessionId", 
 
     Question variant = new Question();
     variant.setCourseId(originalQuestion.getCourseId());
-    variant.setTitle(originalQuestion.getTitle() + " (Variant)");
-    variant.setText(obfuscatedText);
-    variant.setComment(originalQuestion.getComment());
-    variant.setTags(new ArrayList<>(originalQuestion.getTags())); 
-    variant.setQuestionType(originalQuestion.getQuestionType());
-    variant.setCorrectAnswer(originalQuestion.getCorrectAnswer());
-    variant.setOriginalQuestionId(originalQuestion.getId());
+    variant.setTitle(obfuscationResult.title);
+    variant.setText(obfuscationResult.text);
+    variant.setComment("");
+    variant.setTags(new ArrayList<>(obfuscationResult.tags)); 
+    variant.setQuestionType(obfuscationResult.questionType);
+    variant.setCorrectAnswer(obfuscationResult.correctAnswer);
     variant.setStats(new com.cis4000.examify.models.Question.Stats());
+    variant.setOriginalQuestionId(originalQuestion.getId());
+
+
+    System.out.println("text:" + variant.getText());
+    System.out.println("title:" + variant.getTitle());
+    System.out.println("tags:" + variant.getTags());
+    System.out.println("correct ans:" + variant.getCorrectAnswer());
+    System.out.println("question type:" + variant.getQuestionType());
 
     if (originalQuestion.getOptions() != null) {
-        variant.setOptions(new ArrayList<>(originalQuestion.getOptions()));
+        variant.setOptions(new ArrayList<>(obfuscationResult.choices));
     } else {
         variant.setOptions(new ArrayList<>()); 
     }
@@ -103,43 +111,128 @@ public ResponseEntity<?> createQuestionVariant(@CookieValue(name = "sessionId", 
     return ResponseEntity.ok("Variant created successfully");
 }
 
-private String generateObfuscatedText(String questionText) throws IOException {
+private ObfuscationResult generateObfuscatedText(String questionText) throws IOException {
     String prompt = """
-            Transform the following question into a new version while ensuring it remains logically equivalent. 
-            - **Modify numerical values** (e.g., 5 → 7, 10 → 12) while keeping calculations consistent.
-            - **Change variables or labels** (e.g., "X" → "Y", "velocity" → "speed").
-            - **Rephrase some wording** but ensure the question remains natural and clear.
-            - **Mathematical notations and equations should remain valid**.
-            - **Do NOT alter the question type** (e.g., multiple-choice remains multiple-choice).
-            
-            %s
-            """.formatted(questionText);
+You are a question variant generator. Given a question, your goal is to create a new version that tests the **same core concept or skill**, 
+but with as much variation as possible in its presentation.
 
-    ObjectMapper objectMapper = new ObjectMapper();
+What to Change:
+- **Change the numerical values, units, or specific conditions** in the problem.
+- **Change the real-world context or scenario** (e.g., from a car on a hill to a box on a ramp).
+- **Change variable names or labels**.
+- **Reword the question structure** (don't just paraphrase — restructure it if possible).
+- Maintain mathematical integrity: all math should be valid and solvable.
+
+What to Keep:
+- The **underlying concept** (e.g., applying Pythagoras, solving for velocity, interpreting a graph).
+- If applicable, keep the structure of answer choices, but change their values and ordering.
+
+You must only create ONE variant.
+
+⚠️ VERY IMPORTANT FORMATTING RULES ⚠️
+
+- You MUST wrap the **entire content** of each field (Question Type, Title, Tags, Question, Choices, Correct Answer) inside square brackets `[ ]`.
+- ❗ Do NOT use display-style labels like "Multiple Choice Question" — for Question Type you MUST use ONLY one of these exact values:
+  - multiple_choice_question
+  - true_false_question
+  - numerical_question
+  - essay_question
+- Tags and choices must be separated with `||`, but the full list must be wrapped in **one pair of brackets**.
+- Do NOT put individual brackets around each choice or tag.
+- The **Correct Answer** must exactly match one of the answer choices (or True/False/N/A depending on the question type).
+- You MUST include the following fields, and follow the format **EXACTLY** in both order and spacing:
+  - Question Type: [one_of_the_four_types]
+  - Title: [Your generated title]
+  - Tags: [Tag1 || Tag2 || Tag3]
+  - Question: [Your obfuscated question text]
+  - Choices: [Choice1 || Choice2 || Choice3 || Choice4]  ← Only for MCQ. Omit for essay.
+  - Correct Answer: [Correct Answer] ← Omit for essay.
+- Do NOT include any letter labels (A, B, etc.) in the choices.
+- For **True/False** questions, do NOT include "(True/False?)" in the question text.
+- For **essay** questions, omit the `Choices:` field entirely, but still include `Correct Answer: [N/A]`.
+
+✅ Example — multiple_choice_question:
+Question Type: [multiple_choice_question]  
+Title: [Physics of Gravity]  
+Tags: [Physics || Gravity || Motion]  
+Question: [What force causes an object to accelerate downward on Earth?]  
+Choices: [Friction || Gravity || Magnetism || Inertia]  
+Correct Answer: [Gravity]
+
+---
+Original Question:
+%s
+""".formatted(questionText);
+
+ObjectMapper objectMapper = new ObjectMapper();
     String requestBody = objectMapper.writeValueAsString(
-            new ChatCompletionRequest("gpt-3.5-turbo", "You are a helpful assistant.", prompt)
+        new ChatCompletionRequest("gpt-3.5-turbo", "You are a helpful assistant.", prompt)
     );
 
     OkHttpClient client = new OkHttpClient();
+
     Request request = new Request.Builder()
-            .url("https://api.openai.com/v1/chat/completions")
-            .post(okhttp3.RequestBody.create(requestBody, okhttp3.MediaType.get("application/json")))
-            .addHeader("Authorization", "Bearer " + apiKey)
-            .addHeader("Content-Type", "application/json")
-            .build();
+        .url("https://api.openai.com/v1/chat/completions")
+        .post(okhttp3.RequestBody.create(requestBody, MediaType.parse("application/json")))
+        .addHeader("Authorization", "Bearer " + apiKey)
+        .addHeader("Content-Type", "application/json")
+        .build();
 
     try (Response response = client.newCall(request).execute()) {
         if (!response.isSuccessful()) {
             throw new IOException("Unexpected code: " + response);
         }
 
-        // ✅ Read response body only ONCE and store it in a variable
-        String responseBodyString = response.body().string();
-        System.out.println("Obfuscation API Response: " + responseBodyString);
+        String content = objectMapper.readTree(response.body().string())
+            .get("choices").get(0).get("message").get("content").asText();
 
-        JsonNode responseBody = objectMapper.readTree(responseBodyString);
-        return responseBody.get("choices").get(0).get("message").get("content").asText().trim();
+            System.out.println("=====================\n" + content + "\n=============");
+
+        ObfuscationResult result = new ObfuscationResult();
+        result.questionType = extractBracketValue(content, "Question Type:");
+        result.title = extractBracketValue(content, "Title:");
+        result.tags = extractList(content, "Tags:");
+        result.text = extractBracketValue(content, "Question:");
+        result.choices = extractList(content, "Choices:");
+        result.correctAnswer = extractBracketValue(content, "Correct Answer:");
+        return result;
     }
+}
+
+private String extractBracketValue(String content, String label) {
+    String pattern = label + "\\s*\\[([^\\]]+)\\]";
+    java.util.regex.Pattern regex = java.util.regex.Pattern.compile(pattern);
+    java.util.regex.Matcher matcher = regex.matcher(content);
+
+    if (matcher.find()) {
+        String value = matcher.group(1).trim();
+        System.out.println(label + " " + value);
+        return value;
+    }
+
+    return "";
+}
+
+
+private List<String> extractList(String content, String label) {
+    String value = extractBracketValue(content, label);
+    if (value.isEmpty()) return new ArrayList<>();
+
+    return Arrays.stream(value.split("\\|\\|"))
+                 .map(s -> s.trim().replaceAll("^[A-D]\\)", ""))
+                 .filter(s -> !s.isEmpty())
+                 .collect(Collectors.toList());
+}
+
+
+
+private static class ObfuscationResult {
+    public String questionType;
+    public String title;
+    public List<String> tags;
+    public String text;
+    public List<String> choices;
+    public String correctAnswer;
 }
 
 
