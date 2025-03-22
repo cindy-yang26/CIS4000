@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchCourseInfo, fetchCourseQuestions, getAllTags } from '../../api/courses';
-import { createQuestion, editQuestion, deleteQuestion, uploadFileContentToBackend } from '../../api/questions';
+import { createQuestion, editQuestion, deleteQuestion, uploadImage, uploadFileContentToBackend } from '../../api/questions';
 import Header from '../../components/Header/Header';
 import { FaChevronLeft, FaEdit, FaTrash, FaPlus, FaEye } from 'react-icons/fa';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
@@ -33,6 +33,7 @@ function QuestionsPage() {
   const [expandedQuestion, setExpandedQuestion] = useState(null);
   const [variants, setVariants] = useState({});
   const [loadingVariants, setLoadingVariants] = useState({});
+  const [images, setImages] = useState([]);
 
   useEffect(() => {
     const loadCourseName = async () => {
@@ -89,26 +90,26 @@ function QuestionsPage() {
       setFilteredTags(tags);
       return;
     }
-  
+
     const inputTags = input.split(',').map(tag => tag.trim());
     const lastTag = inputTags[inputTags.length - 1];
-  
+
     const matchingTags = tags.filter(tag =>
       tag.toLowerCase().includes(lastTag.toLowerCase())
     );
-  
+
     setFilteredTags(matchingTags);
   };
-  
+
 
   const handleTagSelect = (selectedTag) => {
     const currentTags = formFields.tags.split(',').map(tag => tag.trim());
-    
+
     if (!currentTags.includes(selectedTag)) {
       currentTags[currentTags.length - 1] = selectedTag;
       setFormFields({ ...formFields, tags: currentTags.join(', ') });
     }
-    
+
     setShowSuggestions(false);
   };
 
@@ -143,13 +144,56 @@ function QuestionsPage() {
       "true_false_question": "True/False",
       "numerical_question": "Numerical",
     };
-    
-    return typeMap[questionType] || "Long Response"; 
+
+    return typeMap[questionType] || "Long Response";
   };
+
+  const handleUploadImage = async (e) => {
+    e.preventDefault();
+
+    for (const file of e.target.files) {
+      const fileExt = file.name.split('.').pop().toLowerCase();
+      try {
+        const reader = new FileReader();
+
+        reader.onloadend = async () => {
+
+          const base64String = reader.result.split(",")[1];
+
+          const imageId = await uploadImage(courseId, fileExt, base64String, navigate);
+
+          console.log(imageId);
+
+          if (imageId) {
+            images.push(imageId);
+            console.log("Image uploaded successfully with ID", imageId);
+
+            // Update state to store the uploaded image ID
+            setImages(prevImages => [...prevImages, imageId]);
+          } else {
+            console.error("Failed to upload image.");
+            alert("Failed to upload image.");
+          }
+        };
+
+        reader.readAsDataURL(file);
+        // // TODO: maybe this should return the image instead
+        // console.log('about to call backend api');
+        // const imageId = await uploadImage(courseId, file, navigate);
+        // // TODO: do i need to use setImages?
+        // // TODO: display these images
+        // images.push(imageId);
+        // console.log("image uploaded as image #" + imageId);
+      } catch (error) {
+        console.error('Error processing image:', error);
+        alert('Failed to process image.');
+      }
+    };
+  }
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-  
+
     const tagsArray = formFields.tags.split(',').map((tag) => tag.trim()).filter((tag) => tag);
     let optionsArray = formFields.options ? formFields.options.split(',').map(opt => opt.trim()) : [];
 
@@ -158,7 +202,7 @@ function QuestionsPage() {
       alert("Title cannot be empty.");
       return;
     }
-  
+
     if (formFields.questionType === "multiple_choice_question") {
       if (!formFields.options || formFields.options.split(',').length < 2) {
         alert("Multiple Choice Questions must have at least 2 options.");
@@ -173,17 +217,17 @@ function QuestionsPage() {
         return;
       }
     }
-  
+
     if (formFields.questionType === "true_false_question" && !formFields.correctAnswer) {
       alert("True/False questions must have a correct answer.");
       return;
     }
-  
+
     if (formFields.questionType === "numerical_question" && (formFields.correctAnswer === "" || isNaN(formFields.correctAnswer))) {
       alert("Numerical questions must have a valid numerical answer.");
       return;
     }
-  
+
     const questionData = {
       courseId: courseId,
       title: formFields.title,
@@ -194,10 +238,11 @@ function QuestionsPage() {
       stats: { ...formFields.stats },
       options: formFields.options ? formFields.options.split(',').map(opt => opt.trim()) : [],
       correctAnswer: formFields.questionType === "true_false_question"
-      ? (formFields.correctAnswer === "False" ? "False" : "True")
-      : formFields.correctAnswer || "",
+        ? (formFields.correctAnswer === "False" ? "False" : "True")
+        : formFields.correctAnswer || "",
+      images: [],
     };
-  
+
     try {
       if (editingQuestion) {
         await editQuestion(editingQuestion.id, questionData, navigate);
@@ -214,7 +259,7 @@ function QuestionsPage() {
       } else {
         await createQuestion(questionData, navigate);
       }
-  
+
       setFormFields({
         title: '',
         text: '',
@@ -223,7 +268,8 @@ function QuestionsPage() {
         questionType: 'essay_question',
         stats: { mean: '', median: '', stdDev: '', min: '', max: '' },
         options: '',
-        correctAnswer: ''
+        correctAnswer: '',
+        images: [],
       });
       setShowForm(false);
     } catch (error) {
@@ -243,14 +289,14 @@ function QuestionsPage() {
       stats: { ...question.stats },
       options: Array.isArray(question.options) ? question.options.join(', ') : '',
       correctAnswer: question.questionType === "true_false_question"
-      ? (question.correctAnswer === "True" || question.correctAnswer === "False"
-        ? question.correctAnswer
-        : "True")
-      : question.correctAnswer || '',
+        ? (question.correctAnswer === "True" || question.correctAnswer === "False"
+          ? question.correctAnswer
+          : "True")
+        : question.correctAnswer || '',
     });
     setShowForm(true);
   };
-  
+
 
   const handleDeleteQuestion = async (id, originalQuestionId = null) => {
     try {
@@ -284,16 +330,16 @@ function QuestionsPage() {
   const filteredQuestions = questions
     .filter((question) => question.originalQuestionId == null)
     .filter((question) => {
-    const title = question.title || '';
-    const text = question.text || '';
-    const tags = question.tags || [];
+      const title = question.title || '';
+      const text = question.text || '';
+      const tags = question.tags || [];
 
-    return (
-      title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      text.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tags.some((tag) => (tag || '').toLowerCase().includes(searchQuery.toLowerCase()))
-    );
-  });
+      return (
+        title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        text.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        tags.some((tag) => (tag || '').toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+    });
 
   const handleUploadDocument = async (e) => {
     const file = e.target.files[0];
@@ -363,7 +409,7 @@ function QuestionsPage() {
     try {
       await createQuestionVariant(question.id);
       alert("Variant created successfully!");
-      handleViewVariants(question.id); 
+      handleViewVariants(question.id);
     } catch (error) {
       alert("Error creating variant.");
       console.error(error);
@@ -396,7 +442,7 @@ function QuestionsPage() {
                   type="file"
                   id="upload-document"
                   style={{ display: "none" }}
-                  accept=".txt"
+                  accept=".docx,.txt"
                   onChange={handleUploadDocument}
                 />
               </button>
@@ -416,9 +462,9 @@ function QuestionsPage() {
           <ul className="questions-list">
             {filteredQuestions.map((question) => (
               <li key={question.id} className="question-item">
-                <div className="question-text" style={{width: "100%"}}>
+                <div className="question-text" style={{ width: "100%" }}>
                   <div className="question-header">
-                    <h3 className="question-title">{question.title}</h3> 
+                    <h3 className="question-title">{question.title}</h3>
                     <div className="variant-controls">
                       <button className="view-variants-button" onClick={() => handleViewVariants(question.id)}>
                         <FaEye /> {expandedQuestion === question.id ? "Hide Variants" : "View Variants"}
@@ -428,98 +474,95 @@ function QuestionsPage() {
                       </button>
                     </div>
                   </div>
-                  <h4 className="question-type-display">{formatQuestionType(question.questionType)}</h4> 
+                  <h4 className="question-type-display">{formatQuestionType(question.questionType)}</h4>
                   {question.tags && question.tags.length > 0 && (
                     <div className="question-tags">
-                        {question.tags.map((tag, index) => (
-                          <span key={index} className="tag-item">
-                            {tag}
-                            <button
-                              className="delete-tag-button"
-                              onClick={() => handleDeleteTag(question.id, tag)}
-                            >
-                              ✕
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  
+                      {question.tags.map((tag, index) => (
+                        <span key={index} className="tag-item">
+                          {tag}
+                          <button
+                            className="delete-tag-button"
+                            onClick={() => handleDeleteTag(question.id, tag)}
+                          >
+                            ✕
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
                   <MathJax>{question.text}</MathJax>
-                  
+
                   {question.questionType === "multiple_choice_question" && (
-                  <div style={{marginTop: '5px'}}>
-                    <strong>Choices:</strong>
-                    <ul style={{ marginTop: "5px", paddingLeft: "0px", listStyleType: "none" }}>
-                      {Array.isArray(question.options) && question.options.length > 0
-                        ? question.options.map((choice, index) => (
-                            <li 
-                              key={index} 
+                    <div style={{ marginTop: '5px' }}>
+                      <strong>Choices:</strong>
+                      <ul style={{ marginTop: "5px", paddingLeft: "0px", listStyleType: "none" }}>
+                        {Array.isArray(question.options) && question.options.length > 0
+                          ? question.options.map((choice, index) => (
+                            <li
+                              key={index}
                               style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: 'flex-start' }}
                             >
                               <strong>{String.fromCharCode(65 + index)})</strong>
                               <span>{choice}</span>
                             </li>
                           ))
-                        : <li>No options provided</li>}
-                    </ul>
-                  </div>
-                )}
+                          : <li>No options provided</li>}
+                      </ul>
+                    </div>
+                  )}
 
                   {question.correctAnswer && (
                     <p><strong>Correct Answer:</strong> {question.correctAnswer}</p>
                   )}
 
-{expandedQuestion === question.id && (
-  <div className="variants-list">
-    {loadingVariants[question.id] ? (
-      <p>Loading variants...</p>
-    ) : variants[question.id]?.length > 0 ? (
-      variants[question.id].map((variant) => (
-        <div key={variant.id} className="variant-item">
-          <h4>{variant.title}</h4>
-          <MathJax>{variant.text}</MathJax>
+                  {expandedQuestion === question.id && (
+                    <div className="variants-list">
+                      {loadingVariants[question.id] ? (
+                        <p>Loading variants...</p>
+                      ) : variants[question.id]?.length > 0 ? (
+                        variants[question.id].map((variant) => (
+                          <div key={variant.id} className="variant-item">
+                            <h4>{variant.title}</h4>
+                            <MathJax>{variant.text}</MathJax>
 
-          {/* Show Answer Choices if MCQ */}
-          {variant.questionType === "multiple_choice_question" && variant.options?.length > 0 && (
-            <div style={{ marginTop: '5px' }}>
-              <strong>Choices:</strong>
-              <ul style={{ marginTop: "5px", paddingLeft: "0px", listStyleType: "none" }}>
-                {variant.options.map((choice, index) => (
-                  <li key={index} style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: 'flex-start' }}>
-                    <strong>{String.fromCharCode(65 + index)})</strong>
-                    <span>{choice}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+                            {/* Show Answer Choices if MCQ */}
+                            {variant.questionType === "multiple_choice_question" && variant.options?.length > 0 && (
+                              <div style={{ marginTop: '5px' }}>
+                                <strong>Choices:</strong>
+                                <ul style={{ marginTop: "5px", paddingLeft: "0px", listStyleType: "none" }}>
+                                  {variant.options.map((choice, index) => (
+                                    <li key={index} style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: 'flex-start' }}>
+                                      <strong>{String.fromCharCode(65 + index)})</strong>
+                                      <span>{choice}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
 
-          {/* Correct Answer */}
-          {variant.correctAnswer && (
-            <p><strong>Correct Answer:</strong> {variant.correctAnswer}</p>
-          )}
+                            {/* Correct Answer */}
+                            {variant.correctAnswer && (
+                              <p><strong>Correct Answer:</strong> {variant.correctAnswer}</p>
+                            )}
 
-          {/* Edit & Delete Buttons */}
-          <div className="variant-actions">
-            <button className="edit-button" onClick={() => handleEditQuestion(variant)}>
-              <FaEdit />
-            </button>
-            <button className="delete-button" onClick={() => handleDeleteQuestion(variant.id, question.id)}>
-              <FaTrash />
-            </button>
-          </div>
-        </div>
-      ))
-    ) : (
-      <p>No variants available.</p>
-    )}
-  </div>
-)}
+                            {/* Edit & Delete Buttons */}
+                            <div className="variant-actions">
+                              <button className="edit-button" onClick={() => handleEditQuestion(variant)}>
+                                <FaEdit />
+                              </button>
+                              <button className="delete-button" onClick={() => handleDeleteQuestion(variant.id, question.id)}>
+                                <FaTrash />
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p>No variants available.</p>
+                      )}
+                    </div>
+                  )}
 
-
-
-                  
                   <div className="question-stats">
                     Mean: {question.stats?.mean || 'N/A'},
                     Median: {question.stats?.median || 'N/A'},
@@ -541,34 +584,35 @@ function QuestionsPage() {
                     className="delete-button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setAttemptDelete(true)}
+                      setAttemptDelete(true)
+                    }
                     }>
                     <FaTrash />
                   </button>
                 </div>
                 {attemptDelete && (
-                <div className="modal-background">
-                  <div className="delete-confirmation-window">
-                    <h3 id="link-canvas-title">Delete Question?</h3>
-                    <p>This action can not be undone</p>
-                    <div className="window-button-div">
-                      <button 
-                        className="link-canvas-window-button" id="add-course-button" 
-                        onClick={(e) => {
-                          handleDeleteQuestion(question.id)
-                        }}
-                      >
-                        Delete
-                      </button>
-                      <button 
-                        className="link-canvas-window-button" id="add-course-cancel"
-                        onClick={(e) => {
-                          setAttemptDelete(false)
-                        }}>Cancel</button>
+                  <div className="modal-background">
+                    <div className="delete-confirmation-window">
+                      <h3 id="link-canvas-title">Delete Question?</h3>
+                      <p>This action can not be undone</p>
+                      <div className="window-button-div">
+                        <button
+                          className="link-canvas-window-button" id="add-course-button"
+                          onClick={(e) => {
+                            handleDeleteQuestion(question.id)
+                          }}
+                        >
+                          Delete
+                        </button>
+                        <button
+                          className="link-canvas-window-button" id="add-course-cancel"
+                          onClick={(e) => {
+                            setAttemptDelete(false)
+                          }}>Cancel</button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
               </li>
             ))}
           </ul>
@@ -587,7 +631,7 @@ function QuestionsPage() {
                 />
                 <div className="question-type-container">
                   <label htmlFor="questionType">Question Type:</label>
-                  <select 
+                  <select
                     id="questionType"
                     className="question-type-selector"
                     value={formFields.questionType}
@@ -598,17 +642,34 @@ function QuestionsPage() {
                     <option value="true_false_question">True/False</option>
                     <option value="numerical_question">Numerical</option>
                   </select>
-              </div>
+                </div>
 
-              <label>Question:</label>
-              <textarea
-                placeholder="Enter your question"
-                value={formFields.text}
-                onChange={(e) => setFormFields({ ...formFields, text: e.target.value })}
-                rows="3"
-              />
+                <label>Question:</label>
+                <textarea
+                  placeholder="Enter your question"
+                  value={formFields.text}
+                  onChange={(e) => setFormFields({ ...formFields, text: e.target.value })}
+                  rows="3"
+                />
 
-            {formFields.questionType === "essay_question" && (
+                <div className="upload-image-container">
+                  <label>Upload Associated Images:</label>
+                  <button type="button" className="upload-image-for-new-question">
+                    <label htmlFor="upload-image-for-new-question" style={{ cursor: "pointer" }}>
+                      Upload Image
+                    </label>
+                    <input
+                      type="file"
+                      id="upload-image-for-new-question"
+                      style={{ display: "none" }}
+                      accept=".jpg,.png,.svg,.jpeg,.bmp,.tiff,.heic"
+                      onChange={handleUploadImage}
+                    />
+
+                  </button>
+                </div>
+
+                {formFields.questionType === "essay_question" && (
                   <div>
                     <label>Correct Answer:</label>
                     <input
@@ -620,7 +681,7 @@ function QuestionsPage() {
                   </div>
                 )}
 
-              {formFields.questionType === "multiple_choice_question" && (
+                {formFields.questionType === "multiple_choice_question" && (
                   <div className="mcq-options">
                     <label>Answer Choices (comma-separated):</label>
                     <input
@@ -662,7 +723,7 @@ function QuestionsPage() {
                       onChange={(e) => setFormFields({ ...formFields, correctAnswer: e.target.value })}
                     />
                   </div>
-                )} 
+                )}
 
                 <textarea
                   placeholder="Enter a comment"
