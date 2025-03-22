@@ -1,0 +1,22 @@
+.difficulty-display {
+  margin-bottom: 10px;
+}
+
+.difficulty-display label {
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+.difficulty-display select,
+.difficulty-display span {
+  padding: 5px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-weight: bold;
+}
+
+.difficulty-display span {
+  display: inline-block;
+  padding: 5px 10px;
+  background-color: #f0f0f0;
+}

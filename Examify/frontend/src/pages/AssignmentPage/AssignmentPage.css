@@ -169,6 +169,7 @@
   height: 100%;
   background-color: rgba(0,0,0,0.4);
   justify-content: center;
+  overflow: auto;
 }
 
 .download-dropdown {
