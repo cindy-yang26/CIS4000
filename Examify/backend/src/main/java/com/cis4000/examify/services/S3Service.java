@@ -30,38 +30,33 @@ public class S3Service {
     private String region;
 
     public String uploadBase64Image(String fileExtension, String base64Image) {
-        try {
-            // Decode the base64 string to byte array
-            byte[] decodedBytes = Base64.getDecoder().decode(base64Image);
+        // Decode the base64 string to byte array
+        byte[] decodedBytes = Base64.getDecoder().decode(base64Image);
 
-            // Generate a unique filename for the image
-            String uniqueFileName = UUID.randomUUID().toString() + fileExtension;
+        // Generate a unique filename for the image
+        String uniqueFileName = UUID.randomUUID().toString() + '.' + fileExtension;
 
-            // Initialize the S3 client
-            S3Client s3Client = S3Client.builder()
-                    .region(Region.of(region))
-                    .credentialsProvider(
-                            StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKeyId, secretAccessKey)))
-                    .build();
+        // Initialize the S3 client
+        S3Client s3Client = S3Client.builder()
+                .region(Region.of(region))
+                .credentialsProvider(
+                        StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKeyId, secretAccessKey)))
+                .build();
 
-            // Create a PutObject request
-            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                    .bucket(bucketName)
-                    .key(uniqueFileName)
-                    .contentType(URLConnection.guessContentTypeFromName(fileExtension))
-                    .build();
+        // Create a PutObject request
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(uniqueFileName)
+                .contentType(URLConnection.guessContentTypeFromName(fileExtension))
+                .build();
 
-            // Upload the image to S3
-            s3Client.putObject(putObjectRequest,
-                    RequestBody.fromInputStream(new ByteArrayInputStream(decodedBytes), decodedBytes.length));
+        // Upload the image to S3
+        s3Client.putObject(putObjectRequest,
+                RequestBody.fromInputStream(new ByteArrayInputStream(decodedBytes), decodedBytes.length));
 
-            // Generate the S3 file URL
-            String fileUrl = "https://" + bucketName + ".s3." + region + ".amazonaws.com/" + uniqueFileName;
+        // Generate the S3 file URL
+        String fileUrl = "https://" + bucketName + ".s3." + region + ".amazonaws.com/" + uniqueFileName;
 
-            return fileUrl;
-
-        } catch (Exception e) {
-            throw new RuntimeException("Error uploading image to S3", e);
-        }
+        return fileUrl;
     }
 }

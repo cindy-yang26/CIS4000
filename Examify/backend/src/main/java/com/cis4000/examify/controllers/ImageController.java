@@ -50,6 +50,7 @@ public class ImageController extends BaseController {
             String imageUrl = s3Service.uploadBase64Image(payload.fileExtension, payload.content);
             return ResponseEntity.ok(imageUrl);
         } catch (Exception e) {
+            System.out.println("Error uploading image: " + e.getMessage());
             return ResponseEntity.internalServerError().body("Error uploading image: " + e.getMessage());
         }
     }
