@@ -1,341 +1,415 @@
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+
 .course-page {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    font-family: 'Trebuchet MS', sans-serif;
-    background-color: #eae7ee;
-    min-height: 100vh;
-  }
-  
-  .course-content {
-    width: 70%;
-    max-width: 1400px;
-  }
-  
-  .course-header {
-    display: flex;
-    align-items: left;
-    justify-content: space-between;
-    margin-top: 30px;
-  }
-  
-  .back-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 2em;
-    padding-top: 10px;
-    height: 45px;
-    color:#0056b3;
-  }
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Work Sans', sans-serif;
+  background-color: #eae7ee;
+  min-height: 100vh;
+}
 
-  .canvas-div {
-    background-color: white;
-    display: flex;
-    border-radius: 10px;
-    border: 2px solid black;
-    height: 70px;
-    width: 270px;
-  }
+/* Updated width to match home page */
+.course-content {
+  width: 80%;
+  max-width: 1600px;
+  padding-top: 20px;
+}
 
-  #canvas-image {
-    height: 70px;
-    width: 70px;
-    border-radius: 10px;
-  }
+/* Header section with everything in one row */
+.course-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 25px;
+  width: 100%;
+}
 
-  #canvas-logo {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
+/* Left side with back button and title */
+.header-left {
+  display: flex;
+  align-items: center;
+}
 
-  #canvas-text {
-    font-size: 1.2em;
-    font-weight: bold;
-  }
+.back-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5em;
+  color: #0056b3;
+  padding: 0;
+  margin-right: 15px;
+}
 
-  #canvas-buttons {
-    padding-left: 20px;
-    padding-right: 10px;
-  }
+/* Course name section */
+.course-title-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
 
-  .course-name {
-    font-size: 2.3em;
-    font-weight: bold;
-    color: #333;
-    flex-grow: 1;
-    text-align: left;
-    margin-top: 0px;
-    margin-bottom: 0px;
-  }
+.course-name {
+  font-size: 1.8em;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+  text-align: left;
+}
 
-  .assignment-header-div {
-    font-size: 0.8em;
-  }
+.assignment-header-div {
+  font-size: 1.2em;
+  color: #333;
+  font-weight: normal;
+  margin-top: 2px;
+}
 
-  .course-second-div {
-    padding-top: 10px;
-    padding-bottom: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+/* Right side with Canvas and buttons */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
 
-  #spacer {
-    width: 50px;
-  }
+/* Canvas card */
+.canvas-div {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  padding: 4px 4px;
+}
 
-  .assignments-search-div {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-  }
+#canvas-logo {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+}
 
-  .assignment-search-input {
-    width: 60%;
-  }
-  
-  #button-div {
-    display: flex;
-    justify-content: space-between;
-    width: 270px;
-  }
+#canvas-image {
+  height: 40px;
+  width: 40px;
+  border-radius: 5px;
+  padding-right: 4px;
+}
 
-  .add-assignment-button {
-    background-color: #d9534f;
-    color: white;
-    border: none;
-    font: inherit;
-    font-weight: bold;
-    padding: 8px 10px;
-    width: auto;
-    cursor: pointer;
-    border-radius: 5px;
-    font-size: 13px;
-    align-self: flex-start;
-  }
-  
-  .add-assignment-button:hover {
-    background-color: #c9302c;
-  }
+#canvas-text {
+  font-size: 1.1em;
+  font-weight: bold;
+}
 
-  .view-questions-button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    font: inherit;
-    font-weight: bold;
-    padding: 8px 10px;
-    width: auto;
-    cursor: pointer;
-    border-radius: 5px;
-    font-size: 13px;
-    align-self: flex-start;
-  }
+#canvas-buttons {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 10px;
+}
 
-  .view-questions-button:hover {
-    background-color: #0056b3;
-  }
+/* Button container styling - vertical stack */
+#button-div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+}
 
-  #link-canvas-button {
-    background-color: #2dd14e;
-    color: white;
-    border: 1px solid green;
-    height: 27px;
-    font: inherit;
-    font-weight: bold;
-    margin-top: 5px;
-    cursor: pointer;
-    border-radius: 5px;
-    font-size: 14px;
-    align-self: flex-start;
-    width: 110px;
-  }
+/* Match button styling with HomePage */
+.add-assignment-button {
+  background-color: #d9534f;
+  color: white;
+  border: none;
+  font: inherit;
+  font-weight: bold;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 0.9em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
 
-  #link-canvas-button:hover {
-    background-color: #037119;
-  }
+.add-assignment-button:hover {
+  background-color: #c9302c;
+}
 
-  .assignments-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    padding-left: 25px;
-  }
-  
-  .assignment-card {
-    background-color: #d3d3d3;
-    width: 150px;
-    height: 60px;
-    border-radius: 10px;
-    display: flex;
-    justify-content: space-between;
-    padding: 0 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .assignment-card:hover {
-    background-color: #c9c9c9;
-  }
+.add-icon {
+  margin-right: 8px;
+}
 
-  .course-assignment-info {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    cursor: pointer;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-  
-  .assignment-icon {
-    font-size: 1.6em;
-    color: #333;
-    padding-right: 6px;
-  }
+.view-questions-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  font: inherit;
+  font-weight: bold;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 0.9em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
 
-  .assignment-name {
-    color: #333;
-    font-size: 1.2em;
-    font-weight: normal;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  
-  .assignment-options-icon {
-    font-size: 1.5em;
-    cursor: pointer;
-  }
+.view-questions-button:hover {
+  background-color: #0056b3;
+}
 
-  .assignment-options-icon:hover {
-    font-size: 1.6em;
-  }
+/* Canvas buttons styling */
+#link-canvas-button, 
+#import-canvas-quiz-button {
+  background-color: #2dd14e;
+  color: white;
+  border: none;
+  font: inherit;
+  font-weight: bold;
+  padding: 6px 10px;
+  margin: 3px 0;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 0.85em;
+  transition: background-color 0.2s;
+  width: 100px;
+  text-align: center;
+}
 
-  .assignment-card {
-    background-color: #dcdcdc;
-    border: 2px solid black;
-    width: 320px;
-    height: 45px;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 15px;
-    position: relative;
-    cursor: pointer;
-  }
-  
-  .options-icon {
-    cursor: pointer;
-    font-size: 1.2em;
-  }
-  
-  .course-menu {
-    position: absolute;
-    right: -95px;
-    top: 35px;
-    background-color: white;
-    border: 1px solid black;
-    border-radius: 3px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-    z-index: 10;
-    width: 120px;
-  }
-  
-  .course-menu-item {
-    background: none;
-    color: black;
-    padding: 8px 15px;
-    width: 100%;
-    text-align: center;
-    font-size: 0.9em;
-    cursor: pointer;
-  }
+#link-canvas-button:hover {
+  background-color: #25b643;
+}
 
-  .course-menu-item.rename {
-    border-bottom: 1px solid black;
-    border-radius: 3px 3px 0 0;
-  }
+#import-canvas-quiz-button {
+  background-color: #f0ad4e;
+  color: white;
+}
 
-  .course-menu-item.delete {
-    border-radius: 0 0 3px 3px;
-  }
-  
-  .course-menu-item:hover {
-    background-color: #c4c4c4;
-  }
-  
-  .modal-background {
-    position: fixed;
-    z-index: 1;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0, 0.1);
-    justify-content: center;
-  }
+#import-canvas-quiz-button:hover {
+  background-color: #ec971f;
+}
 
-  .link-canvas-window {
-    background-color: white;
-    border-radius: 10px;
-    display: block;
-    width: 35%;
-    margin: auto;
-    margin-top: 120px;
-    padding: 10px;
-    padding-bottom: 30px;
-    justify-content: center;
-  }
+#import-canvas-quiz-button:disabled {
+  background-color: #e0e0e0;
+  cursor: default;
+}
 
-  #link-canvas-title {
-    font-size: 1.3em;
-    text-align: center;
-  }
+/* Search bar styling */
+.assignments-search-div {
+  margin-bottom: 25px;
+  width: 100%;
+  position: relative;
+}
 
-  .link-canvas-input {
-    margin-left: auto;
-    margin-right: auto;
-  }
+.assignment-search-input {
+  width: 100%;
+  padding: 10px 15px 10px 40px;
+  border: 1px solid #ddd;
+  border-radius: 25px;
+  font-size: 1em;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.3s, border-color 0.3s;
+}
 
-  .window-button-div {
-    width: 100%;
-    justify-content: center;
-    display: flex;
-    margin-top: 25px;
-  }
+.assignment-search-input:focus {
+  outline: none;
+  border-color: #aaa;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
 
-  .link-canvas-window-button {
-    font-size: 1em;
-    font-weight: bold;
-    padding: 10px 20px;
-    border-radius: 15px;
-    background-color: green;
-    border: 2px black solid;
-  }
+.search-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #888;
+  font-size: 1em;
+  pointer-events: none;
+}
 
-  #link-canvas-cancel, #import-quiz-cancel {
-    margin-left: 10px;
-    background-color: gray;
-  }
+/* Assignments list grid */
+.assignments-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+  width: 100%;
+}
 
-  #import-canvas-quiz-button {
-    background-color: rgb(165, 164, 164);
-    color: white;
-    border: 1px solid rgb(165, 164, 164);
-    height: 27px;
-    font: inherit;
-    font-weight: bold;
-    margin-top: 5px;
-    cursor: default;
-    border-radius: 5px;
-    font-size: 13px;
-    align-self: flex-start;
-    width: 110px;
-  }
+/* Assignment card styling */
+.assignment-card {
+  background-color: white;
+  border-left: 4px solid #1f3b8f;
+  width: calc(100% - 15px);
+  height: 50px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 15px;
+  position: relative;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
 
-  #import-quiz-button {
-    background-color: #c4c000;
-  }
+.assignment-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.course-assignment-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.assignment-icon {
+  font-size: 1.3em;
+  color: #1f3b8f;
+}
+
+.assignment-name {
+  color: #333;
+  font-size: 1em;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.assignment-options-icon {
+  font-size: 1.2em;
+  cursor: pointer;
+  color: #666;
+  transition: color 0.2s;
+}
+
+.assignment-options-icon:hover {
+  color: #333;
+}
+
+/* Menu styling */
+.course-menu {
+  position: absolute;
+  right: -90px;
+  top: 40px;
+  background-color: white;
+  border-radius: 5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  width: 120px;
+  overflow: hidden;
+}
+
+.course-menu-item {
+  background: none;
+  color: #333;
+  padding: 10px 15px;
+  width: 100%;
+  text-align: left;
+  font-size: 0.85em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s;
+}
+
+.course-menu-item:hover {
+  background-color: #f5f5f5;
+}
+
+/* Modal styling */
+.modal-background {
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 100px;
+}
+
+.link-canvas-window,
+.delete-confirmation-window {
+  background-color: white;
+  border-radius: 8px;
+  width: 400px;
+  padding: 25px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+#link-canvas-title {
+  font-size: 1.3em;
+  margin: 0 0 20px 0;
+  text-align: center;
+  color: #333;
+}
+
+.link-canvas-input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 0.9em;
+}
+
+.window-button-div {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.link-canvas-window-button {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  color: white;
+}
+
+#import-quiz-button,
+#add-course-button {
+  background-color: #16c221;
+}
+
+#import-quiz-button:hover,
+#add-course-button:hover {
+  background-color: #0ba716;
+}
+
+#link-canvas-cancel,
+#import-quiz-cancel,
+#add-course-cancel {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+#link-canvas-cancel:hover,
+#import-quiz-cancel:hover,
+#add-course-cancel:hover {
+  background-color: #e0e0e0;
+}
+
+.modal-message {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #666;
+  font-size: 0.9em;
+}

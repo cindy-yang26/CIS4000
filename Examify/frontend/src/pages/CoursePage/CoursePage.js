@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../../components/Header/Header';
-import { FaFolder, FaPlus, FaChevronLeft } from 'react-icons/fa';
+import { FaFolder, FaPlus, FaChevronLeft, FaSearch } from 'react-icons/fa';
+import { FiMoreVertical } from 'react-icons/fi';
+import { TiEdit } from "react-icons/ti";
+import { RiDeleteBin6Line } from "react-icons/ri";
 import { deleteAssignment, renameAssignment } from '../../api/assignments';
 import './CoursePage.css';
-import { FiMoreVertical, FiTrash2 } from 'react-icons/fi';
-import { TiEdit } from 'react-icons/ti';
 import { fetchCourseAssignments, fetchCourseInfo } from '../../api/courses';
 
 function CoursePage() {
@@ -21,7 +22,8 @@ function CoursePage() {
   const [canvasToken, setCanvasToken] = useState("");
   const [showImportCanvasQuiz, setShowImportCanvasQuiz] = useState(false);
   const [canvasQuizId, setCanvasQuizId] = useState("");
-  const [attemptDelete, setAttemptDelete] = useState(false)
+  const [attemptDelete, setAttemptDelete] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState(null);
   
   const navigate = useNavigate();
 
@@ -71,11 +73,13 @@ function CoursePage() {
           document.getElementById("link-canvas-button").innerHTML = "Linked!"
           document.getElementById("link-canvas-button").style.backgroundColor = "green";
 
-          document.getElementById("import-canvas-quiz-button").style.backgroundColor = "#c4c000";
+          document.getElementById("import-canvas-quiz-button").style.backgroundColor = "#f0ad4e";
           document.getElementById("import-canvas-quiz-button").style.cursor = "pointer";
-          document.getElementById("import-canvas-quiz-button").style.border = "1px solid black";
+          document.getElementById("import-canvas-quiz-button").style.border = "none";
         } else {
           document.getElementById("import-canvas-quiz-button").disabled = true;
+          document.getElementById("import-canvas-quiz-button").style.backgroundColor = "#e0e0e0";
+          document.getElementById("import-canvas-quiz-button").style.cursor = "default";
         }
       } catch (error) {
         alert('Failed to fetch Canvas data');
@@ -84,7 +88,7 @@ function CoursePage() {
     };
 
     checkCanvasLink();
-  }, []);
+  }, [courseId, navigate]);
 
   useEffect(() => {
     const loadCourseName = async () => {
@@ -111,7 +115,7 @@ function CoursePage() {
 
     loadCourseName();
     loadAssignments();
-  }, [courseId]);
+  }, [courseId, navigate]);
 
   const handleViewQuestions = () => {
     navigate(`/course/${courseId}/questions`);
@@ -149,89 +153,92 @@ function CoursePage() {
     }
   };
 
-  const handleDeleteAssignment = async (assignmentId, e) => {
-    e.stopPropagation();
+  const handleDeleteAssignment = async () => {
+    if (!courseToDelete) return;
+    
     try {
-      await deleteAssignment(assignmentId, navigate);
-      setAssignments(assignments.filter((assignment) => assignment.id !== assignmentId));
-      setMenuVisible(null);
+      await deleteAssignment(courseToDelete.id, navigate);
+      setAssignments(assignments.filter((assignment) => assignment.id !== courseToDelete.id));
       setAttemptDelete(false);
+      setCourseToDelete(null);
     } catch (error) {
       alert('Failed to delete assignment');
       console.error(error);
     }
   };
 
-  const toggleMenu = (index, e) => {
+  const confirmDelete = (assignment, e) => {
     e.stopPropagation();
-    if (menuVisible === index) {
-      setMenuVisible(null);
-    } else {
-      setMenuVisible(index);
-    }
+    setCourseToDelete(assignment);
+    setAttemptDelete(true);
+    setMenuVisible(null);
   };
 
-  const filteredAssignments = assignments.filter((assignment, index) => {
-    const name = assignment.name;
-    return (
-      name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+  const toggleMenu = (index, e) => {
+    e.stopPropagation();
+    setMenuVisible(menuVisible === index ? null : index);
+  };
+
+  const closeModals = (e) => {
+    if (e) e.stopPropagation();
+    setShowLinkCanvas(false);
+    setShowImportCanvasQuiz(false);
+    setAttemptDelete(false);
+    setCourseToDelete(null);
+  };
+
+  const filteredAssignments = assignments.filter((assignment) => {
+    return assignment.name.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   return (
     <div className="course-page">
       <Header />
       <div className="course-content">
-
+        {/* Header with everything in one row */}
         <div className="course-header">
-          <button className="back-button" onClick={handleReturnToMainPage}>
-            <FaChevronLeft />
-          </button>
-          <h2 className="course-name">
-            {actualCourseName} <br></br>
-            <div className="assignment-header-div">
-              Assignments
-            </div>
-          </h2>
-          <div className="canvas-div">
-            <div id="canvas-logo">
-              <img src="/canvas_logo.png" alt="Canvas Logo" id="canvas-image" />
-              <span id="canvas-text">Canvas</span>
-            </div>
-            <div id="canvas-buttons">
-              <div>
-                <button
-                  id="link-canvas-button"
-                  onClick={() => setShowLinkCanvas(true)}
-                >
-                  Link
-                </button>
-              </div>
-              <div>
-              <button
-                id="import-canvas-quiz-button"
-                onClick={() => setShowImportCanvasQuiz(true)}
-              >
-                Import Quiz
-              </button>
-              </div>
+          {/* Left side with back button and title */}
+          <div className="header-left">
+            <button className="back-button" onClick={handleReturnToMainPage}>
+              <FaChevronLeft />
+            </button>
+            
+            <div className="course-title-section">
+              <h2 className="course-name">{actualCourseName}</h2>
+              <div className="assignment-header-div">Assignments</div>
             </div>
           </div>
-        </div>
-        <div className="course-second-div">
-          <div id="spacer"></div>
-          <div className="assignments-search-div">
-            <input
-              type="text"
-              placeholder=" 🔍 Search assignments..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="assignment-search-input"
-            />
+          
+          {/* Right side with Canvas card and action buttons */}
+          <div className="header-right">
+            <div className="canvas-div">
+              <div id="canvas-logo">
+                <img src="/canvas_logo.png" alt="Canvas Logo" id="canvas-image" />
+                <span id="canvas-text">Canvas</span>
+              </div>
+              <div id="canvas-buttons">
+                <div>
+                  <button
+                    id="link-canvas-button"
+                    onClick={() => setShowLinkCanvas(true)}
+                  >
+                    Link
+                  </button>
+                </div>
+                <div>
+                  <button
+                    id="import-canvas-quiz-button"
+                    onClick={() => setShowImportCanvasQuiz(true)}
+                  >
+                    Import Quiz
+                  </button>
+                </div>
+              </div>
+            </div>
+            
             <div id="button-div">
               <button className="add-assignment-button" onClick={handleCreateAssignment}>
-                {/* <FaPlus /> <span id="add-assignment-text">Create Assignment</span> */}
-                Create Assignment
+                <FaPlus className="add-icon" /> Create Assignment
               </button>
               <button className="view-questions-button" onClick={handleViewQuestions}>
                 View All Questions
@@ -240,92 +247,75 @@ function CoursePage() {
           </div>
         </div>
 
+        {/* Search bar */}
+        <div className="assignments-search-div">
+          <FaSearch className="search-icon" />
+          <input
+            type="text"
+            placeholder="Search assignments..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="assignment-search-input"
+          />
+        </div>
+
+        {/* Assignments list */}
         <div className="assignments-list">
-          {filteredAssignments.length > 0 ? (filteredAssignments.map((assignment, index) => (
-            <div key={assignment.id} className="assignment-card" onClick={() => handleViewAssignment(assignment.id)}>
-              <div className="course-assignment-info">
-                <FaFolder className="assignment-icon" />
-                {editingAssignmentId === assignment.id ? (
-                  <input
-                    type="text"
-                    value={editedAssignmentName}
-                    onChange={(e) => setEditedAssignmentName(e.target.value)}
-                    onBlur={() => handleRenameAssignment(assignment)}
-                    onKeyDown={(e) => e.key === "Enter" && handleRenameAssignment(assignment)}
-                    onClick={(e) => e.stopPropagation()}
-                    autoFocus
-                  />
-                ) : (
-                  <span className="assignment-name">{assignment.name}</span>
+          {filteredAssignments.length > 0 ? (
+            filteredAssignments.map((assignment, index) => (
+              <div key={assignment.id} className="assignment-card" onClick={() => handleViewAssignment(assignment.id)}>
+                <div className="course-assignment-info">
+                  <FaFolder className="assignment-icon" />
+                  {editingAssignmentId === assignment.id ? (
+                    <input
+                      type="text"
+                      value={editedAssignmentName}
+                      onChange={(e) => setEditedAssignmentName(e.target.value)}
+                      onBlur={() => handleRenameAssignment(assignment)}
+                      onKeyDown={(e) => e.key === "Enter" && handleRenameAssignment(assignment)}
+                      onClick={(e) => e.stopPropagation()}
+                      autoFocus
+                    />
+                  ) : (
+                    <span className="assignment-name">{assignment.name}</span>
+                  )}
+                </div>
+                <FiMoreVertical
+                  className="assignment-options-icon"
+                  onClick={(e) => toggleMenu(index, e)}
+                />
+                {menuVisible === index && (
+                  <div className="course-menu">
+                    <button
+                      className="course-menu-item"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingAssignmentId(assignment.id);
+                        setEditedAssignmentName(assignment.name);
+                        setMenuVisible(null);
+                      }}
+                    >
+                      <TiEdit /> Rename
+                    </button>
+                    <button 
+                      className="course-menu-item"
+                      onClick={(e) => confirmDelete(assignment, e)}
+                    >
+                      <RiDeleteBin6Line /> Delete
+                    </button>
+                  </div>
                 )}
               </div>
-              <FiMoreVertical
-                className="assignment-options-icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleMenu(index, e);
-                }}
-              />
-              {menuVisible === index && (
-                <div className="course-menu">
-                  <button
-                    className="course-menu-item rename"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingAssignmentId(assignment.id);
-                      setEditedAssignmentName(assignment.name);
-                    }}
-                  >
-                    <TiEdit /> Rename
-                  </button>
-                  <button
-                    className="course-menu-item delete"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setAttemptDelete(true);
-                      setMenuVisible(null)
-                    }
-                    }
-                  >
-                    <FiTrash2 /> Delete
-                  </button>
-                </div>
-              )}
-              {attemptDelete && (
-                <div className="modal-background">
-                  <div className="delete-confirmation-window">
-                    <h3 id="link-canvas-title">Delete Assignment?</h3>
-                    <p>This action can not be undone</p>
-                    <div className="window-button-div">
-                      <button 
-                        className="link-canvas-window-button" id="add-course-button" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteAssignment(assignment.id, e)
-                        }}
-                      >
-                        Delete
-                      </button>
-                      <button 
-                        className="link-canvas-window-button" id="add-course-cancel"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setAttemptDelete(false)
-                          setMenuVisible(null)
-                        }}>Cancel</button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))
+            ))
           ) : (
-            <p></p>
+            <p>No assignments found. Create an assignment to get started.</p>
           )}
         </div>
-        {showLinkCanvas ? (
-          <div className="modal-background">
-            <div className="link-canvas-window">
+
+        {/* Modals */}
+        {showLinkCanvas && (
+          <div className="modal-background" onClick={closeModals}>
+            <div className="link-canvas-window" onClick={(e) => e.stopPropagation()}>
               <h3 id="link-canvas-title">Link Canvas Course</h3>
               <input
                 className="link-canvas-input"
@@ -342,17 +332,18 @@ function CoursePage() {
                 onChange={(e) => setCanvasToken(e.target.value)}
               />
               <div className="window-button-div">
-                <button className="link-canvas-window-button" onClick={handleLinkCanvas}>Link Canvas</button>
-                <button className="link-canvas-window-button" id="link-canvas-cancel" onClick={() => setShowLinkCanvas(false)}>
+                <button className="link-canvas-window-button" id="add-course-button" onClick={handleLinkCanvas}>Link Canvas</button>
+                <button className="link-canvas-window-button" id="link-canvas-cancel" onClick={closeModals}>
                   Cancel
                 </button>
               </div>
             </div>
           </div>
-        ) : (<div></div>)}
-        {showImportCanvasQuiz ? (
-          <div className="modal-background">
-            <div className="link-canvas-window">
+        )}
+
+        {showImportCanvasQuiz && (
+          <div className="modal-background" onClick={closeModals}>
+            <div className="link-canvas-window" onClick={(e) => e.stopPropagation()}>
               <h3 id="link-canvas-title">Import Quiz from Canvas</h3>
               <input
                 className="link-canvas-input"
@@ -363,13 +354,38 @@ function CoursePage() {
               />
               <div className="window-button-div">
                 <button className="link-canvas-window-button" id="import-quiz-button" onClick={handleImportQuiz}>Import Quiz</button>
-                <button className="link-canvas-window-button" id="import-quiz-cancel" onClick={() => setShowImportCanvasQuiz(false)}>
+                <button className="link-canvas-window-button" id="import-quiz-cancel" onClick={closeModals}>
                   Cancel
                 </button>
               </div>
             </div>
           </div>
-        ) : (<div></div>)}
+        )}
+
+        {attemptDelete && (
+          <div className="modal-background" onClick={closeModals}>
+            <div className="link-canvas-window" onClick={(e) => e.stopPropagation()}>
+              <h3 id="link-canvas-title">Delete Assignment?</h3>
+              <p className="modal-message">This action cannot be undone.</p>
+              <div className="window-button-div">
+                <button 
+                  className="link-canvas-window-button" 
+                  id="add-course-button" 
+                  onClick={handleDeleteAssignment}
+                >
+                  Delete
+                </button>
+                <button 
+                  className="link-canvas-window-button" 
+                  id="add-course-cancel"
+                  onClick={closeModals}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

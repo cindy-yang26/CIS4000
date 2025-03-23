@@ -97,6 +97,11 @@ public class AuthController {
                     .body("Error: Password must be at least 8 characters long");
         }
 
+        if (!signupRequest.getEmail().contains("@")) {
+            return ResponseEntity.badRequest()
+                    .body("Error: Email must be valid");
+        }
+
         if (userRepository.existsByUsername(signupRequest.getUsername())) {
             return ResponseEntity.badRequest()
                     .body("Error: Username is already taken!");

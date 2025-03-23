@@ -31,6 +31,12 @@ function SignupPage() {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSignup();
+    }
+  };
+
   return (
     <div className="signup-page">
       <LoginHeader />
@@ -52,6 +58,7 @@ function SignupPage() {
               placeholder="Your username" 
               value={username} 
               onChange={(e) => setUsername(e.target.value)} 
+              onKeyDown={handleKeyDown}
             />
             {errors.username && <div className="field-error">{errors.username}</div>}
 
@@ -63,6 +70,7 @@ function SignupPage() {
               placeholder="Your email address"
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
+              onKeyDown={handleKeyDown}
             />
             {errors.email && <div className="field-error">{errors.email}</div>}
 
@@ -74,6 +82,7 @@ function SignupPage() {
               placeholder="Your password" 
               value={password} 
               onChange={(e) => setPassword(e.target.value)} 
+              onKeyDown={handleKeyDown}
             />
             {errors.password && <div className="field-error">{errors.password}</div>}
 

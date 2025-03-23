@@ -41,6 +41,12 @@ function ResetPasswordPage() {
       setError(errorMessage);
     }
   };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleResetPassword();
+    }
+  };
   
   return (
     <div className="login-page">
@@ -60,6 +66,7 @@ function ResetPasswordPage() {
                 placeholder="Your username" 
                 value={username} 
                 onChange={(e) => setUsername(e.target.value)} 
+                onKeyDown={handleKeyDown}
               />
 
               <label htmlFor="email">Email</label>
@@ -69,6 +76,7 @@ function ResetPasswordPage() {
                 placeholder="Your email address" 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
+                onKeyDown={handleKeyDown}
               />
               
               <label htmlFor="password">New Password</label>
@@ -78,6 +86,7 @@ function ResetPasswordPage() {
                 placeholder="Enter new password" 
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
+                onKeyDown={handleKeyDown}
               />
 
               <label htmlFor="confirm-password">Confirm New Password</label>
@@ -87,6 +96,7 @@ function ResetPasswordPage() {
                 placeholder="Confirm new password" 
                 value={confirmPassword} 
                 onChange={(e) => setConfirmPassword(e.target.value)} 
+                onKeyDown={handleKeyDown}
               />
 
               <button className="login-button" onClick={handleResetPassword}>Reset Password</button>

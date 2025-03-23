@@ -22,6 +22,12 @@ function LoginPage() {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleLogin();
+    }
+  };
+
   const tryCookieLogin = async () => {
     try {
       await login();
@@ -54,6 +60,7 @@ function LoginPage() {
               placeholder="Your username" 
               value={username} 
               onChange={(e) => setUsername(e.target.value)} 
+              onKeyDown={handleKeyDown}
             />
             
             <label htmlFor="password">Password</label>
@@ -64,6 +71,7 @@ function LoginPage() {
               placeholder="Your password" 
               value={password} 
               onChange={(e) => setPassword(e.target.value)} 
+              onKeyDown={handleKeyDown}
             />
 
             <div className="forgot-pw">
