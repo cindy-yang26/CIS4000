@@ -9,27 +9,22 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import '../pages/LoginPage/LoginPage.css';
 
-// Carousel content - you can modify this data as needed
+// Carousel content
 const carouselItems = [
     {
       icon: faLaptopCode,
-      title: "Create Interactive Assignments",
-      text: "Build engaging quizzes, tests and assignments that keep students motivated."
+      title: "Centralized Platform",
+      text: "Build assignments with all previous questions at your fingertips."
     },
     {
       icon: faChartPie,
-      title: "Track Student Progress",
-      text: "Visualize performance data and identify areas for improvement."
+      title: "Analytical Feedback",
+      text: "Visualize performance metrics and preview assignment difficulty"
     },
     {
       icon: faUserGraduate,
-      title: "Personalized Learning",
-      text: "Automatically adjust content based on individual student needs."
-    },
-    {
-      icon: faFileAlt,
-      title: "Easy Grading",
-      text: "Save time with automatic grading and detailed feedback reports."
+      title: "Seamless Integration",
+      text: "Connect assignments to Canvas, and import/export assignments with ease."
     }
 ];
   
