@@ -257,7 +257,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 5px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
   }
   
   .tag-item {
@@ -265,7 +265,7 @@
     background-color: #f0f0f0;
     color: #333;
     border-radius: 10px;
-    padding: 5px 10px;
+    padding: 3px 3px 3px 10px;
     font-size: 0.85em;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
@@ -274,7 +274,6 @@
     background: none;
     border: none;
     color: #777;
-    margin-left: 5px;
     cursor: pointer;
   }
   

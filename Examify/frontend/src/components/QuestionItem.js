@@ -65,106 +65,127 @@ const QuestionItem = ({ question, handleEditQuestion, handleDeleteTag, handleAdd
 
   return (
     <li key={question.id} className="question-item">
-      <div className="question-text">
-        <h3 className="question-title">{question.title}</h3>
-        <h4 className="question-type-display">{formatQuestionType(question.questionType)}</h4>
-
-        {/* Difficulty Display */}
-        <div className="difficulty-display">
-          <label>Difficulty:</label>
-          {handleAddTag && handleDeleteTag ? ( // Render dropdown if handleAddTag and handleDeleteTag are provided
-            <select
-              value={difficulty}
-              onChange={handleDifficultyChange}
-              style={{ color: getDifficultyColor(difficulty) }}
-            >
-              <option value="Unrated">Unrated</option>
-              <option value="Easy">Easy</option>
-              <option value="Medium">Medium</option>
-              <option value="Hard">Hard</option>
-            </select>
-          ) : ( // Render static box if handleAddTag or handleDeleteTag is null
-            <span style={{ color: getDifficultyColor(difficulty) }}>
-              {difficulty}
+      <div className="question-content">
+        <div className="question-text">
+          <h3 className="question-title">
+            {question.title}
+            <span className="difficulty-dropdown">
+              {handleAddTag && handleDeleteTag ? ( // Render dropdown if handleAddTag and handleDeleteTag are provided
+                <select
+                  value={difficulty}
+                  onChange={handleDifficultyChange}
+                  className="difficulty-dropdown"
+                  style={{ color: getDifficultyColor(difficulty), borderColor: getDifficultyColor(difficulty) }}
+                >
+                  <option value="Unrated">Unrated</option>
+                  <option value="Easy">Easy</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Hard">Hard</option>
+                </select>
+              ) : ( // Render static box if handleAddTag or handleDeleteTag is null
+                <span style={{ color: getDifficultyColor(difficulty) }}>
+                  {difficulty}
+                </span>
+              )}
             </span>
+          </h3>
+          <h4 className="question-type-display">{formatQuestionType(question.questionType)}</h4>
+
+          {/* Tags */}
+          {filteredTags.length > 0 && (
+            <div className="question-tags">
+              {filteredTags.map((tag, index) => (
+                <span key={index} className="tag-item">
+                  {tag}
+                  {handleDeleteTag && ( // Only render delete button if handleDeleteTag is provided
+                    <button
+                      className="delete-tag-button"
+                      onClick={() => handleDeleteTag(question.id, tag)}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Question Text */}
+          <div className="question">
+            <MathJax>{question.text}</MathJax>
+          </div>
+
+          {/* Multiple Choice Options */}
+          {question.questionType === "multiple_choice_question" && (
+            <div className="mc-div">
+              <ul className="mc-choice-list">
+                {Array.isArray(question.options) && question.options.length > 0
+                  ? question.options.map((choice, index) => (
+                      <li
+                        key={index}
+                        className="mc-choice"
+                      >
+                        <strong>{String.fromCharCode(65 + index)})</strong>
+                        <span>{choice}</span>
+                      </li>
+                    ))
+                  : <li>No options provided</li>}
+              </ul>
+            </div>
+          )}
+
+          {/* Correct Answer */}
+          <div className="correct-answer">
+          {question.correctAnswer && (
+            <p><strong>Answer:</strong> {question.correctAnswer}</p>
+          )}
+          </div>
+
+          {/* Question Comment */}
+          {question.comment && (
+            <div className="question-comment">
+              <strong>Comment:</strong> {question.comment}
+            </div>
           )}
         </div>
 
-        {/* Tags */}
-        {filteredTags.length > 0 && (
-          <div className="question-tags">
-            {filteredTags.map((tag, index) => (
-              <span key={index} className="tag-item">
-                {tag}
-                {handleDeleteTag && ( // Only render delete button if handleDeleteTag is provided
-                  <button
-                    className="delete-tag-button"
-                    onClick={() => handleDeleteTag(question.id, tag)}
-                  >
-                    ✕
-                  </button>
-                )}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Question Text */}
-        <MathJax>{question.text}</MathJax>
-
-        {/* Multiple Choice Options */}
-        {question.questionType === "multiple_choice_question" && (
-          <div style={{ marginTop: '5px' }}>
-            <strong>Choices:</strong>
-            <ul style={{ marginTop: "5px", paddingLeft: "0px", listStyleType: "none" }}>
-              {Array.isArray(question.options) && question.options.length > 0
-                ? question.options.map((choice, index) => (
-                    <li
-                      key={index}
-                      style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: 'flex-start' }}
-                    >
-                      <strong>{String.fromCharCode(65 + index)})</strong>
-                      <span>{choice}</span>
-                    </li>
-                  ))
-                : <li>No options provided</li>}
-            </ul>
-          </div>
-        )}
-
-        {/* Correct Answer */}
-        {question.correctAnswer && (
-          <p><strong>Correct Answer:</strong> {question.correctAnswer}</p>
-        )}
-
         {/* Question Statistics */}
         <div className="question-stats">
-          Mean: {question.stats?.mean || 'N/A'},
-          Median: {question.stats?.median || 'N/A'},
-          Std Dev: {question.stats?.stdDev || 'N/A'},
-          Min: {question.stats?.min || 'N/A'},
-          Max: {question.stats?.max || 'N/A'}
+          <h3 className="question-title" style={{marginBottom: "10px"}}>Statistics</h3>
+          <div className="stat-details">
+            <span>Mean:</span>
+            <span>{question.stats?.mean || '--'}</span>
+          </div>
+          <div className="stat-details">
+            <span>Median:</span>
+            <span>{question.stats?.median || '--'}</span>
+          </div>
+          <div className="stat-details">
+            <span>Std Dev:</span>
+            <span>{question.stats?.stdDev || '--'}</span>
+          </div>
+          <div className="stat-details">
+            <span>Min:</span>
+            <span>{question.stats?.min || '--'}</span>
+          </div>
+          <div className="stat-details">
+            <span>Max:</span>
+            <span>{question.stats?.max || '--'}</span>
+          </div>
         </div>
 
-        {/* Question Comment */}
-        {question.comment && (
-          <div className="question-comment">
-            <strong>Comment:</strong> {question.comment}
+        {/* Edit Button */}
+        {handleEditQuestion && ( // Only render edit button if handleEditQuestion is provided
+          <div className="question-actions">
+            <button
+              className="edit-button"
+              onClick={() => handleEditQuestion(question)}
+            >
+              <FaEdit />
+            </button>
           </div>
         )}
       </div>
-
-      {/* Edit Button */}
-      {handleEditQuestion && ( // Only render edit button if handleEditQuestion is provided
-        <div className="question-actions">
-          <button
-            className="edit-button"
-            onClick={() => handleEditQuestion(question)}
-          >
-            <FaEdit />
-          </button>
-        </div>
-      )}
     </li>
   );
 };
