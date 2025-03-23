@@ -1,5 +1,7 @@
 package com.cis4000.examify.controllers;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -69,6 +71,40 @@ public class ImageController extends BaseController {
             return ResponseEntity.ok(image);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error uploading image: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteImage(@CookieValue(name = "sessionId", required = false) String sessionCookie,
+            @PathVariable Long id) {
+        Long userId = getUserIdFromSessionCookie(sessionCookie);
+        // User needs to log in first
+        if (userId == null) {
+            return notLoggedInResponse();
+        }
+
+        if (id == null) {
+            return ResponseEntity.badRequest().body("No ID specified for image to delete");
+        }
+
+        Image image;
+        try {
+            Optional<Image> imageOpt = imageRepository.findById(id);
+            if (imageOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            image = imageOpt.get();
+
+            if (!courseRepository.findById(image.getCourseId()).map((course) -> userId.equals(course.getUserId()))
+                    .orElse(false)) {
+                return userDoesntHaveAccessResponse();
+            }
+
+            s3Service.deleteImage(image.getUrl());
+
+            return ResponseEntity.ok(null);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(null);
         }
     }
 }

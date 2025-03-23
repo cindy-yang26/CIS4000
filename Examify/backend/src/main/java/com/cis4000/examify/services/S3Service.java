@@ -59,4 +59,25 @@ public class S3Service {
 
         return fileUrl;
     }
+
+    public void deleteImage(String fileUrl) {
+        // Extract the filename from the URL
+        String fileKey = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
+
+        // Initialize the S3 client
+        S3Client s3Client = S3Client.builder()
+                .region(Region.of(region))
+                .credentialsProvider(
+                        StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKeyId, secretAccessKey)))
+                .build();
+
+        // Create a DeleteObject request
+        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                .bucket(bucketName)
+                .key(fileKey)
+                .build();
+
+        // Delete the object from S3
+        s3Client.deleteObject(deleteObjectRequest);
+    }
 }

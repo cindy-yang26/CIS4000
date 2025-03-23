@@ -92,6 +92,28 @@ export const uploadImage = async (courseId, fileExt, fileContent, navigate) => {
   }
 };
 
+export const deleteImage = async (imageId, navigate) => {
+  try {
+    const response = await axios.delete(
+      `http://localhost:8080/api/images/${imageId}`,
+      { withCredentials: true }
+    );
+
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      if (error.response.status === 401) {
+        console.log('Unauthorized: Please login');
+        navigate('/');
+        return null;
+      } else if (error.response.status === 403) {
+        // TODO: display page telling user it doesn't have access
+      }
+    }
+    console.error('Error uploading file to backend or creating questions:', error);
+  }
+};
+
 export const uploadFileContentToBackend = async (courseId, fileContent, navigate) => {
   try {
     const response = await axios.post(
