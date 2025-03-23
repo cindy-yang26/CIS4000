@@ -83,3 +83,10 @@ CREATE TABLE question_options (
     option VARCHAR(255) NOT NULL,
     FOREIGN KEY (question_id) REFERENCES question(id) ON DELETE CASCADE
 );
+
+CREATE TABLE image (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    course_id BIGINT NOT NULL,
+    url TEXT NOT NULL,
+    FOREIGN KEY (course_id) REFERENCES course(id) ON DELETE CASCADE
+);

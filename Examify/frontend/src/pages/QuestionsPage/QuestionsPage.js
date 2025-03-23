@@ -160,16 +160,17 @@ function QuestionsPage() {
 
           const base64String = reader.result.split(",")[1];
 
-          const imageId = await uploadImage(courseId, fileExt, base64String, navigate);
+          const imageInfo = await uploadImage(courseId, fileExt, base64String, navigate);
 
-          console.log(imageId);
+          // TODO: remove the following line
+          console.log(imageInfo);
 
-          if (imageId) {
-            images.push(imageId);
-            console.log("Image uploaded successfully with ID", imageId);
+          if (imageInfo) {
+            images.push(imageInfo);
+            console.log("Image uploaded successfully with ID", imageInfo);
 
             // Update state to store the uploaded image ID
-            setImages(prevImages => [...prevImages, imageId]);
+            setImages(prevImages => [...prevImages, imageInfo]);
           } else {
             console.error("Failed to upload image.");
             alert("Failed to upload image.");
@@ -177,13 +178,8 @@ function QuestionsPage() {
         };
 
         reader.readAsDataURL(file);
-        // // TODO: maybe this should return the image instead
-        // console.log('about to call backend api');
-        // const imageId = await uploadImage(courseId, file, navigate);
         // // TODO: do i need to use setImages?
         // // TODO: display these images
-        // images.push(imageId);
-        // console.log("image uploaded as image #" + imageId);
       } catch (error) {
         console.error('Error processing image:', error);
         alert('Failed to process image.');
