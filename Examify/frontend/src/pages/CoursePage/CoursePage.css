@@ -29,6 +29,37 @@
     color:#0056b3;
   }
 
+  .canvas-div {
+    background-color: white;
+    display: flex;
+    border-radius: 10px;
+    border: 2px solid black;
+    height: 70px;
+    width: 270px;
+  }
+
+  #canvas-image {
+    height: 70px;
+    width: 70px;
+    border-radius: 10px;
+  }
+
+  #canvas-logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #canvas-text {
+    font-size: 1.2em;
+    font-weight: bold;
+  }
+
+  #canvas-buttons {
+    padding-left: 20px;
+    padding-right: 10px;
+  }
+
   .course-name {
     font-size: 2.3em;
     font-weight: bold;
@@ -57,20 +88,32 @@
 
   .assignments-search-div {
     width: 100%;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .assignment-search-input {
+    width: 60%;
   }
   
+  #button-div {
+    display: flex;
+    justify-content: space-between;
+    width: 270px;
+  }
+
   .add-assignment-button {
     background-color: #d9534f;
     color: white;
     border: none;
-    padding: 8px 12px;
-    margin-left: auto;
-    margin-right: 2em;
+    font: inherit;
+    font-weight: bold;
+    padding: 8px 10px;
+    width: auto;
     cursor: pointer;
     border-radius: 5px;
-    font-size: 0.4em;
-    width: auto;
-    float: right;
+    font-size: 13px;
+    align-self: flex-start;
   }
   
   .add-assignment-button:hover {
@@ -81,40 +124,37 @@
     background-color: #007bff;
     color: white;
     border: none;
-    padding: 8px 12px;
-    margin-right: 10px;
+    font: inherit;
+    font-weight: bold;
+    padding: 8px 10px;
     width: auto;
     cursor: pointer;
     border-radius: 5px;
     font-size: 13px;
     align-self: flex-start;
-    width: 270px;
   }
 
   .view-questions-button:hover {
     background-color: #0056b3;
   }
 
-  .link-canvas-button {
-    background-color: #059121;
+  #link-canvas-button {
+    background-color: #2dd14e;
     color: white;
-    border: none;
-    padding: 8px 12px;
-    margin-right: 10px;
+    border: 1px solid green;
+    height: 27px;
+    font: inherit;
+    font-weight: bold;
+    margin-top: 5px;
     cursor: pointer;
     border-radius: 5px;
     font-size: 14px;
     align-self: flex-start;
-    width: 200px;
+    width: 110px;
   }
 
-  .link-canvas-button:hover {
+  #link-canvas-button:hover {
     background-color: #037119;
-  }
-
-  #add-assignment-text {
-    margin-left: 5px;
-    font-size: 1.2em;
   }
 
   .assignments-list {
@@ -281,21 +321,19 @@
     background-color: gray;
   }
 
-  .import-canvas-quiz-button {
-    background-color: #c4c000;
+  #import-canvas-quiz-button {
+    background-color: rgb(165, 164, 164);
     color: white;
-    border: none;
-    padding: 8px 12px;
-    margin-right: 20px;
-    cursor: pointer;
+    border: 1px solid rgb(165, 164, 164);
+    height: 27px;
+    font: inherit;
+    font-weight: bold;
+    margin-top: 5px;
+    cursor: default;
     border-radius: 5px;
     font-size: 13px;
     align-self: flex-start;
-    width: 360px;
-  }
-
-  .import-canvas-quiz-button:hover {
-    background-color: #969301;
+    width: 110px;
   }
 
   #import-quiz-button {

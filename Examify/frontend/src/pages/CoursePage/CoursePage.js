@@ -23,7 +23,6 @@ function CoursePage() {
   const [canvasQuizId, setCanvasQuizId] = useState("");
   const [attemptDelete, setAttemptDelete] = useState(false)
   
-
   const navigate = useNavigate();
 
   const handleImportQuiz = async () => {
@@ -43,7 +42,6 @@ function CoursePage() {
     }
   };
 
-
   const handleLinkCanvas = async () => {
     const response = await fetch(`http://localhost:8080/api/courses/${courseId}/link-canvas`, {
       method: "PUT",
@@ -61,6 +59,32 @@ function CoursePage() {
       alert(`Failed to link Canvas course: ${errorData.message || JSON.stringify(errorData)}`);
     }
   };
+
+  useEffect(() => {
+    const checkCanvasLink = async () => {
+      try {
+        const courseInfo = await fetchCourseInfo(courseId, navigate);
+        if (courseInfo == null) {
+          return;
+        }
+        if (courseInfo.canvasCourseId) {
+          document.getElementById("link-canvas-button").innerHTML = "Linked!"
+          document.getElementById("link-canvas-button").style.backgroundColor = "green";
+
+          document.getElementById("import-canvas-quiz-button").style.backgroundColor = "#c4c000";
+          document.getElementById("import-canvas-quiz-button").style.cursor = "pointer";
+          document.getElementById("import-canvas-quiz-button").style.border = "1px solid black";
+        } else {
+          document.getElementById("import-canvas-quiz-button").disabled = true;
+        }
+      } catch (error) {
+        alert('Failed to fetch Canvas data');
+        console.error(error);
+      }
+    };
+
+    checkCanvasLink();
+  }, []);
 
   useEffect(() => {
     const loadCourseName = async () => {
@@ -167,11 +191,32 @@ function CoursePage() {
             {actualCourseName} <br></br>
             <div className="assignment-header-div">
               Assignments
-              <button className="add-assignment-button" onClick={handleCreateAssignment}>
-                <FaPlus /> <span id="add-assignment-text">Create Assignment</span>
-              </button>
             </div>
           </h2>
+          <div className="canvas-div">
+            <div id="canvas-logo">
+              <img src="/canvas_logo.png" alt="Canvas Logo" id="canvas-image" />
+              <span id="canvas-text">Canvas</span>
+            </div>
+            <div id="canvas-buttons">
+              <div>
+                <button
+                  id="link-canvas-button"
+                  onClick={() => setShowLinkCanvas(true)}
+                >
+                  Link
+                </button>
+              </div>
+              <div>
+              <button
+                id="import-canvas-quiz-button"
+                onClick={() => setShowImportCanvasQuiz(true)}
+              >
+                Import Quiz
+              </button>
+              </div>
+            </div>
+          </div>
         </div>
         <div className="course-second-div">
           <div id="spacer"></div>
@@ -183,26 +228,16 @@ function CoursePage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="assignment-search-input"
             />
+            <div id="button-div">
+              <button className="add-assignment-button" onClick={handleCreateAssignment}>
+                {/* <FaPlus /> <span id="add-assignment-text">Create Assignment</span> */}
+                Create Assignment
+              </button>
+              <button className="view-questions-button" onClick={handleViewQuestions}>
+                View All Questions
+              </button>
+            </div>
           </div>
-          <button className="view-questions-button" onClick={handleViewQuestions}>
-            View All Questions
-          </button>
-
-
-          <button
-            className="link-canvas-button"
-            onClick={() => setShowLinkCanvas(true)}
-          >
-            Link Canvas
-          </button>
-
-          <button
-            className="import-canvas-quiz-button"
-            onClick={() => setShowImportCanvasQuiz(true)}
-          >
-            Import Quiz from Canvas
-          </button>
-
         </div>
 
         <div className="assignments-list">

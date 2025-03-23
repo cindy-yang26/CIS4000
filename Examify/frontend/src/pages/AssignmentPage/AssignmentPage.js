@@ -4,7 +4,7 @@ import Header from '../../components/Header/Header';
 import DownloadDropdown from '../../components/DownloadDropdown';
 import { fetchAssignmentInfo, fetchAssignmentQuestions, uploadAssignmentToCanvas, downloadLatex, downloadDocs } from '../../api/assignments';
 import { FaChevronLeft, FaEdit, FaDownload } from 'react-icons/fa';
-import { fetchCourseInfo } from '../../api/courses';
+import { fetchCourseInfo, getAllTags } from '../../api/courses';
 import { editQuestion } from '../../api/questions';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
 import './AssignmentPage.css';
@@ -29,6 +29,9 @@ function AssignmentPage() {
   });
   
   const [editingQuestion, setEditingQuestion] = useState(null);
+  const [tags, setTags] = useState([])
+  const [filteredTags, setFilteredTags] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => {
     const loadCourseName = async () => {
@@ -46,6 +49,51 @@ function AssignmentPage() {
 
     loadCourseName();
   }, [courseId]);
+
+  useEffect(() => {
+      const loadTags = async () => {
+        try {
+          const tagSet = await getAllTags(courseId, navigate);
+          if (tagSet == null) {
+            return;
+          }
+          console.log(tagSet);
+          setTags(tagSet);
+        } catch (error) {
+          alert('Failed to load tags.');
+          console.error(error);
+        }
+      };
+      loadTags();
+    }, [showForm]);
+
+
+  const handleTagSearch = (input) => {
+    if (!input.trim()) {
+      setFilteredTags(tags);
+      return;
+    }
+  
+    const inputTags = input.split(',').map(tag => tag.trim());
+    const lastTag = inputTags[inputTags.length - 1];
+  
+    const matchingTags = tags.filter(tag =>
+      tag.toLowerCase().includes(lastTag.toLowerCase())
+    );
+  
+    setFilteredTags(matchingTags);
+  };
+  
+  const handleTagSelect = (selectedTag) => {
+    const currentTags = formFields.tags.split(',').map(tag => tag.trim());
+    
+    if (!currentTags.includes(selectedTag)) {
+      currentTags[currentTags.length - 1] = selectedTag;
+      setFormFields({ ...formFields, tags: currentTags.join(', ') });
+    }
+    
+    setShowSuggestions(false);
+  };
 
   useEffect(() => {
     const loadAssignmentInfo = async () => {
@@ -387,14 +435,36 @@ function AssignmentPage() {
                   }
                   rows="2"
                 />
-                <input
-                  type="text"
-                  placeholder="Enter tags (comma-separated)"
-                  value={formFields.tags}
-                  onChange={(e) =>
-                    setFormFields({ ...formFields, tags: e.target.value })
-                  }
-                />
+          
+                <div className="autocomplete-container">
+                  <input
+                    type="text"
+                    placeholder="Enter tags (comma-separated)"
+                    value={formFields.tags}
+                    onChange={(e) => {
+                      setFormFields({ ...formFields, tags: e.target.value });
+                      handleTagSearch(e.target.value);
+                    }}
+                    onFocus={() => {
+                      handleTagSearch(formFields.tags); // Show suggestions on focus
+                      setShowSuggestions(true);
+                    }}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} // Delay hiding for clicks to register
+                  />
+                  {showSuggestions && filteredTags.length > 0 && (
+                    <ul className="autocomplete-dropdown">
+                      {filteredTags.map((tag, index) => (
+                        <li
+                          key={index}
+                          onMouseDown={() => handleTagSelect(tag)}
+                        >
+                          {tag}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
                 <div className="stats-fields">
                   <label>
                     Mean:
