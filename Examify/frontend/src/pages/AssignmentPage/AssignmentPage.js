@@ -4,6 +4,7 @@ import Header from '../../components/Header/Header';
 import DownloadDropdown from '../../components/DownloadDropdown';
 import { fetchAssignmentInfo, fetchAssignmentQuestions, uploadAssignmentToCanvas, downloadLatex, downloadDocs } from '../../api/assignments';
 import { FaChevronLeft, FaEdit, FaDownload } from 'react-icons/fa';
+import { FaAngleRight } from "react-icons/fa6";
 import { fetchCourseInfo, getAllTags } from '../../api/courses';
 import { editQuestion } from '../../api/questions';
 import { MathJaxContext } from 'better-react-mathjax';
@@ -94,6 +95,28 @@ function AssignmentPage() {
     }
     
     setShowSuggestions(false);
+  };
+
+  const getUniqueTagsCount = () => {
+    const difficultyTags = ['Easy', 'Medium', 'Hard'];
+    const allTags = questions.flatMap((q) => q.tags).filter((t) => !difficultyTags.includes(t)); // Flatten all tags into a single array
+    const uniqueTags = new Set(allTags); // Use a Set to get unique tags
+    return uniqueTags.size; // Return the number of unique tags
+  };
+
+  const calculateAverageDifficulty = () => {
+    const difficultyValues = questions.map((q) => {
+      const difficultyTags = ['Easy', 'Medium', 'Hard'];
+      const foundDifficulty = q.tags.find((tag) => difficultyTags.includes(tag));
+      if (foundDifficulty === 'Easy') return 1;
+      if (foundDifficulty === 'Medium') return 5;
+      if (foundDifficulty === 'Hard') return 10;
+      return 0; // Unrated questions contribute 0 to the average
+    });
+
+    const total = difficultyValues.reduce((sum, value) => sum + value, 0);
+    const average = total / questions.length || 0; // Avoid division by zero
+    return average.toFixed(2); // Round to 2 decimal places
   };
 
   useEffect(() => {
@@ -413,12 +436,28 @@ function AssignmentPage() {
             >
               Select or remove questions
             </button>
-            <button
-              className="difficulty-button"
-              onClick={() => navigate(`/course/${courseId}/assignment/${assignmentId}/difficulty`)}
-            >
-              View Assignment Difficulty
-            </button>
+          </div>
+
+          <div className="assignment-stat-summary-div">
+            <div className="metrics-container">
+              <div className="metrics">
+                <div className="metric">
+                  <strong>Number of Questions:</strong> {questions.length}
+                </div>
+                <div className="metric">
+                  <strong>Topics Covered:</strong> {getUniqueTagsCount()}
+                </div>
+                <div className="metric">
+                  <strong> Average Difficulty:</strong> {calculateAverageDifficulty()}
+                </div>
+              </div>
+              <div className="view-metrics">
+                <button className="view-metrics-button" onClick={() => navigate(`/course/${courseId}/assignment/${assignmentId}/difficulty`)}>
+                  <div>View Details</div>
+                  <div style={{fontSize: "2.1em"}}><FaAngleRight /></div>
+                </button>
+              </div>
+            </div>
           </div>
 
           {assignmentStatistics && Object.keys(assignmentStatistics).length > 0 && (

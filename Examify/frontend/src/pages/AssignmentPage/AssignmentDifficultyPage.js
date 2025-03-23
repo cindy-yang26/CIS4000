@@ -4,7 +4,7 @@ import Header from '../../components/Header/Header';
 import { fetchAssignmentInfo, fetchAssignmentQuestions } from '../../api/assignments';
 import { MathJaxContext } from 'better-react-mathjax';
 import QuestionItem from '../../components/QuestionItem'; // Import the QuestionItem component
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'; // Import Recharts components
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import './AssignmentDifficultyPage.css'; // Ensure you import the same CSS file for consistent styling
 
 function AssignmentDifficultyPage() {

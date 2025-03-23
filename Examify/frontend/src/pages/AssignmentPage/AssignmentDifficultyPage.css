@@ -123,10 +123,14 @@
   display: flex;
   justify-content: space-between;
   margin: 20px 0;
-  padding: 20px;
+  padding: 10px;
   background-color: #f9f9f9;
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.metrics {
+  display: flex;
+  width: 85%
 }
 
 .metric {
@@ -136,6 +140,20 @@
   border-right: 1px solid #ddd; /* Add a separator between metrics */
 }
 
-.metric:last-child {
-  border-right: none; /* Remove the border from the last metric */
+.view-metrics {
+  width: 15%;
+  padding: 0 10px 0 10px;
+}
+
+.view-metrics-button {
+  font:inherit;
+  font-size: 0.9em;
+  font-weight: bold;
+  color: black;
+  background-color: transparent;
+  display: flex;
+}
+
+.view-metrics-button:hover {
+  color:#007bff;
 }
