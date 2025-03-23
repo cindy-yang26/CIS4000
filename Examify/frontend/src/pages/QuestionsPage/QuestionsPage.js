@@ -150,128 +150,131 @@ function QuestionsPage() {
 
   const handleUploadImage = async (e) => {
     e.preventDefault();
-
+  
     for (const file of e.target.files) {
       const fileExt = file.name.split('.').pop().toLowerCase();
       try {
         const reader = new FileReader();
-
+  
         reader.onloadend = async () => {
-
           const base64String = reader.result.split(",")[1];
-
           const imageInfo = await uploadImage(courseId, fileExt, base64String, navigate);
-
-          // TODO: remove the following line
-          console.log(imageInfo);
-
+  
           if (imageInfo) {
-            images.push(imageInfo);
-            console.log("Image uploaded successfully with ID", imageInfo);
-
-            // Update state to store the uploaded image ID
-            setImages(prevImages => [...prevImages, imageInfo]);
+            // Store only the image ID in the state
+            setImages(prevImages => [...prevImages, imageInfo.imageId]);
           } else {
             console.error("Failed to upload image.");
             alert("Failed to upload image.");
           }
         };
-
+  
         reader.readAsDataURL(file);
-        // // TODO: do i need to use setImages?
-        // // TODO: display these images
       } catch (error) {
         console.error('Error processing image:', error);
         alert('Failed to process image.');
       }
-    };
-  }
+    }
+  };
 
   const handleFormSubmit = async (e) => {
-    e.preventDefault();
+      e.preventDefault();
 
-    const tagsArray = formFields.tags.split(',').map((tag) => tag.trim()).filter((tag) => tag);
-    let optionsArray = formFields.options ? formFields.options.split(',').map(opt => opt.trim()) : [];
+      // Split and clean tags
+      const tagsArray = formFields.tags.split(',').map((tag) => tag.trim()).filter((tag) => tag);
 
+      // Split and clean options (if applicable)
+      let optionsArray = formFields.options ? formFields.options.split(',').map(opt => opt.trim()) : [];
 
-    if (!formFields.title.trim()) {
-      alert("Title cannot be empty.");
-      return;
-    }
-
-    if (formFields.questionType === "multiple_choice_question") {
-      if (!formFields.options || formFields.options.split(',').length < 2) {
-        alert("Multiple Choice Questions must have at least 2 options.");
-        return;
-      }
-      if (!formFields.correctAnswer.trim()) {
-        alert("MCQs must have a correct answer.");
-        return;
-      }
-      if (!optionsArray.includes(formFields.correctAnswer.trim())) {
-        alert("Correct answer must be one of the provided answer choices.");
-        return;
-      }
-    }
-
-    if (formFields.questionType === "true_false_question" && !formFields.correctAnswer) {
-      alert("True/False questions must have a correct answer.");
-      return;
-    }
-
-    if (formFields.questionType === "numerical_question" && (formFields.correctAnswer === "" || isNaN(formFields.correctAnswer))) {
-      alert("Numerical questions must have a valid numerical answer.");
-      return;
-    }
-
-    const questionData = {
-      courseId: courseId,
-      title: formFields.title,
-      text: formFields.text,
-      comment: formFields.comment,
-      tags: tagsArray,
-      questionType: formFields.questionType,
-      stats: { ...formFields.stats },
-      options: formFields.options ? formFields.options.split(',').map(opt => opt.trim()) : [],
-      correctAnswer: formFields.questionType === "true_false_question"
-        ? (formFields.correctAnswer === "False" ? "False" : "True")
-        : formFields.correctAnswer || "",
-      images: [],
-    };
-
-    try {
-      if (editingQuestion) {
-        await editQuestion(editingQuestion.id, questionData, navigate);
-        if (editingQuestion.originalQuestionId) {
-          const updatedVariants = await fetchQuestionVariants(editingQuestion.originalQuestionId);
-          setVariants((prev) => ({
-            ...prev,
-            [editingQuestion.originalQuestionId]: updatedVariants,
-          }));
-        } else {
-          const updatedQuestions = await fetchCourseQuestions(courseId, navigate);
-          setQuestions(updatedQuestions);
-        }
-      } else {
-        await createQuestion(questionData, navigate);
+      // Validation for empty title
+      if (!formFields.title.trim()) {
+          alert("Title cannot be empty.");
+          return;
       }
 
-      setFormFields({
-        title: '',
-        text: '',
-        comment: '',
-        tags: '',
-        questionType: 'essay_question',
-        stats: { mean: '', median: '', stdDev: '', min: '', max: '' },
-        options: '',
-        correctAnswer: '',
-        images: [],
-      });
-      setShowForm(false);
-    } catch (error) {
-      alert("Failed to save question");
-      console.error(error);
-    }
+      // Validation for multiple-choice questions
+      if (formFields.questionType === "multiple_choice_question") {
+          if (!formFields.options || formFields.options.split(',').length < 2) {
+              alert("Multiple Choice Questions must have at least 2 options.");
+              return;
+          }
+          if (!formFields.correctAnswer.trim()) {
+              alert("MCQs must have a correct answer.");
+              return;
+          }
+          if (!optionsArray.includes(formFields.correctAnswer.trim())) {
+              alert("Correct answer must be one of the provided answer choices.");
+              return;
+          }
+      }
+
+      // Validation for true/false questions
+      if (formFields.questionType === "true_false_question" && !formFields.correctAnswer) {
+          alert("True/False questions must have a correct answer.");
+          return;
+      }
+
+      // Validation for numerical questions
+      if (formFields.questionType === "numerical_question" && (formFields.correctAnswer === "" || isNaN(formFields.correctAnswer))) {
+          alert("Numerical questions must have a valid numerical answer.");
+          return;
+      }
+
+      // Prepare the question data for submission
+      const questionData = {
+          courseId: courseId,
+          title: formFields.title,
+          text: formFields.text,
+          comment: formFields.comment,
+          tags: tagsArray,
+          questionType: formFields.questionType,
+          stats: { ...formFields.stats },
+          options: formFields.options ? formFields.options.split(',').map(opt => opt.trim()) : [],
+          correctAnswer: formFields.questionType === "true_false_question"
+              ? (formFields.correctAnswer === "False" ? "False" : "True")
+              : formFields.correctAnswer || "",
+          imageIds: images, // Include the uploaded image IDs
+      };
+
+      try {
+          if (editingQuestion) {
+              // Edit the existing question
+              await editQuestion(editingQuestion.id, questionData, navigate);
+
+              // Update variants if this is a variant
+              if (editingQuestion.originalQuestionId) {
+                  const updatedVariants = await fetchQuestionVariants(editingQuestion.originalQuestionId);
+                  setVariants((prev) => ({
+                      ...prev,
+                      [editingQuestion.originalQuestionId]: updatedVariants,
+                  }));
+              } else {
+                  // Update the main questions list
+                  const updatedQuestions = await fetchCourseQuestions(courseId, navigate);
+                  setQuestions(updatedQuestions);
+              }
+          } else {
+              // Create a new question
+              await createQuestion(questionData, navigate);
+          }
+
+          // Reset form fields and images state
+          setFormFields({
+              title: '',
+              text: '',
+              comment: '',
+              tags: '',
+              questionType: 'essay_question',
+              stats: { mean: '', median: '', stdDev: '', min: '', max: '' },
+              options: '',
+              correctAnswer: '',
+          });
+          setImages([]); // Clear the images state
+          setShowForm(false);
+      } catch (error) {
+          alert("Failed to save question");
+          console.error(error);
+      }
   };
 
   const handleEditQuestion = (question, originalQuestionId = null) => {
@@ -488,6 +491,19 @@ function QuestionsPage() {
                   )}
 
                   <MathJax>{question.text}</MathJax>
+                  {/* Render the associated images */}
+                  {question.images && question.images.length > 0 && (
+                    <div className="question-images">
+                        {question.images.map((image, index) => (
+                            <img
+                                key={index}
+                                src={image.url}
+                                alt={`Question Image ${index + 1}`}
+                                className="question-image"
+                            />
+                        ))}
+                    </div>
+                )}
 
                   {question.questionType === "multiple_choice_question" && (
                     <div style={{ marginTop: '5px' }}>
@@ -580,9 +596,9 @@ function QuestionsPage() {
                     className="delete-button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setAttemptDelete(true)
-                    }
-                    }>
+                      setAttemptDelete(true);
+                    }}
+                  >
                     <FaTrash />
                   </button>
                 </div>
@@ -590,12 +606,12 @@ function QuestionsPage() {
                   <div className="modal-background">
                     <div className="delete-confirmation-window">
                       <h3 id="link-canvas-title">Delete Question?</h3>
-                      <p>This action can not be undone</p>
+                      <p>This action cannot be undone</p>
                       <div className="window-button-div">
                         <button
                           className="link-canvas-window-button" id="add-course-button"
                           onClick={(e) => {
-                            handleDeleteQuestion(question.id)
+                            handleDeleteQuestion(question.id);
                           }}
                         >
                           Delete
@@ -603,8 +619,11 @@ function QuestionsPage() {
                         <button
                           className="link-canvas-window-button" id="add-course-cancel"
                           onClick={(e) => {
-                            setAttemptDelete(false)
-                          }}>Cancel</button>
+                            setAttemptDelete(false);
+                          }}
+                        >
+                          Cancel
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -663,6 +682,14 @@ function QuestionsPage() {
                     />
 
                   </button>
+                </div>
+
+                <div className="uploaded-images-container">
+                  {images.map((imageId, index) => (
+                    <div key={index} className="uploaded-image">
+                      <span>Image {index + 1} (ID: {imageId})</span>
+                    </div>
+                  ))}
                 </div>
 
                 {formFields.questionType === "essay_question" && (

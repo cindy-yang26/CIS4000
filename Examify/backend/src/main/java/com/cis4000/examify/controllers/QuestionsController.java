@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.cis4000.examify.models.Image;
 import com.cis4000.examify.models.Question;
 import com.cis4000.examify.repositories.QuestionRepository;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -26,8 +27,12 @@ import com.cis4000.examify.repositories.CourseRepository;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import com.cis4000.examify.repositories.ImageRepository;
 
 @RestController
 @RequestMapping("/api/questions")
@@ -45,6 +50,9 @@ public class QuestionsController extends BaseController {
     @Autowired
     private CourseRepository courseRepository;
 
+    @Autowired
+    private ImageRepository imageRepository;
+
     private boolean belongsToUser(Question question, Long userId) {
         if (question == null || question.getCourseId() == null) {
             return false;
@@ -56,63 +64,62 @@ public class QuestionsController extends BaseController {
     }
 
     @PostMapping("{id}/create-variant")
-public ResponseEntity<?> createQuestionVariant(@CookieValue(name = "sessionId", required = false) String sessionCookie,
-                                               @PathVariable Long id) {
-    Long userId = getUserIdFromSessionCookie(sessionCookie);
-    if (userId == null) {
-        return notLoggedInResponse();
+    public ResponseEntity<?> createQuestionVariant(@CookieValue(name = "sessionId", required = false) String sessionCookie,
+                                                   @PathVariable Long id) {
+        Long userId = getUserIdFromSessionCookie(sessionCookie);
+        if (userId == null) {
+            return notLoggedInResponse();
+        }
+
+        Optional<Question> originalQuestionOpt = questionRepository.findById(id);
+        if (originalQuestionOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Original question not found");
+        }
+
+        Question originalQuestion = originalQuestionOpt.get();
+
+        if (!belongsToUser(originalQuestion, userId)) {
+            return userDoesntHaveAccessResponse();
+        }
+
+        ObfuscationResult obfuscationResult;
+        try {
+            obfuscationResult = generateObfuscatedText(originalQuestion.getText());
+        } catch (IOException e) {
+            System.out.println("Obfuscation failed: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to generate obfuscated variant.");
+        }
+
+        Question variant = new Question();
+        variant.setCourseId(originalQuestion.getCourseId());
+        variant.setTitle(obfuscationResult.title);
+        variant.setText(obfuscationResult.text);
+        variant.setComment("");
+        variant.setTags(new ArrayList<>(obfuscationResult.tags));
+        variant.setQuestionType(obfuscationResult.questionType);
+        variant.setCorrectAnswer(obfuscationResult.correctAnswer);
+        variant.setStats(new com.cis4000.examify.models.Question.Stats());
+        variant.setOriginalQuestionId(originalQuestion.getId());
+
+        System.out.println("text:" + variant.getText());
+        System.out.println("title:" + variant.getTitle());
+        System.out.println("tags:" + variant.getTags());
+        System.out.println("correct ans:" + variant.getCorrectAnswer());
+        System.out.println("question type:" + variant.getQuestionType());
+
+        if (originalQuestion.getOptions() != null) {
+            variant.setOptions(new ArrayList<>(obfuscationResult.choices));
+        } else {
+            variant.setOptions(new ArrayList<>());
+        }
+
+        questionRepository.save(variant);
+
+        return ResponseEntity.ok("Variant created successfully");
     }
 
-    Optional<Question> originalQuestionOpt = questionRepository.findById(id);
-    if (originalQuestionOpt.isEmpty()) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Original question not found");
-    }
-
-    Question originalQuestion = originalQuestionOpt.get();
-
-    if (!belongsToUser(originalQuestion, userId)) {
-        return userDoesntHaveAccessResponse();
-    }
-
-    ObfuscationResult obfuscationResult;
-    try {
-        obfuscationResult = generateObfuscatedText(originalQuestion.getText());
-    } catch (IOException e) {
-        System.out.println("Obfuscation failed: " + e.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to generate obfuscated variant.");
-    }
-
-    Question variant = new Question();
-    variant.setCourseId(originalQuestion.getCourseId());
-    variant.setTitle(obfuscationResult.title);
-    variant.setText(obfuscationResult.text);
-    variant.setComment("");
-    variant.setTags(new ArrayList<>(obfuscationResult.tags)); 
-    variant.setQuestionType(obfuscationResult.questionType);
-    variant.setCorrectAnswer(obfuscationResult.correctAnswer);
-    variant.setStats(new com.cis4000.examify.models.Question.Stats());
-    variant.setOriginalQuestionId(originalQuestion.getId());
-
-
-    System.out.println("text:" + variant.getText());
-    System.out.println("title:" + variant.getTitle());
-    System.out.println("tags:" + variant.getTags());
-    System.out.println("correct ans:" + variant.getCorrectAnswer());
-    System.out.println("question type:" + variant.getQuestionType());
-
-    if (originalQuestion.getOptions() != null) {
-        variant.setOptions(new ArrayList<>(obfuscationResult.choices));
-    } else {
-        variant.setOptions(new ArrayList<>()); 
-    }
-
-    questionRepository.save(variant);
-
-    return ResponseEntity.ok("Variant created successfully");
-}
-
-private ObfuscationResult generateObfuscatedText(String questionText) throws IOException {
-    String prompt = """
+    private ObfuscationResult generateObfuscatedText(String questionText) throws IOException {
+        String prompt = """
 You are a question variant generator. Given a question, your goal is to create a new version that tests the **same core concept or skill**, 
 but with as much variation as possible in its presentation.
 
@@ -164,95 +171,114 @@ Original Question:
 %s
 """.formatted(questionText);
 
-ObjectMapper objectMapper = new ObjectMapper();
-    String requestBody = objectMapper.writeValueAsString(
-        new ChatCompletionRequest("gpt-3.5-turbo", "You are a helpful assistant.", prompt)
-    );
+        ObjectMapper objectMapper = new ObjectMapper();
+        String requestBody = objectMapper.writeValueAsString(
+                new ChatCompletionRequest("gpt-3.5-turbo", "You are a helpful assistant.", prompt)
+        );
 
-    OkHttpClient client = new OkHttpClient();
+        OkHttpClient client = new OkHttpClient();
 
-    Request request = new Request.Builder()
-        .url("https://api.openai.com/v1/chat/completions")
-        .post(okhttp3.RequestBody.create(requestBody, MediaType.parse("application/json")))
-        .addHeader("Authorization", "Bearer " + apiKey)
-        .addHeader("Content-Type", "application/json")
-        .build();
+        Request request = new Request.Builder()
+                .url("https://api.openai.com/v1/chat/completions")
+                .post(okhttp3.RequestBody.create(requestBody, MediaType.parse("application/json")))
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .addHeader("Content-Type", "application/json")
+                .build();
 
-    try (Response response = client.newCall(request).execute()) {
-        if (!response.isSuccessful()) {
-            throw new IOException("Unexpected code: " + response);
-        }
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("Unexpected code: " + response);
+            }
 
-        String content = objectMapper.readTree(response.body().string())
-            .get("choices").get(0).get("message").get("content").asText();
+            String content = objectMapper.readTree(response.body().string())
+                    .get("choices").get(0).get("message").get("content").asText();
 
             System.out.println("=====================\n" + content + "\n=============");
 
-        ObfuscationResult result = new ObfuscationResult();
-        result.questionType = extractBracketValue(content, "Question Type:");
-        result.title = extractBracketValue(content, "Title:");
-        result.tags = extractList(content, "Tags:");
-        result.text = extractBracketValue(content, "Question:");
-        result.choices = extractList(content, "Choices:");
-        result.correctAnswer = extractBracketValue(content, "Correct Answer:");
-        return result;
-    }
-}
-
-private String extractBracketValue(String content, String label) {
-    String pattern = label + "\\s*\\[([^\\]]+)\\]";
-    java.util.regex.Pattern regex = java.util.regex.Pattern.compile(pattern);
-    java.util.regex.Matcher matcher = regex.matcher(content);
-
-    if (matcher.find()) {
-        String value = matcher.group(1).trim();
-        System.out.println(label + " " + value);
-        return value;
+            ObfuscationResult result = new ObfuscationResult();
+            result.questionType = extractBracketValue(content, "Question Type:");
+            result.title = extractBracketValue(content, "Title:");
+            result.tags = extractList(content, "Tags:");
+            result.text = extractBracketValue(content, "Question:");
+            result.choices = extractList(content, "Choices:");
+            result.correctAnswer = extractBracketValue(content, "Correct Answer:");
+            return result;
+        }
     }
 
-    return "";
-}
+    private String extractBracketValue(String content, String label) {
+        String pattern = label + "\\s*\\[([^\\]]+)\\]";
+        java.util.regex.Pattern regex = java.util.regex.Pattern.compile(pattern);
+        java.util.regex.Matcher matcher = regex.matcher(content);
 
+        if (matcher.find()) {
+            String value = matcher.group(1).trim();
+            System.out.println(label + " " + value);
+            return value;
+        }
 
-private List<String> extractList(String content, String label) {
-    String value = extractBracketValue(content, label);
-    if (value.isEmpty()) return new ArrayList<>();
+        return "";
+    }
 
-    return Arrays.stream(value.split("\\|\\|"))
-                 .map(s -> s.trim().replaceAll("^[A-D]\\)", ""))
-                 .filter(s -> !s.isEmpty())
-                 .collect(Collectors.toList());
-}
+    private List<String> extractList(String content, String label) {
+        String value = extractBracketValue(content, label);
+        if (value.isEmpty()) return new ArrayList<>();
 
+        return Arrays.stream(value.split("\\|\\|"))
+                .map(s -> s.trim().replaceAll("^[A-D]\\)", ""))
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+    }
 
-
-private static class ObfuscationResult {
-    public String questionType;
-    public String title;
-    public List<String> tags;
-    public String text;
-    public List<String> choices;
-    public String correctAnswer;
-}
-
-
+    private static class ObfuscationResult {
+        public String questionType;
+        public String title;
+        public List<String> tags;
+        public String text;
+        public List<String> choices;
+        public String correctAnswer;
+    }
 
     @PostMapping
-    public ResponseEntity<?> createQuestion(@CookieValue(name = "sessionId", required = false) String sessionCookie,
-            @RequestBody Question question) {
+    public ResponseEntity<?> createQuestion(
+            @CookieValue(name = "sessionId", required = false) String sessionCookie,
+            @RequestBody QuestionRequest questionRequest) {
         try {
             Long userId = getUserIdFromSessionCookie(sessionCookie);
-            // User needs to log in first
             if (userId == null) {
                 return notLoggedInResponse();
             }
 
-            // Verify that the user has access to this question
-            if (!belongsToUser(question, userId)) {
+            // Verify that the user has access to the course
+            if (!courseRepository.findById(questionRequest.getCourseId())
+                    .map(course -> userId.equals(course.getUserId()))
+                    .orElse(false)) {
                 return userDoesntHaveAccessResponse();
             }
 
+            // Create the question
+            Question question = new Question();
+            question.setCourseId(questionRequest.getCourseId());
+            question.setTitle(questionRequest.getTitle());
+            question.setText(questionRequest.getText());
+            question.setComment(questionRequest.getComment());
+            question.setTags(questionRequest.getTags());
+            question.setQuestionType(questionRequest.getQuestionType());
+            question.setCorrectAnswer(questionRequest.getCorrectAnswer());
+            question.setOptions(questionRequest.getOptions());
+
+            // Associate images with the question
+            if (questionRequest.getImageIds() != null) {
+                Set<Image> images = new HashSet<>();
+                for (Long imageId : questionRequest.getImageIds()) {
+                    imageRepository.findById(imageId).ifPresent(images::add);
+                }
+                question.setImages(images);
+            }
+
+            // Save the question
             questionRepository.save(question);
+
             return ResponseEntity.ok("Question created successfully");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -261,53 +287,73 @@ private static class ObfuscationResult {
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<?> editQuestion(@CookieValue(name = "sessionId", required = false) String sessionCookie,
-            @PathVariable Long id, @RequestBody QuestionRequest questionRequest) {
-        Long userId = getUserIdFromSessionCookie(sessionCookie);
-        // User needs to log in first
-        if (userId == null) {
-            return notLoggedInResponse();
+    public ResponseEntity<?> editQuestion(
+            @CookieValue(name = "sessionId", required = false) String sessionCookie,
+            @PathVariable Long id,
+            @RequestBody QuestionRequest questionRequest) {
+        try {
+            Long userId = getUserIdFromSessionCookie(sessionCookie);
+            if (userId == null) {
+                return notLoggedInResponse();
+            }
+
+            // Retrieve the existing question
+            Optional<Question> questionOptional = questionRepository.findById(id);
+            if (questionOptional.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Question not found");
+            }
+
+            Question question = questionOptional.get();
+
+            // Verify that the user has access to this question
+            if (!belongsToUser(question, userId)) {
+                return userDoesntHaveAccessResponse();
+            }
+
+            // Update the question fields
+            question.setTitle(questionRequest.getTitle());
+            question.setText(questionRequest.getText());
+            question.setComment(questionRequest.getComment());
+            question.setTags(questionRequest.getTags());
+            question.setQuestionType(questionRequest.getQuestionType());
+            question.setOptions(questionRequest.getOptions());
+            question.setCorrectAnswer(questionRequest.getCorrectAnswer());
+
+            // Update the stats
+            Question.Stats stats = question.getStats();
+            stats.setMean(questionRequest.getStats().getMean());
+            stats.setMedian(questionRequest.getStats().getMedian());
+            stats.setStdDev(questionRequest.getStats().getStdDev());
+            stats.setMin(questionRequest.getStats().getMin());
+            stats.setMax(questionRequest.getStats().getMax());
+            question.setStats(stats);
+
+            // Update the associated images
+            if (questionRequest.getImageIds() != null) {
+                Set<Image> images = new HashSet<>();
+                for (Long imageId : questionRequest.getImageIds()) {
+                    imageRepository.findById(imageId).ifPresent(images::add);
+                }
+                question.setImages(images); // Set the new images
+            } else {
+                question.setImages(new HashSet<>()); // Clear images if no IDs are provided
+            }
+
+            // Save the updated question
+            questionRepository.save(question);
+
+            return ResponseEntity.ok("Question updated successfully");
+        } catch (Exception e) {
+            System.err.println("Error updating question: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error updating question: " + e.getMessage());
         }
-
-        Optional<Question> questionOptional = questionRepository.findById(id);
-
-        if (questionOptional.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Question not found");
-        }
-
-        Question question = questionOptional.get();
-
-        // Verify that the user has access to this question
-        if (!belongsToUser(question, userId)) {
-            return userDoesntHaveAccessResponse();
-        }
-
-        question.setTitle(questionRequest.getTitle());
-        question.setText(questionRequest.getText());
-        question.setComment(questionRequest.getComment());
-        question.setTags(questionRequest.getTags());
-        question.setQuestionType(questionRequest.getQuestionType());
-        question.setOptions(questionRequest.getOptions());
-        question.setCorrectAnswer(questionRequest.getCorrectAnswer());
-
-        Question.Stats stats = question.getStats();
-
-        stats.setMean(questionRequest.getStats().getMean());
-        stats.setMedian(questionRequest.getStats().getMedian());
-        stats.setStdDev(questionRequest.getStats().getStdDev());
-        stats.setMin(questionRequest.getStats().getMin());
-        stats.setMax(questionRequest.getStats().getMax());
-
-        question.setStats(stats);
-
-        questionRepository.save(question);
-
-        return ResponseEntity.ok("Question updated successfully");
     }
 
     @DeleteMapping("{id}")
     public ResponseEntity<?> deleteQuestion(@CookieValue(name = "sessionId", required = false) String sessionCookie,
-            @PathVariable Long id) {
+                                            @PathVariable Long id) {
         Long userId = getUserIdFromSessionCookie(sessionCookie);
         // User needs to log in first
         if (userId == null) {
@@ -351,8 +397,6 @@ private static class ObfuscationResult {
         return ResponseEntity.ok(variants);
     }
 
-    
-
     public static class QuestionRequest {
         private String title;
         private String text;
@@ -362,31 +406,9 @@ private static class ObfuscationResult {
         private String questionType;
         private String correctAnswer;
         private List<String> options;
+        private List<Long> imageIds; // Use List<String> for image URLs
 
-        public List<String> getOptions() {
-            return options;
-        }
-
-        public void setOptions(List<String> options) {
-            this.options = options;
-        }
-
-        public String getCorrectAnswer() {
-            return correctAnswer;
-        }
-
-        public void setCorrectAnswer(String correctAnswer) {
-            this.correctAnswer = correctAnswer;
-        }
-
-        public String getQuestionType() {
-            return questionType;
-        }
-
-        public void setQuestionType(String questionType) {
-            this.questionType = questionType;
-        }
-
+        // Getters and Setters
         public String getTitle() {
             return title;
         }
@@ -425,6 +447,38 @@ private static class ObfuscationResult {
 
         public void setStats(Stats stats) {
             this.stats = stats;
+        }
+
+        public String getQuestionType() {
+            return questionType;
+        }
+
+        public void setQuestionType(String questionType) {
+            this.questionType = questionType;
+        }
+
+        public String getCorrectAnswer() {
+            return correctAnswer;
+        }
+
+        public void setCorrectAnswer(String correctAnswer) {
+            this.correctAnswer = correctAnswer;
+        }
+
+        public List<String> getOptions() {
+            return options;
+        }
+
+        public void setOptions(List<String> options) {
+            this.options = options;
+        }
+
+        public List<Long> getImageIds() {
+            return imageIds;
+        }
+    
+        public void setImageIds(List<Long> imageIds) {
+            this.imageIds = imageIds;
         }
 
         public static class Stats {

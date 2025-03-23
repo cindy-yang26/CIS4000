@@ -1,6 +1,8 @@
 package com.cis4000.examify.controllers;
 
+import java.util.HashMap;
 import java.util.Optional;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -41,7 +43,6 @@ public class ImageController extends BaseController {
             @CookieValue(name = "sessionId", required = false) String sessionCookie,
             @RequestBody UploadImageRequest payload) {
         Long userId = getUserIdFromSessionCookie(sessionCookie);
-        // User needs to log in first
         if (userId == null) {
             return notLoggedInResponse();
         }
@@ -66,9 +67,13 @@ public class ImageController extends BaseController {
             Image image = new Image();
             image.setCourseId(payload.courseId);
             image.setUrl(imageUrl);
-            imageRepository.save(image);
+            Image savedImage = imageRepository.save(image);
 
-            return ResponseEntity.ok(image);
+            Map<String, Object> response = new HashMap<>();
+            response.put("imageId", savedImage.getId()); // Include the image ID
+            response.put("imageUrl", savedImage.getUrl()); // Include the image URL
+
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error uploading image: " + e.getMessage());
         }

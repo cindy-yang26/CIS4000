@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "image")
 public class Image {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -15,6 +16,7 @@ public class Image {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String url;
 
+    // Getters and Setters
     public Long getId() {
         return id;
     }
