@@ -2,16 +2,17 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { signup } from '../../api/auth';
 import LoginHeader from '../../components/Header/LoginHeader';
+import Carousel from '../../components/Carousel';
 import './SignupPage.css';
 
-function SignUpPage() {
+function SignupPage() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
-  const handleSignUp = async () => {
+  const handleSignup = async () => {
     try {
       setErrors({});
       await signup(username, email, password);
@@ -33,12 +34,11 @@ function SignUpPage() {
   return (
     <div className="signup-page">
       <LoginHeader />
-      <div className="signup-container">
-        <div className="signup-shadow-box">
+      <div className="content-container">
+        <div className="signup-container">
           <div className="signup-box">
-
             <h1 className="signup-welcome">Welcome to Examify!</h1>
-            <p className="signup-welcome-text">Your one-stop-shop for assignment creation</p>
+            <p className="signup-welcome-text">Your all-in-one assignment design studio awaits...</p>
 
             <h2 className="create-acc">Create your account</h2>
 
@@ -49,7 +49,7 @@ function SignUpPage() {
               type="text" 
               id="username" 
               className={errors.username ? 'input-error' : ''}
-              placeholder="Enter username" 
+              placeholder="Your username" 
               value={username} 
               onChange={(e) => setUsername(e.target.value)} 
             />
@@ -60,7 +60,7 @@ function SignUpPage() {
               type="email" 
               id="email" 
               className={errors.email ? 'input-error' : ''}
-              placeholder="Enter email"
+              placeholder="Your email address"
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
             />
@@ -71,24 +71,25 @@ function SignUpPage() {
               type="password" 
               id="password" 
               className={errors.password ? 'input-error' : ''}
+              placeholder="Your password" 
               value={password} 
               onChange={(e) => setPassword(e.target.value)} 
-              placeholder="Enter password" 
             />
             {errors.password && <div className="field-error">{errors.password}</div>}
 
-            <button className="signup-button" onClick={handleSignUp}>Sign Up</button>
-
+            <button className="signup-button" onClick={handleSignup}>Sign Up</button>
+            
             <div className="line"><span>OR</span></div>
 
-            <Link to="/">
-              <button className="create-account-button">Back to login</button>
+            <Link to="/" style={{ width: '100%', display: 'block' }}>
+              <button className="login-account-button">Back to login</button>
             </Link>
           </div>
         </div>
+        <Carousel />
       </div>
     </div>
   );
 }
 
-export default SignUpPage;
+export default SignupPage;
