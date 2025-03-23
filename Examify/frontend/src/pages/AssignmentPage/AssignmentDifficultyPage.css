@@ -48,15 +48,15 @@
 
 /* Question item styling */
 .question-item {
-  display: grid;
-  grid-template-columns: 1fr; /* Single column layout */
-  gap: 15px; /* Space between question text and stats inputs */
+  /* display: grid;
+  grid-template-columns: 1fr; 
+  gap: 15px; 
   border: 1px solid #ccc;
   border-radius: 5px;
   padding: 15px;
   margin-bottom: 20px;
-  width: 100%; /* Ensure all question items have the same width */
-  box-sizing: border-box; /* Include padding and border in the width */
+  width: 100%; 
+  box-sizing: border-box;  */
 }
 
 /* Question text styling */

@@ -136,9 +136,9 @@ const QuestionItem = ({ question, handleEditQuestion, handleDeleteTag, handleAdd
 
           {/* Correct Answer */}
           <div className="correct-answer">
-          {question.correctAnswer && (
-            <p><strong>Answer:</strong> {question.correctAnswer}</p>
-          )}
+            {question.correctAnswer && (
+              <p><strong>Answer:</strong> {question.correctAnswer}</p>
+            )}
           </div>
 
           {/* Question Comment */}

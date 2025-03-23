@@ -500,6 +500,18 @@ const handleDifficultyChange = async (questionId, newDifficulty) => {
     }
   };
 
+  const getDifficultyColor = (difficulty) => {
+    switch (difficulty) {
+      case 'Easy':
+        return 'green';
+      case 'Medium':
+        return 'orange';
+      case 'Hard':
+        return 'red';
+      default:
+        return 'black'; // Default color for "Unrated"
+    }
+  };
 
   return (
     <MathJaxContext>
@@ -551,44 +563,34 @@ const handleDifficultyChange = async (questionId, newDifficulty) => {
 
     return (
       <li key={question.id} className="question-item">
+        <div className="question-content">
         <div className="question-text" style={{ width: '100%' }}>
           <div className="question-header">
-            <h3 className="question-title">{question.title}</h3>
-            <div className="variant-controls">
-              <button className="view-variants-button" onClick={() => handleViewVariants(question.id)}>
-                <FaEye /> {expandedQuestion === question.id ? 'Hide Variants' : 'View Variants'}
-              </button>
-              <button className="create-variant-button" onClick={() => handleCreateVariant(question)}>
-                <FaPlus /> Create Variant
-              </button>
-            </div>
+            <h3 className="question-title">
+              {question.title}
+              <span className="difficulty-dropdown">
+              {handleAddTag && handleDeleteTag ? ( // Render dropdown if handleAddTag and handleDeleteTag are provided
+                <select
+                  value={difficulty}
+                  onChange={handleDifficultyChange}
+                  className="difficulty-dropdown"
+                  style={{ color: getDifficultyColor(difficulty), borderColor: getDifficultyColor(difficulty) }}
+                >
+                  <option value="Unrated">Unrated</option>
+                  <option value="Easy">Easy</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Hard">Hard</option>
+                </select>
+              ) : ( // Render static box if handleAddTag or handleDeleteTag is null
+                <span style={{ color: getDifficultyColor(difficulty) }}>
+                  {difficulty}
+                </span>
+              )}
+            </span>
+            </h3>
           </div>
           <h4 className="question-type-display">{formatQuestionType(question.questionType)}</h4>
-
-          {/* Difficulty Dropdown */}
-          <div className="difficulty-display">
-            <label>Difficulty:</label>
-            <select
-              value={difficulty}
-              onChange={(e) => handleDifficultyChange(question.id, e.target.value)}
-              style={{
-                color:
-                  difficulty === 'Easy'
-                    ? 'green'
-                    : difficulty === 'Medium'
-                    ? 'orange'
-                    : difficulty === 'Hard'
-                    ? 'red'
-                    : 'black',
-              }}
-            >
-              <option value="Unrated">Unrated</option>
-              <option value="Easy">Easy</option>
-              <option value="Medium">Medium</option>
-              <option value="Hard">Hard</option>
-            </select>
-          </div>
-
+         
           {/* Tags */}
           {filteredTags.length > 0 && (
             <div className="question-tags">
@@ -607,18 +609,19 @@ const handleDifficultyChange = async (questionId, newDifficulty) => {
           )}
 
           {/* Question Text */}
-          <MathJax>{question.text}</MathJax>
+          <div className="question">
+            <MathJax>{question.text}</MathJax>
+          </div>
 
           {/* Multiple Choice Options */}
-          {question.questionType === 'multiple_choice_question' && (
-            <div style={{ marginTop: '5px' }}>
-              <strong>Choices:</strong>
-              <ul style={{ marginTop: '5px', paddingLeft: '0px', listStyleType: 'none' }}>
+          {question.questionType === "multiple_choice_question" && (
+            <div className="mc-div">
+              <ul className="mc-choice-list">
                 {Array.isArray(question.options) && question.options.length > 0
                   ? question.options.map((choice, index) => (
                       <li
                         key={index}
-                        style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-start' }}
+                        className="mc-choice"
                       >
                         <strong>{String.fromCharCode(65 + index)})</strong>
                         <span>{choice}</span>
@@ -630,9 +633,27 @@ const handleDifficultyChange = async (questionId, newDifficulty) => {
           )}
 
           {/* Correct Answer */}
+          <div className="correct-answer">
           {question.correctAnswer && (
-            <p><strong>Correct Answer:</strong> {question.correctAnswer}</p>
+            <p><strong>Answer:</strong> {question.correctAnswer}</p>
           )}
+          </div>
+
+           {/* Question Comment */}
+           {question.comment && (
+            <div className="question-comment">
+              <strong>Comment:</strong> {question.comment}
+            </div>
+          )}
+
+          <div className="variant-controls">
+            <button className="view-variants-button" onClick={() => handleViewVariants(question.id)}>
+              <FaEye /> {expandedQuestion === question.id ? 'Hide Variants' : 'View Variants'}
+            </button>
+            <button className="create-variant-button" onClick={() => handleCreateVariant(question)}>
+              <FaPlus /> Create Variant
+            </button>
+          </div>
 
           {/* Variants Section */}
           {expandedQuestion === question.id && (
@@ -642,61 +663,100 @@ const handleDifficultyChange = async (questionId, newDifficulty) => {
               ) : variants[question.id]?.length > 0 ? (
                 variants[question.id].map((variant) => (
                   <div key={variant.id} className="variant-item">
-                    <h4>{variant.title}</h4>
-                    <MathJax>{variant.text}</MathJax>
+
+                    <h4 className="question-title" style={{marginBottom: "5px"}}>
+                      {variant.title}
+                    </h4>
+
+                    <div className="question">
+                      <MathJax>{variant.text}</MathJax>
+                    </div>
 
                     {/* Show Answer Choices if MCQ */}
                     {variant.questionType === 'multiple_choice_question' && variant.options?.length > 0 && (
-                      <div style={{ marginTop: '5px' }}>
-                        <strong>Choices:</strong>
-                        <ul style={{ marginTop: '5px', paddingLeft: '0px', listStyleType: 'none' }}>
-                          {variant.options.map((choice, index) => (
-                            <li key={index} style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-start' }}>
-                              <strong>{String.fromCharCode(65 + index)})</strong>
-                              <span>{choice}</span>
-                            </li>
-                          ))}
+                      <div className="mc-div">
+                        <ul className="mc-choice-list">
+                          {Array.isArray(variant.options) && variant.options.length > 0
+                            ? variant.options.map((choice, index) => (
+                                <li
+                                  key={index}
+                                  className="mc-choice"
+                                >
+                                  <strong>{String.fromCharCode(65 + index)})</strong>
+                                  <span>{choice}</span>
+                                </li>
+                              ))
+                            : <li>No options provided</li>}
                         </ul>
                       </div>
                     )}
 
                     {/* Correct Answer */}
-                    {variant.correctAnswer && (
-                      <p><strong>Correct Answer:</strong> {variant.correctAnswer}</p>
+                    <div className="correct-answer">
+                      {variant.correctAnswer && (
+                        <p><strong>Answer: </strong>{variant.correctAnswer}</p>
+                      )}
+                    </div>
+
+                    {/* Variant Comment */}
+                    {variant.comment && (
+                    <div className="question-comment">
+                      <strong>Comment:</strong> {variant.comment}
+                    </div>
                     )}
+
+                    {/* Question Statistics */}
+                    <div className="variant-stats">
+                      <strong>Statistics: </strong> 
+                      Mean: {variant.stats?.mean || '--'},
+                      Median: {variant.stats?.median || '--'},
+                      Std Dev: {variant.stats?.stdDev || '--'},
+                      Min: {variant.stats?.min || '--'},
+                      Max: {variant.stats?.max || '--'}
+                    </div>
 
                     {/* Edit & Delete Buttons */}
                     <div className="variant-actions">
-                      <button className="edit-button" onClick={() => handleEditQuestion(variant)}>
-                        <FaEdit />
-                      </button>
-                      <button className="delete-button" onClick={() => handleDeleteQuestion(variant.id, question.id)}>
+                      <button className="delete-button" style={{float: "right"}} onClick={() => handleDeleteQuestion(variant.id, question.id)}>
                         <FaTrash />
+                      </button>
+                      <button className="edit-button" style={{float: "right"}} onClick={() => handleEditQuestion(variant)}>
+                        <FaEdit />
                       </button>
                     </div>
                   </div>
                 ))
               ) : (
-                <p>No variants available.</p>
+                <p style={{fontSize: "0.9em"}}>No variants available.</p>
               )}
             </div>
           )}
 
+        </div>
+
           {/* Question Statistics */}
           <div className="question-stats">
-            Mean: {question.stats?.mean || 'N/A'},
-            Median: {question.stats?.median || 'N/A'},
-            Std Dev: {question.stats?.stdDev || 'N/A'},
-            Min: {question.stats?.min || 'N/A'},
-            Max: {question.stats?.max || 'N/A'}
-          </div>
-
-          {/* Question Comment */}
-          {question.comment && (
-            <div className="question-comment">
-              <strong>Comment:</strong> {question.comment}
+            <h3 className="question-title" style={{marginBottom: "10px"}}>Statistics</h3>
+            <div className="stat-details">
+              <span>Mean:</span>
+              <span>{question.stats?.mean || '--'}</span>
             </div>
-          )}
+            <div className="stat-details">
+              <span>Median:</span>
+              <span>{question.stats?.median || '--'}</span>
+            </div>
+            <div className="stat-details">
+              <span>Std Dev:</span>
+              <span>{question.stats?.stdDev || '--'}</span>
+            </div>
+            <div className="stat-details">
+              <span>Min:</span>
+              <span>{question.stats?.min || '--'}</span>
+            </div>
+            <div className="stat-details">
+              <span>Max:</span>
+              <span>{question.stats?.max || '--'}</span>
+            </div>
         </div>
 
         {/* Edit and Delete Buttons */}
@@ -740,6 +800,7 @@ const handleDifficultyChange = async (questionId, newDifficulty) => {
             </div>
           </div>
         )}
+        </div>
       </li>
     );
   })}
