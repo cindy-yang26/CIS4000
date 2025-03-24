@@ -270,6 +270,16 @@ public class QuestionsController extends BaseController {
             question.setCorrectAnswer(questionRequest.getCorrectAnswer());
             question.setOptions(questionRequest.getOptions());
 
+            if (questionRequest.getStats() != null) {
+                Question.Stats stats = question.getStats();
+                stats.setMean(questionRequest.getStats().getMean());
+                stats.setMedian(questionRequest.getStats().getMedian());
+                stats.setStdDev(questionRequest.getStats().getStdDev());
+                stats.setMin(questionRequest.getStats().getMin());
+                stats.setMax(questionRequest.getStats().getMax());
+                question.setStats(stats);
+            }
+
             // Associate images with the question
             if (questionRequest.getImageIds() != null) {
                 Set<Image> images = new HashSet<>();
@@ -323,16 +333,15 @@ public class QuestionsController extends BaseController {
             question.setCorrectAnswer(questionRequest.getCorrectAnswer());
 
             // Update the stats
-            if (question.getStats() == null) {
-                question.setStats(new Question.Stats());
+            if (questionRequest.getStats() != null) {
+                Question.Stats stats = new Question.Stats();
+                stats.setMean(questionRequest.getStats().getMean());
+                stats.setMedian(questionRequest.getStats().getMedian());
+                stats.setStdDev(questionRequest.getStats().getStdDev());
+                stats.setMin(questionRequest.getStats().getMin());
+                stats.setMax(questionRequest.getStats().getMax());
+                question.setStats(stats);
             }
-            Question.Stats stats = question.getStats();
-            stats.setMean(questionRequest.getStats().getMean());
-            stats.setMedian(questionRequest.getStats().getMedian());
-            stats.setStdDev(questionRequest.getStats().getStdDev());
-            stats.setMin(questionRequest.getStats().getMin());
-            stats.setMax(questionRequest.getStats().getMax());
-            question.setStats(stats);
 
             // Update the associated images
             if (questionRequest.getImageIds() != null) {

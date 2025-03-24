@@ -578,7 +578,7 @@ function QuestionsPage() {
             <div className="button-container">
               <button className="add-question-button" onClick={handleAddQuestion}>
                 <FaPlus />
-                <span className="question-button-text">{editingQuestion ? 'Edit Question' : ' Add Question'}</span>
+                <span className="question-button-text">{' Add Question'}</span>
               </button>
               <button className="upload-document-button">
                 <label htmlFor="upload-document" style={{ cursor: "pointer" }}>
