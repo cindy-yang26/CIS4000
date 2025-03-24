@@ -61,11 +61,7 @@ public class Question {
     private Stats stats;
 
     @ManyToMany
-    @JoinTable(
-        name = "question_image",
-        joinColumns = @JoinColumn(name = "question_id"),
-        inverseJoinColumns = @JoinColumn(name = "image_id")
-    )
+    @JoinTable(name = "question_image", joinColumns = @JoinColumn(name = "question_id"), inverseJoinColumns = @JoinColumn(name = "image_id"))
     private Set<Image> images = new HashSet<>();
 
     // Getters and Setters
@@ -172,6 +168,17 @@ public class Question {
         private String stdDev;
         private String min;
         private String max;
+
+        public Stats() {
+        }
+
+        public Stats(String mean, String median, String stdDev, String min, String max) {
+            setMean(mean);
+            setMedian(median);
+            setStdDev(stdDev);
+            setMin(min);
+            setMax(max);
+        }
 
         // Getters and Setters for Stats
         public String getMean() {
