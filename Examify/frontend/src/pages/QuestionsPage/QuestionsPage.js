@@ -856,8 +856,8 @@ function QuestionsPage() {
                           <p>This action cannot be undone.</p>
                           <div className="window-button-div">
                             <button
-                              className="link-canvas-window-button"
-                              id="add-course-button"
+                              className="delete-confirmation-button"
+                              id="delete-question-confirmation-button"
                               onClick={() => handleDeleteQuestion(question.id)}
                             >
                               Delete

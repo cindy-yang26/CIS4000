@@ -313,6 +313,23 @@
   color: #ff4d4d;
 }
 
+.delete-confirmation-button {
+  background-color: #d9534f;
+  color: white;
+  border: none;
+  font: inherit;
+  font-weight: bold;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 0.9em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
 .question-title {
   margin-left: 3px;
 }
