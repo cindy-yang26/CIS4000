@@ -429,8 +429,9 @@ function QuestionsPage() {
   };
 
   // Handle difficulty change
-  const handleDifficultyChange = async (questionId, newDifficulty) => {
+  const handleDifficultyChange = (questionId) => async (e) => {
     try {
+      const newDifficulty = e.target.value;
       const questionToUpdate = questions.find((q) => q.id === questionId);
       if (!questionToUpdate) return;
 
@@ -630,7 +631,7 @@ function QuestionsPage() {
                             {handleAddTag && handleDeleteTag ? ( // Render dropdown if handleAddTag and handleDeleteTag are provided
                               <select
                                 value={difficulty}
-                                onChange={() => handleDifficultyChange(question.id, difficulty)}
+                                onChange={handleDifficultyChange(question.id)}
                                 className="difficulty-dropdown"
                                 style={{ color: getDifficultyColor(difficulty), borderColor: getDifficultyColor(difficulty) }}
                               >
