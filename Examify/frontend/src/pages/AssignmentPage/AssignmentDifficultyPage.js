@@ -193,9 +193,9 @@ function AssignmentDifficultyPage() {
 
   return (
     <MathJaxContext>
-      <div className="assignment-difficulty-page">
+      <div className="assignment-page">
         <Header />
-        <div className="difficulty-content">
+        <div className="assignment-content">
           <div className="header-container">
             <div>
               <h2>Assignment Difficulty Analysis: {assignmentName}</h2>

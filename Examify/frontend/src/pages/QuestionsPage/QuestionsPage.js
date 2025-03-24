@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { fetchCourseInfo, fetchCourseQuestions, getAllTags } from '../../api/courses';
 import { createQuestion, editQuestion, deleteQuestion, uploadImage, uploadFileContentToBackend } from '../../api/questions';
 import Header from '../../components/Header/Header';
-import { FaChevronLeft, FaEdit, FaTrash, FaPlus, FaEye, FaSearch } from 'react-icons/fa';
+import { FaChevronLeft, FaEdit, FaTrash, FaPlus, FaEye, FaSearch, FaUpload } from 'react-icons/fa';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
 import { fetchQuestionVariants, createQuestionVariant } from "../../api/variants";
 import './QuestionsPage.css';
@@ -590,6 +590,7 @@ function QuestionsPage() {
               </button>
               <button className="upload-document-button">
                 <label htmlFor="upload-document" style={{ cursor: "pointer", margin: "0" }}>
+                  <FaUpload style={{marginRight: "5px"}}/>
                   Upload Document
                 </label>
                 <input

@@ -172,7 +172,7 @@ function EditAssignmentPage() {
           </div>
         </div>
         
-        <button className="save-assignment-button" onClick={handleUpdateAssignment}>
+        <button className="update-assignment-button" onClick={handleUpdateAssignment}>
           Update Assignment
         </button>
       </div>

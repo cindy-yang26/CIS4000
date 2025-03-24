@@ -89,11 +89,14 @@
 }
 
 .upload-button {
-  background-color: #2dd14e;
+  background-color: white;
+  color: #e13e29;
+  border: 2px solid #e13e29;
 }
 
 .upload-button:hover {
-  background-color: #25b643;
+  background-color: #e13e29;
+  color: white;
 }
 
 .edit-assignment-button {
@@ -495,4 +498,24 @@
 
 .cancel-question-button:hover {
   background-color: #e0e0e0;
+}
+
+.update-assignment-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  font-family: 'Work Sans', sans-serif; /* Add this to ensure Work Sans is used */
+  font-weight: bold;
+  padding: 8px 16px;
+  font-size: 0.9em;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.2s;
+  display: block;
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.update-assignment-button:hover {
+  background-color: #1f3b8f;
 }

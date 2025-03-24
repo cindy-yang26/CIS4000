@@ -92,7 +92,6 @@
 
 .add-question-button,
 .upload-document-button {
-  background-color: #d9534f;
   color: white;
   border: none;
   font: inherit;
@@ -108,22 +107,25 @@
   white-space: nowrap;
 }
 
-.upload-document-button {
+.add-question-button {
   background-color: #d9534f;
 }
 
-.add-question-button:hover,
-.upload-document-button:hover {
+.add-question-button:hover {
   background-color: #c9302c;
+}
+
+.upload-document-button {
+  background-color: #007bff;
+}
+
+.upload-document-button:hover {
+  background-color: #0056b3;
 }
 
 .question-button-text {
   font-weight: bold;
   margin-left: 5px;
-}
-
-.add-question-button:hover {
-  background-color: #0056b3;
 }
 
 .question-search-div {

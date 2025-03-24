@@ -390,19 +390,19 @@ function AssignmentPage() {
             
             {/* Right side with buttons */}
             <div className="assignment-actions">
-              <DownloadDropdown
-                onLatexDownload={handleLatexDownload}
-                onDocsDownload={handleDocsDownload}
-              />
-              <button className="upload-button" onClick={handleUploadToCanvas}>
-                Upload to Canvas
-              </button>
               <button
                 className="edit-assignment-button"
                 onClick={handleEditAssignment}
               >
                 Select or Remove Questions
               </button>
+              <button className="upload-button" onClick={handleUploadToCanvas}>
+                Upload to Canvas
+              </button>
+              <DownloadDropdown
+                onLatexDownload={handleLatexDownload}
+                onDocsDownload={handleDocsDownload}
+              />
             </div>
           </div>
 
