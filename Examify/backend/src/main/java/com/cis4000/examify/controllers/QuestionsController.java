@@ -398,6 +398,7 @@ Original Question:
     }
 
     public static class QuestionRequest {
+        private Long courseId;
         private String title;
         private String text;
         private String comment;
@@ -409,6 +410,14 @@ Original Question:
         private List<Long> imageIds; // Use List<String> for image URLs
 
         // Getters and Setters
+        public Long getCourseId() {
+            return courseId;
+        }
+
+        public void setCourseId(Long courseId) {
+            this.courseId = courseId;
+        }
+
         public String getTitle() {
             return title;
         }
