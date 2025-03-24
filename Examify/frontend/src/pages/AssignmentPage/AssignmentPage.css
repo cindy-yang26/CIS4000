@@ -1,22 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+
 .assignment-page {
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-family: 'Verdana', sans-serif;
+  font-family: 'Work Sans', sans-serif;
   background-color: #eae7ee;
   min-height: 100vh;
 }
 
 .assignment-content {
-  width: 70%;
+  width: 80%;
   max-width: 1400px;
-  padding-top: 10px;
+  padding-top: 20px;
 }
 
+/* Header section with everything in one row */
 .assignment-header {
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
+  justify-content: space-between;
+  margin-bottom: 25px;
+  width: 100%;
+}
+
+/* Left side with back button and title */
+.header-left {
+  display: flex;
+  align-items: center;
 }
 
 .back-button {
@@ -24,29 +35,147 @@
   border: none;
   cursor: pointer;
   font-size: 1.5em;
-  margin-right: 10px;
+  color: #0056b3;
+  padding: 0;
+  margin-right: 15px;
+}
+
+/* Assignment title section */
+.assignment-title-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .assignment-title {
   font-size: 1.8em;
   font-weight: bold;
   color: #333;
+  margin: 0;
+  padding: 0;
+  text-align: left;
 }
 
+.course-label {
+  font-size: 1.2em;
+  color: #333;
+  font-weight: normal;
+  margin-top: 2px;
+}
+
+/* Right side with buttons */
+.assignment-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.upload-button, 
+.download-button,
+.edit-assignment-button {
+  font-family: 'Work Sans', sans-serif;
+  border: none;
+  font-weight: bold;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 0.9em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+  color: white;
+}
+
+.upload-button {
+  background-color: #2dd14e;
+}
+
+.upload-button:hover {
+  background-color: #25b643;
+}
+
+.edit-assignment-button {
+  background-color: #007bff;
+}
+
+.edit-assignment-button:hover {
+  background-color: #0056b3;
+}
+
+.download-button {
+  background-color: #186097;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.download-button:hover {
+  background-color: #0056b3;
+}
+
+/* Metrics section */
+.assignment-stat-summary-div {
+  background-color: white;
+  border-radius: 8px;
+  padding: 15px 20px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.metrics-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.metric {
+  font-size: 0.95em;
+  color: #333;
+}
+
+.metric strong {
+  font-weight: 600;
+}
+
+.view-metrics {
+  display: flex;
+  align-items: center;
+}
+
+.view-metrics-button {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.9em;
+}
+
+/* Assignment statistics */
 .assignment-statistics {
-  background-color: #d3d3d3; /* Matches .question-item background */
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 20px;
-  font-size: 1em;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: white;
+  border-radius: 8px;
+  padding: 15px 20px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .assignment-statistics h3 {
-  font-size: 1.4em;
+  font-size: 1.2em;
   font-weight: bold;
   color: #333;
-  margin-bottom: 10px;
+  margin-top: 0;
+  margin-bottom: 15px;
 }
 
 .assignment-statistics ul {
@@ -56,22 +185,24 @@
 }
 
 .assignment-statistics li {
+  display: flex;
+  justify-content: space-between;
   font-size: 0.95em;
   color: #555;
-  padding: 5px 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .assignment-statistics li:last-child {
-  border-bottom: none; /* Remove border from last item */
+  border-bottom: none;
 }
 
 .assignment-statistics strong {
-  color: #222;
-  font-weight: bold;
+  color: #333;
+  font-weight: 600;
 }
 
-
+/* Question list styling */
 .questions-list {
   list-style-type: none;
   padding: 0;
@@ -79,18 +210,21 @@
 
 .question-item {
   background-color: white;
-  border: 1px solid black;
-  border-radius: 10px;
+  border-left: 4px solid #1f3b8f;
+  border-radius: 5px;
   padding: 15px;
-  margin-bottom: 10px;
-  font-size: 1em;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.122);
+  margin-bottom: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.question-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .question-content {
   width: 100%;
-  padding-top: 3px;
-  padding-bottom: 3px;
   display: flex;
 }
 
@@ -99,63 +233,87 @@
 }
 
 .question-title {
-  color: black;
+  color: #333;
   font-size: 1.1em;
-  margin: 0;
+  font-weight: 500;
+  margin: 0 0 8px;
+  margin-right: auto;
 }
 
 .question-type-display {
   font-size: 0.8em;
+  color: #666;
   margin-bottom: 10px;
 }
 
 .difficulty-dropdown {
   font-size: 0.9em;
-  font-weight: bold;
+  font-weight: 500;
   border-radius: 20px;
   cursor: pointer;
   margin-left: 2px;
-  padding: 3px 0px 3px 5px;
+  padding: 3px 5px;
+  background-color: #f5f5f5;
 }
 
 .question-tags {
-  font-size: 0.9em;
   display: flex;
   flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 10px;
 }
 
 .tag-item {
   display: inline-block;
-  background-color: #cbdeff;
+  background-color: #e6f0ff;
   color: #333;
-  border-radius: 8px;
+  border-radius: 15px;
   font-size: 0.85em;
-  padding: 2px 2px 2px 10px;
-  box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+  padding: 2px 10px;
 }
 
 .question {
   font-size: 0.9em;
-  padding-top: 5px;
+  padding-top: 10px;
 }
 
 .question-stats {
   width: 30%;
-  text-align: center;
+  text-align: left;
   font-size: 0.9em;
   color: #555;
-  padding: 0 30px;
+  padding: 0 10px;
 }
 
 .stat-details {
-  /* background-color: blue; */
   display: flex;
   justify-content: space-between;
   margin-bottom: 5px;
 }
 
+.stats-fields {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.stats-fields label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9em;
+  color: #444;
+  font-weight: 500;
+}
+
+.stats-fields input {
+  margin-top: 5px;
+  padding: 8px 12px !important;
+  margin-bottom: 0 !important;
+}
+
 .mc-div {
-  margin-top: 10px;
+  margin-top: 15px;
 }
 
 .mc-choice-list {
@@ -169,73 +327,25 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  justify-content: flex-start;
-  background-color: white;
-  padding: 0 0 0 10px;
+  padding: 5px 0;
 }
 
 .correct-answer {
   font-size: 0.9em;
+  margin-top: 10px;
+  font-weight: 500;
 }
 
 .question-comment {
-  margin-top: 10px;
+  margin-top: 15px;
   font-size: 0.9em;
-  color: #555;
+  color: #666;
+  font-style: italic;
+  border-top: 1px solid #eee;
+  padding-top: 10px;
 }
 
-.edit-assignment-button, .upload-button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  margin-left: auto;
-  margin-right: 2em;
-  cursor: pointer;
-  border-radius: 5px;
-  font-size: 14px;
-}
-
-.edit-assignment-button:hover, .upload-button:hover {
-  background-color: #0056b3;
-}
-
-.assignment-actions {
-  display: flex;
-  gap: 10px;
-  margin-left: auto;
-}
-
-.download-button {
-  background-color: #186097;
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  cursor: pointer;
-  border-radius: 5px;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.download-button:hover {
-  background-color: rgb(115, 172, 230);
-}
-
-.add-question-background {
-  position: fixed;
-  z-index: 1;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: scroll;
-  background-color: rgba(0,0,0,0.4);
-  justify-content: center;
-  overflow: auto;
-}
-
+/* Dropdown styling */
 .download-dropdown {
   position: relative;
   display: inline-block;
@@ -275,4 +385,114 @@
 
 .download-dropdown-content button:last-child {
   border-radius: 0 0 5px 5px;
+}
+
+/* Modal styling */
+.add-question-background {
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow: auto;
+}
+
+.add-question-form {
+  background-color: white;
+  border-radius: 8px;
+  width: 80%;
+  max-width: 800px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 25px 30px;
+}
+
+.add-question-form input[type="text"],
+.add-question-form textarea {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 16px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-family: 'Work Sans', sans-serif;
+  font-size: 0.95em;
+}
+
+.add-question-form textarea {
+  min-height: 80px;
+}
+
+.autocomplete-container {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.autocomplete-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  max-height: 150px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 0 0 6px 6px;
+  z-index: 10;
+  padding: 0;
+  margin: 0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.autocomplete-dropdown li {
+  padding: 8px 12px;
+  cursor: pointer;
+  list-style: none;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.autocomplete-dropdown li:hover {
+  background-color: #f5f5f5;
+}
+
+.form-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.submit-question-button,
+.cancel-question-button {
+  font-family: 'Work Sans', sans-serif;
+  border: none;
+  font-weight: 600;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 0.95em;
+  transition: background-color 0.2s;
+}
+
+.submit-question-button {
+  background-color: #28a745;
+  color: white;
+}
+
+.submit-question-button:hover {
+  background-color: #218838;
+}
+
+.cancel-question-button {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.cancel-question-button:hover {
+  background-color: #e0e0e0;
 }

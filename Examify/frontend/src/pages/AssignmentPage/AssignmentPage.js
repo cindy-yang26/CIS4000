@@ -42,7 +42,7 @@ function AssignmentPage() {
         if (courseInfo == null) {
           return;
         }
-        setCourseName(courseInfo.courseCode);
+        setCourseName(courseInfo.courseCode.replace(/-/g, ' '));
       } catch (error) {
         alert('Failed to load course name.');
         console.error(error);
@@ -50,25 +50,23 @@ function AssignmentPage() {
     };
 
     loadCourseName();
-  }, [courseId]);
+  }, [courseId, navigate]);
 
   useEffect(() => {
-      const loadTags = async () => {
-        try {
-          const tagSet = await getAllTags(courseId, navigate);
-          if (tagSet == null) {
-            return;
-          }
-          console.log(tagSet);
-          setTags(tagSet);
-        } catch (error) {
-          alert('Failed to load tags.');
-          console.error(error);
+    const loadTags = async () => {
+      try {
+        const tagSet = await getAllTags(courseId, navigate);
+        if (tagSet == null) {
+          return;
         }
-      };
-      loadTags();
-    }, [showForm]);
-
+        setTags(tagSet);
+      } catch (error) {
+        alert('Failed to load tags.');
+        console.error(error);
+      }
+    };
+    loadTags();
+  }, [courseId, navigate, showForm]);
 
   const handleTagSearch = (input) => {
     if (!input.trim()) {
@@ -99,9 +97,9 @@ function AssignmentPage() {
 
   const getUniqueTagsCount = () => {
     const difficultyTags = ['Easy', 'Medium', 'Hard'];
-    const allTags = questions.flatMap((q) => q.tags).filter((t) => !difficultyTags.includes(t)); // Flatten all tags into a single array
-    const uniqueTags = new Set(allTags); // Use a Set to get unique tags
-    return uniqueTags.size; // Return the number of unique tags
+    const allTags = questions.flatMap((q) => q.tags).filter((t) => !difficultyTags.includes(t));
+    const uniqueTags = new Set(allTags);
+    return uniqueTags.size;
   };
 
   const calculateAverageDifficulty = () => {
@@ -111,12 +109,12 @@ function AssignmentPage() {
       if (foundDifficulty === 'Easy') return 1;
       if (foundDifficulty === 'Medium') return 5;
       if (foundDifficulty === 'Hard') return 10;
-      return 0; // Unrated questions contribute 0 to the average
+      return 0;
     });
 
     const total = difficultyValues.reduce((sum, value) => sum + value, 0);
-    const average = total / questions.length || 0; // Avoid division by zero
-    return average.toFixed(2); // Round to 2 decimal places
+    const average = total / questions.length || 0;
+    return average.toFixed(2);
   };
 
   useEffect(() => {
@@ -142,7 +140,7 @@ function AssignmentPage() {
 
     loadAssignmentInfo();
     loadQuestions();
-  }, [assignmentId]);
+  }, [assignmentId, navigate]);
 
   const handleEditAssignment = () => {
     navigate(`/course/${courseId}/assignment/${assignmentId}/edit-assignment`);
@@ -250,61 +248,44 @@ function AssignmentPage() {
   };
 
   const handleDeleteTag = async (questionId, tagToDelete) => {
-    console.log("HandleDeleteTag", tagToDelete);
     try {
-      // Find the question to update
       const questionToUpdate = questions.find((q) => q.id === questionId);
       if (!questionToUpdate) return;
 
-      // Remove the tag from the question's tags
       const updatedTags = questionToUpdate.tags.filter((tag) => tag !== tagToDelete);
 
-      // Prepare the updated question data
       const updatedQuestion = {
         ...questionToUpdate,
         tags: updatedTags,
       };
 
-      // Call the API to update the question
       await editQuestion(questionId, updatedQuestion, navigate);
 
-      // Update the local state
       await setQuestions((prevQuestions) =>
         prevQuestions.map((q) =>
           q.id === questionId ? updatedQuestion : q
         )
       );
-      console.log(updatedTags);
-      console.log(questions);
     } catch (error) {
       alert('Failed to delete tag.');
       console.error(error);
     }
-    
-    console.log("END HandleDeleteTag");
   };
 
   const handleAddTag = async (questionId, newTag) => {
-    console.log("HandleAddTag", newTag);
     try {
-      // Find the question to update
       const questionToUpdate = questions.find((q) => q.id === questionId);
       if (!questionToUpdate) return;
 
-      // Add the new tag to the question's tags
-      console.log(questionToUpdate.tags);
       const updatedTags = [...questionToUpdate.tags, newTag];
 
-      // Prepare the updated question data
       const updatedQuestion = {
         ...questionToUpdate,
         tags: updatedTags,
       };
 
-      // Call the API to update the question
       await editQuestion(questionId, updatedQuestion, navigate);
 
-      // Update the local state
       await setQuestions((prevQuestions) =>
         prevQuestions.map((q) =>
           q.id === questionId ? updatedQuestion : q
@@ -314,47 +295,37 @@ function AssignmentPage() {
       alert('Failed to add tag.');
       console.error(error);
     }
-    console.log("END HandleAddTag");
   };
 
   const handleSwapTag = async (questionId, oldTag, newTag) => {
-    console.log("HandleSwapTag", oldTag, newTag);
     try {
-      // Find the question to update
       const questionToUpdate = questions.find((q) => q.id === questionId);
       if (!questionToUpdate) return;
   
-      // Swap the old tag with the new tag
       const updatedTags = questionToUpdate.tags.map((tag) =>
         tag === oldTag ? newTag : tag
       );
   
-      // Prepare the updated question data
       const updatedQuestion = {
         ...questionToUpdate,
         tags: updatedTags,
       };
   
-      // Call the API to update the question
       await editQuestion(questionId, updatedQuestion, navigate);
   
-      // Update the local state
       await new Promise((resolve) => {
         setQuestions((prevQuestions) => {
           const updatedQuestions = prevQuestions.map((q) =>
             q.id === questionId ? updatedQuestion : q
           );
-          resolve(updatedQuestions); // Resolve the Promise after state update
+          resolve(updatedQuestions);
           return updatedQuestions;
         });
       });
-  
-      console.log("Updated Tags:", updatedTags);
     } catch (error) {
       alert('Failed to swap tags.');
       console.error(error);
     }
-    console.log("END HandleSwapTag");
   };
 
   const handleUploadToCanvas = async () => {
@@ -371,20 +342,9 @@ function AssignmentPage() {
     }
   };
 
-  const formatQuestionType = (questionType) => {
-    const typeMap = {
-      "multiple_choice_question": "MCQ",
-      "essay_question": "Long Response",
-      "true_false_question": "True/False",
-      "numerical_question": "Numerical",
-    };
-    return typeMap[questionType] || "Long Response";
-  };
-
   const handleLatexDownload = async () => {
     try {
       const latex = await downloadLatex(assignmentId, navigate);
-      // Create a blob and download it
       const blob = new Blob([latex], { type: 'text/plain' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -414,13 +374,21 @@ function AssignmentPage() {
       <div className="assignment-page">
         <Header />
         <div className="assignment-content">
+          {/* Header section with back button, title, and buttons */}
           <div className="assignment-header">
-            <button className="back-button" onClick={handleReturnToCourse}>
-              <FaChevronLeft />
-            </button>
-            <h2 className="assignment-title">
-              {assignmentName.replace(/-/g, ' ')} (Course: {courseName.replace(/-/g, ' ')})
-            </h2>
+            {/* Left side with back button and title */}
+            <div className="header-left">
+              <button className="back-button" onClick={handleReturnToCourse}>
+                <FaChevronLeft />
+              </button>
+              
+              <div className="assignment-title-section">
+                <h2 className="assignment-title">{assignmentName.replace(/-/g, ' ')}</h2>
+                <div className="course-label">Course: {courseName}</div>
+              </div>
+            </div>
+            
+            {/* Right side with buttons */}
             <div className="assignment-actions">
               <DownloadDropdown
                 onLatexDownload={handleLatexDownload}
@@ -429,15 +397,16 @@ function AssignmentPage() {
               <button className="upload-button" onClick={handleUploadToCanvas}>
                 Upload to Canvas
               </button>
+              <button
+                className="edit-assignment-button"
+                onClick={handleEditAssignment}
+              >
+                Select or Remove Questions
+              </button>
             </div>
-            <button
-              className="edit-assignment-button"
-              onClick={handleEditAssignment}
-            >
-              Select or remove questions
-            </button>
           </div>
 
+          {/* Metrics section */}
           <div className="assignment-stat-summary-div">
             <div className="metrics-container">
               <div className="metrics">
@@ -448,7 +417,7 @@ function AssignmentPage() {
                   <strong>Topics Covered:</strong> {getUniqueTagsCount()}
                 </div>
                 <div className="metric">
-                  <strong> Average Difficulty:</strong> {calculateAverageDifficulty()}
+                  <strong>Average Difficulty:</strong> {calculateAverageDifficulty()}
                 </div>
               </div>
               <div className="view-metrics">
@@ -460,19 +429,22 @@ function AssignmentPage() {
             </div>
           </div>
 
+          {/* Assignment statistics section */}
           {assignmentStatistics && Object.keys(assignmentStatistics).length > 0 && (
             <div className="assignment-statistics">
               <h3>Assignment Statistics</h3>
               <ul>
                 {Object.entries(assignmentStatistics).map(([key, value]) => (
                   <li key={key}>
-                    <strong>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</strong> {value ?? 'N/A'}
+                    <strong>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</strong>
+                    <span>{value ?? 'N/A'}</span>
                   </li>
                 ))}
               </ul>
             </div>
           )}
 
+          {/* Questions list */}
           <ul className="questions-list">
             {questions.map((question) => (
               <QuestionItem
@@ -486,7 +458,8 @@ function AssignmentPage() {
             ))}
           </ul>
 
-          {showForm ? (
+          {/* Question editing form modal */}
+          {showForm && (
             <div className="add-question-background">
               <form className="add-question-form" onSubmit={handleFormSubmit}>
                 <input
@@ -524,10 +497,10 @@ function AssignmentPage() {
                       handleTagSearch(e.target.value);
                     }}
                     onFocus={() => {
-                      handleTagSearch(formFields.tags); // Show suggestions on focus
+                      handleTagSearch(formFields.tags);
                       setShowSuggestions(true);
                     }}
-                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} // Delay hiding for clicks to register
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                   />
                   {showSuggestions && filteredTags.length > 0 && (
                     <ul className="autocomplete-dropdown">
@@ -596,16 +569,16 @@ function AssignmentPage() {
                   </label>
                 </div>
 
-                <button type="submit" className="submit-question-button">
-                  Save Changes
-                </button>
-                <button onClick={cancelEdit} className="cancel-question-button">
-                  Cancel
-                </button>
+                <div className="form-buttons">
+                  <button type="submit" className="submit-question-button">
+                    Save Changes
+                  </button>
+                  <button type="button" onClick={cancelEdit} className="cancel-question-button">
+                    Cancel
+                  </button>
+                </div>
               </form>
             </div>
-          ) : (
-            <p></p>
           )}
         </div>
       </div>

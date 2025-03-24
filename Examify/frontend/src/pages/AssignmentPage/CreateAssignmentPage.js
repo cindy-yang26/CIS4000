@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../../components/Header/Header';
 import { createAssignment } from '../../api/assignments';
 import { fetchCourseInfo, fetchCourseQuestions } from '../../api/courses';
-import { FaChevronLeft } from 'react-icons/fa';
+import { FaChevronLeft, FaQuestion } from 'react-icons/fa';
 import './CreateAssignmentPage.css';
 
 function CreateAssignmentPage() {
@@ -22,7 +22,7 @@ function CreateAssignmentPage() {
         if (courseInfo == null) {
           return;
         }
-        setCourseName(courseInfo.courseCode);
+        setCourseName(courseInfo.courseCode.replace(/-/g, ' '));
       } catch (error) {
         alert('Failed to load course name');
         console.error(error);
@@ -30,7 +30,7 @@ function CreateAssignmentPage() {
     };
 
     loadCourseName();
-  }, [courseId]);
+  }, [courseId, navigate]);
 
   useEffect(() => {
     const loadQuestions = async () => {
@@ -44,7 +44,7 @@ function CreateAssignmentPage() {
     };
 
     loadQuestions();
-  }, []);
+  }, [courseId, navigate]);
 
   const handleAddToAssignment = (question) => {
     setAvailableQuestions(availableQuestions.filter((q) => q.id !== question.id));
@@ -59,6 +59,11 @@ function CreateAssignmentPage() {
   const handleSaveAssignment = async () => {
     if (name.trim() === '') {
       alert('Please provide an assignment name');
+      return;
+    }
+
+    if (selectedQuestions.length === 0) {
+      alert('Please select at least one question for the assignment');
       return;
     }
 
@@ -86,49 +91,81 @@ function CreateAssignmentPage() {
     <div className="create-assignment-page">
       <Header />
       <div className="create-assignment-content">
+        {/* Updated header section */}
         <div className="create-assignment-header">
           <button className="back-button" onClick={handleReturnToCourse}>
             <FaChevronLeft />
           </button>
-          <h2>Create Assignment for {courseName}</h2>
+          <h2 className="create-assignment-title">Create Assignment for {courseName}</h2>
         </div>
+        
+        {/* Input field */}
         <div className="create-assignment-form-div">
-        <input
-          type="text"
-          placeholder="Enter Assignment Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="assignment-name-input"
-        />
+          <input
+            type="text"
+            placeholder="Enter assignment name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="assignment-name-input"
+          />
         </div>
+        
+        {/* Questions container */}
         <div className="questions-container">
+          {/* Available questions section */}
           <div className="available-questions">
-            <h3>Available Questions</h3>
+            <h3 className="questions-section-title">Available Questions</h3>
             <div className="question-div">
-              <ul>
-                {availableQuestions.length > 0 ? (availableQuestions.map((question) => (
-                  <li key={question.id}>
-                    <span>{question.title}</span>
-                    <button onClick={() => handleAddToAssignment(question)}>Add</button>
-                  </li>
-                ))) : (
-                  <p>Add questions to {courseName} before creating an assignment!</p>
-                )}
-              </ul>
+              {availableQuestions.length > 0 ? (
+                <ul className="questions-list">
+                  {availableQuestions.map((question) => (
+                    <li key={question.id} className="question-item">
+                      <span className="question-title">{question.title}</span>
+                      <button 
+                        className="question-button add-button"
+                        onClick={() => handleAddToAssignment(question)}
+                      >
+                        Add
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="empty-state-message">
+                  Add questions to {courseName} before creating an assignment!
+                </p>
+              )}
             </div>
           </div>
+          
+          {/* Selected questions section */}
           <div className="selected-questions">
-            <h3>Selected Questions</h3>
-            <ul>
-              {selectedQuestions.map((question) => (
-                <li key={question.id}>
-                  <span>{question.title}</span>
-                  <button onClick={() => handleRemoveFromAssignment(question)}>Remove</button>
-                </li>
-              ))}
-            </ul>
+            <h3 className="questions-section-title">Selected Questions</h3>
+            <div className="question-div">
+              {selectedQuestions.length > 0 ? (
+                <ul className="questions-list">
+                  {selectedQuestions.map((question) => (
+                    <li key={question.id} className="question-item">
+                      <span className="question-title">{question.title}</span>
+                      <button 
+                        className="question-button remove-button"
+                        onClick={() => handleRemoveFromAssignment(question)}
+                      >
+                        Remove
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="empty-state-message">
+                  No questions selected yet. Add some from the left panel.
+                </p>
+              )}
+            </div>
           </div>
         </div>
+        
+        {/* Save button */}
         <button className="save-assignment-button" onClick={handleSaveAssignment}>
           Save Assignment
         </button>
