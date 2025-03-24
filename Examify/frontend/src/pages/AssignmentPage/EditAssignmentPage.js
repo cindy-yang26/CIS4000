@@ -4,7 +4,7 @@ import Header from '../../components/Header/Header';
 import { updateAssignmentQuestions, fetchAssignmentInfo, createAssignment, fetchAssignmentQuestions } from '../../api/assignments';
 import { fetchCourseInfo, fetchCourseQuestions } from '../../api/courses';
 import { FaChevronLeft } from 'react-icons/fa';
-import './EditAssignmentPage.css';
+import './CreateAssignmentPage.css';
 
 function EditAssignmentPage() {
   const { courseId, assignmentId } = useParams();
