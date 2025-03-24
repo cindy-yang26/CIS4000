@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { MathJax } from 'better-react-mathjax';
 import { FaEdit } from 'react-icons/fa';
+import '../pages/AssignmentPage/AssignmentPage.css';
 
 const QuestionItem = ({ question, handleEditQuestion, handleDeleteTag, handleAddTag, handleSwapTag }) => {
   // State to manage the selected difficulty
@@ -151,7 +152,7 @@ const QuestionItem = ({ question, handleEditQuestion, handleDeleteTag, handleAdd
 
         {/* Question Statistics */}
         <div className="question-stats">
-          <h3 className="question-title" style={{marginBottom: "10px"}}>Statistics</h3>
+          <h3 className="question-title">Statistics</h3>
           <div className="stat-details">
             <span>Mean:</span>
             <span>{question.stats?.mean || '--'}</span>

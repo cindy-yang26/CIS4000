@@ -134,7 +134,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #f8f8f8;
+  background-color: #f7f7f7;
   border-left: 4px solid #1f3b8f;
   border-radius: 5px;
   margin-bottom: 10px;
@@ -144,7 +144,7 @@
 
 .question-item:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .question-title {
