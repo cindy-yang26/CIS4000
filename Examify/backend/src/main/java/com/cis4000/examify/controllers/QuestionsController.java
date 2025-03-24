@@ -271,7 +271,7 @@ public class QuestionsController extends BaseController {
             question.setOptions(questionRequest.getOptions());
 
             if (questionRequest.getStats() != null) {
-                Question.Stats stats = question.getStats();
+                Question.Stats stats = new Question.Stats();
                 stats.setMean(questionRequest.getStats().getMean());
                 stats.setMedian(questionRequest.getStats().getMedian());
                 stats.setStdDev(questionRequest.getStats().getStdDev());

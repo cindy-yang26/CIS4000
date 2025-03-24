@@ -121,7 +121,7 @@ export const uploadFileContentToBackend = async (courseId, fileContent, navigate
       { content: fileContent },
       {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/json',
         },
       },
       { withCredentials: true }

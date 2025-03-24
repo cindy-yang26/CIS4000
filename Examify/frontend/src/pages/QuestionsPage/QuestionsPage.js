@@ -574,13 +574,13 @@ function QuestionsPage() {
               <button className="back-button" onClick={handleReturnToCourse}>
                 <FaChevronLeft />
               </button>
-              
+
               <div className="course-title-section">
                 <h2 className="course-name">{courseName}</h2>
                 <div className="questions-header-div">Questions</div>
               </div>
             </div>
-            
+
             {/* Right side with buttons */}
             <div className="header-right">
               <button className="add-question-button" onClick={handleAddQuestion}>
@@ -630,7 +630,7 @@ function QuestionsPage() {
                             {handleAddTag && handleDeleteTag ? ( // Render dropdown if handleAddTag and handleDeleteTag are provided
                               <select
                                 value={difficulty}
-                                onChange={handleDifficultyChange}
+                                onChange={() => handleDifficultyChange(question.id, difficulty)}
                                 className="difficulty-dropdown"
                                 style={{ color: getDifficultyColor(difficulty), borderColor: getDifficultyColor(difficulty) }}
                               >
