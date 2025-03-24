@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { fetchCourseInfo, fetchCourseQuestions, getAllTags } from '../../api/courses';
 import { createQuestion, editQuestion, deleteQuestion, uploadImage, uploadFileContentToBackend } from '../../api/questions';
 import Header from '../../components/Header/Header';
-import { FaChevronLeft, FaEdit, FaTrash, FaPlus, FaEye } from 'react-icons/fa';
+import { FaChevronLeft, FaEdit, FaTrash, FaPlus, FaEye, FaSearch } from 'react-icons/fa';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
 import { fetchQuestionVariants, createQuestionVariant } from "../../api/variants";
 import './QuestionsPage.css';
@@ -42,9 +42,9 @@ function QuestionsPage() {
         if (courseInfo == null) {
           return;
         }
-        setCourseName(courseInfo.courseCode);
+        setCourseName(courseInfo.courseCode.replace(/-/g, ' '));
       } catch (error) {
-        alert('Failed to load course name.');
+        alert('Failed to load course name');
         console.error(error);
       }
     };
@@ -569,19 +569,26 @@ function QuestionsPage() {
         <Header />
         <div className="questions-content">
           <div className="questions-header">
-            <div className="questions-subheader">
-              <button className="questions-back-button" onClick={handleReturnToCourse}>
+            {/* Left side with back button and title */}
+            <div className="header-left">
+              <button className="back-button" onClick={handleReturnToCourse}>
                 <FaChevronLeft />
               </button>
-              <h2 className="course-title">Questions for {courseName}</h2>
+              
+              <div className="course-title-section">
+                <h2 className="course-name">{courseName}</h2>
+                <div className="questions-header-div">Questions</div>
+              </div>
             </div>
-            <div className="button-container">
+            
+            {/* Right side with buttons */}
+            <div className="header-right">
               <button className="add-question-button" onClick={handleAddQuestion}>
                 <FaPlus />
                 <span className="question-button-text">{' Add Question'}</span>
               </button>
               <button className="upload-document-button">
-                <label htmlFor="upload-document" style={{ cursor: "pointer" }}>
+                <label htmlFor="upload-document" style={{ cursor: "pointer", margin: "0" }}>
                   Upload Document
                 </label>
                 <input
@@ -596,9 +603,10 @@ function QuestionsPage() {
           </div>
 
           <div className="question-search-div">
+            <FaSearch className="search-icon" />
             <input
               type="text"
-              placeholder=" 🔍 Search questions by title, tags, or content..."
+              placeholder="Search questions by title, tags, or content..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="question-search-input"
