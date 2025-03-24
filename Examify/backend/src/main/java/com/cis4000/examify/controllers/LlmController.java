@@ -62,7 +62,7 @@ public class LlmController {
                 Correct Answer: [TRUE_FALSE || True] (Only for True/False)
                 Correct Answer: [Answer] (For MCQ/Numerical)
 
-                Add `===END===` at the end of each question to denote its end:
+                Important!: Add `===END===` at the end of each question to denote its end:
 
                 %s
                 """.formatted(text);
