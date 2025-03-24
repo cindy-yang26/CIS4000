@@ -10,8 +10,7 @@
 }
 
 .questions-content {
-  width: 70%;
-  max-width: 1400px;
+  width: 80%;
 }
 
 .variant-stats {
@@ -24,32 +23,44 @@
 .questions-header {
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
+  justify-content: space-between;
+  margin-bottom: 25px;
+  width: 100%;
+  margin-top: 20px;
 }
 
-.questions-back-button {
-  color: #0056b3;
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.back-button {
   background: none;
   border: none;
   cursor: pointer;
   font-size: 1.5em;
-  margin-right: 10px;
-  margin-top: 10px;
+  color: #0056b3;
+  padding: 0;
+  margin-right: 15px;
 }
 
-.course-title {
+.course-title-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.course-name {
   font-size: 1.8em;
   font-weight: bold;
   color: #333;
+  margin: 0;
+  text-align: left;
 }
 
-.questions-header {
-  margin-top: 2em;
-  justify-content: space-between;
-}
-
-.questions-subheader {
+.header-left {
   display: flex;
+  align-items: center;
 }
 
 .question-item {
@@ -66,32 +77,44 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
 }
 
-.button-container {
+.questions-header-div {
+  font-size: 1.2em;
+  color: #333;
+  font-weight: normal;
+  margin-top: 2px;
+}
+
+.header-right {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 10px;
+  align-items: center;
+  gap: 20px;
 }
 
 .add-question-button,
 .upload-document-button {
-  display: inline-flex;
+  background-color: #d9534f;
+  color: white;
+  border: none;
+  font: inherit;
+  font-weight: bold;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 0.9em;
+  display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 15px;
-  background-color: #007bff;
-  color: white;
-  border: 1px solid black;
-  border-radius: 5px;
-  font-size: 14px;
-  font-weight: bold;
-  cursor: pointer;
-  text-decoration: none;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.upload-document-button {
+  background-color: #d9534f;
 }
 
 .add-question-button:hover,
 .upload-document-button:hover {
-  background-color: #0056b3;
+  background-color: #c9302c;
 }
 
 .question-button-text {
@@ -104,14 +127,19 @@
 }
 
 .question-search-div {
-  text-align: center;
+  margin-bottom: 25px;
   width: 100%;
+  position: relative;
 }
 
 .question-search-input {
-  display: inline-block;
-  margin-bottom: 0;
-  width: 60%;
+  width: 100%;
+  padding: 10px 15px 10px 40px;
+  border: 1px solid #ddd;
+  border-radius: 25px;
+  font-size: 1em;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.3s, border-color 0.3s;
 }
 
 .questions-list {
