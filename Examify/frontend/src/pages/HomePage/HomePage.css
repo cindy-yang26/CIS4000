@@ -1,68 +1,100 @@
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+
 .home-page {
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-family: 'Verdana', sans-serif;
+  font-family: 'Work Sans', sans-serif;
   background-color: #eae7ee;
   min-height: 100vh;
 }
 
 .home-content {
-  width: 70%;
-  max-width: 1400px;
-  padding-top: 10px
+  width: 80%; /* Increased width to make page wider */
+  max-width: 1600px; /* Increased max-width to accommodate more courses per row */
+  padding-top: 20px;
 }
 
 .courses-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.courses-title {
-  font-size: 2.1em;
-}
-
-.new-course-button {
-  background-color: #d9534f;
-  width: auto;
-  justify-content: center;
-  color: white;
-  border: 2px solid black;
-  border-radius: 10px;
-  padding: 8px 16px;
-  display: flex;
-  align-items: center;
-  font-size: 0.9em;
-  cursor: pointer;
-}
-
-.add-course {
-  font-weight: bold;
-  margin-left: 5px;
-}
-
-.new-course-button:hover {
-  background-color: #c9302c;
-}
-
-.courses-search-div {
-  text-align: center;
-  width: 100%;
   margin-bottom: 25px;
 }
 
-.courses-list {
+.courses-title {
+  font-size: 1.8em; /* Smaller font size */
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+
+.add-course-button {
+  background-color: #d9534f;
+  color: white;
+  border: none;
+  font: inherit;
+  font-weight: bold;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 0.9em; /* Smaller font size */
   display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
+  align-items: center;
+  transition: background-color 0.2s;
+}
+
+.add-course-button:hover {
+  background-color: #c9302c;
+}
+
+.add-icon {
+  margin-right: 8px;
+}
+
+.courses-search-div {
+  margin-bottom: 25px;
+  width: 100%;
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 15px 10px 40px;
+  border: 1px solid #ddd;
+  border-radius: 25px;
+  font-size: em; /* Smaller font size */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.3s, border-color 0.3s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #aaa;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #888;
+  font-size: 1em;
+}
+
+.courses-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); /* Increased minimum width to prevent overlap */
+  gap: 16px;
+  width: 100%;
 }
 
 .home-course-card {
-  background-color: #dcdcdc;
-  border: 2px solid black;
-  width: 320px;
-  height: 45px;
+  background-color: white;
+  border-left: 4px solid #1f3b8f;
+  width: calc(100% - 15px); /* Adjusted width to prevent overflow */
+  height: 50px;
   border-radius: 5px;
   display: flex;
   align-items: center;
@@ -70,101 +102,160 @@
   padding: 0 15px;
   position: relative;
   cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-sizing: border-box; /* Ensures padding is included in width calculation */
 }
 
 .home-course-card:hover {
-  background-color: #c9c9c9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .home-course-info {
   display: flex;
   align-items: center;
-  gap: 5px;
-  cursor: pointer;
+  gap: 10px;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
 .home-course-icon {
-  font-size: 1.6em;
-  color: #333;
-  padding-right: 6px;
+  font-size: 1.3em; /* Smaller font size */
+  color: #1f3b8f;
 }
 
 .home-course-name {
   color: #333;
-  font-size: 1.2em;
-  font-weight: normal;
+  font-size: 1em; /* Smaller font size */
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .home-options-icon {
-  font-size: 1.5em;
+  font-size: 1.2em; /* Smaller font size */
   cursor: pointer;
-  color: #333;
+  color: #666;
+  transition: color 0.2s;
 }
 
 .home-options-icon:hover {
-  font-size: 1.6em;
+  color: #333;
 }
 
 .home-menu {
   position: absolute;
-  right: -95px;
-  top: 35px;
+  right: -90px; /* Adjusted position to keep menu within view */
+  top: 40px;
   background-color: white;
-  border: 1px solid black;
-  border-radius: 3px;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 10;
   width: 120px;
+  overflow: hidden;
 }
 
 .home-menu-item {
   background: none;
-  color: black;
-  padding: 8px 15px;
+  color: #333;
+  padding: 10px 15px;
   width: 100%;
-  text-align: center;
-  font-size: 0.9em;
+  text-align: left;
+  font-size: 0.85em; /* Smaller font size */
   cursor: pointer;
-}
-
-.home-menu-item.rename {
-  border-bottom: 1px solid black;
-  border-radius: 3px 3px 0 0;
-}
-
-.home-menu-item.delete {
-  border-radius: 0 0 3px 3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s;
 }
 
 .home-menu-item:hover {
-  background-color: #c4c4c4;
+  background-color: #f5f5f5;
 }
 
-#add-course-button {
-  background-color: #d9534f;
+.rename-icon, .delete-icon {
+  font-size: 1em;
 }
 
-#add-course-cancel {
-  margin-left: 10px;
-  background-color: gray;
-}
-
-.delete-confirmation-window {
-  background-color: white;
-  border-radius: 10px;
-  display: block;
-  width: 25%;
-  margin: auto;
-  margin-top: 120px;
-  padding: 10px;
-  padding-bottom: 30px;
+.modal-background {
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
   justify-content: center;
-  text-align: center
+  align-items: flex-start;
+  padding-top: 100px;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 8px;
+  width: 400px;
+  padding: 25px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.modal-title {
+  font-size: 1.3em;
+  margin: 0 0 20px 0;
+  text-align: center;
+  color: #333;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 0.9em;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.modal-button {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.confirm-button {
+  background-color: #16c221;
+  color: white;
+}
+
+.confirm-button:hover {
+  background-color: #0ba716;
+}
+
+.cancel-button {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.cancel-button:hover {
+  background-color: #e0e0e0;
+}
+
+.modal-message {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #666;
+  font-size: 0.9em;
 }

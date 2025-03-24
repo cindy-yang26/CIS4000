@@ -4,9 +4,11 @@ import Header from '../../components/Header/Header';
 import DownloadDropdown from '../../components/DownloadDropdown';
 import { fetchAssignmentInfo, fetchAssignmentQuestions, uploadAssignmentToCanvas, downloadLatex, downloadDocs } from '../../api/assignments';
 import { FaChevronLeft, FaEdit, FaDownload } from 'react-icons/fa';
-import { fetchCourseInfo } from '../../api/courses';
+import { FaAngleRight } from "react-icons/fa6";
+import { fetchCourseInfo, getAllTags } from '../../api/courses';
 import { editQuestion } from '../../api/questions';
-import { MathJax, MathJaxContext } from 'better-react-mathjax';
+import { MathJaxContext } from 'better-react-mathjax';
+import QuestionItem from '../../components/QuestionItem'; // Import the new component
 import './AssignmentPage.css';
 
 function AssignmentPage() {
@@ -27,8 +29,11 @@ function AssignmentPage() {
     correctAnswer: '',
     stats: { mean: '', median: '', stdDev: '', min: '', max: '' },
   });
-  
+
   const [editingQuestion, setEditingQuestion] = useState(null);
+  const [tags, setTags] = useState([])
+  const [filteredTags, setFilteredTags] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => {
     const loadCourseName = async () => {
@@ -46,6 +51,73 @@ function AssignmentPage() {
 
     loadCourseName();
   }, [courseId]);
+
+  useEffect(() => {
+      const loadTags = async () => {
+        try {
+          const tagSet = await getAllTags(courseId, navigate);
+          if (tagSet == null) {
+            return;
+          }
+          console.log(tagSet);
+          setTags(tagSet);
+        } catch (error) {
+          alert('Failed to load tags.');
+          console.error(error);
+        }
+      };
+      loadTags();
+    }, [showForm]);
+
+
+  const handleTagSearch = (input) => {
+    if (!input.trim()) {
+      setFilteredTags(tags);
+      return;
+    }
+  
+    const inputTags = input.split(',').map(tag => tag.trim());
+    const lastTag = inputTags[inputTags.length - 1];
+  
+    const matchingTags = tags.filter(tag =>
+      tag.toLowerCase().includes(lastTag.toLowerCase())
+    );
+  
+    setFilteredTags(matchingTags);
+  };
+  
+  const handleTagSelect = (selectedTag) => {
+    const currentTags = formFields.tags.split(',').map(tag => tag.trim());
+    
+    if (!currentTags.includes(selectedTag)) {
+      currentTags[currentTags.length - 1] = selectedTag;
+      setFormFields({ ...formFields, tags: currentTags.join(', ') });
+    }
+    
+    setShowSuggestions(false);
+  };
+
+  const getUniqueTagsCount = () => {
+    const difficultyTags = ['Easy', 'Medium', 'Hard'];
+    const allTags = questions.flatMap((q) => q.tags).filter((t) => !difficultyTags.includes(t)); // Flatten all tags into a single array
+    const uniqueTags = new Set(allTags); // Use a Set to get unique tags
+    return uniqueTags.size; // Return the number of unique tags
+  };
+
+  const calculateAverageDifficulty = () => {
+    const difficultyValues = questions.map((q) => {
+      const difficultyTags = ['Easy', 'Medium', 'Hard'];
+      const foundDifficulty = q.tags.find((tag) => difficultyTags.includes(tag));
+      if (foundDifficulty === 'Easy') return 1;
+      if (foundDifficulty === 'Medium') return 5;
+      if (foundDifficulty === 'Hard') return 10;
+      return 0; // Unrated questions contribute 0 to the average
+    });
+
+    const total = difficultyValues.reduce((sum, value) => sum + value, 0);
+    const average = total / questions.length || 0; // Avoid division by zero
+    return average.toFixed(2); // Round to 2 decimal places
+  };
 
   useEffect(() => {
     const loadAssignmentInfo = async () => {
@@ -82,11 +154,11 @@ function AssignmentPage() {
 
   const cancelEdit = () => {
     setShowForm(false);
-  }
+  };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-  
+
     const tagsArray = formFields.tags.split(',').map((tag) => tag.trim()).filter((tag) => tag);
     let optionsArray = formFields.options ? formFields.options.split(',').map(opt => opt.trim()) : [];
 
@@ -94,7 +166,7 @@ function AssignmentPage() {
       alert("Title cannot be empty.");
       return;
     }
-  
+
     if (formFields.questionType === "multiple_choice_question") {
       if (!formFields.options || formFields.options.split(',').length < 2) {
         alert("Multiple Choice Questions must have at least 2 options.");
@@ -109,17 +181,17 @@ function AssignmentPage() {
         return;
       }
     }
-  
+
     if (formFields.questionType === "true_false_question" && !formFields.correctAnswer) {
       alert("True/False questions must have a correct answer.");
       return;
     }
-  
+
     if (formFields.questionType === "numerical_question" && (formFields.correctAnswer === "" || isNaN(formFields.correctAnswer))) {
       alert("Numerical questions must have a valid numerical answer.");
       return;
     }
-  
+
     const questionData = {
       title: formFields.title,
       text: formFields.text,
@@ -130,18 +202,18 @@ function AssignmentPage() {
       stats: { ...formFields.stats },
       options: formFields.options ? formFields.options.split(',').map(opt => opt.trim()) : [],
       correctAnswer: formFields.questionType === "true_false_question"
-      ? (formFields.correctAnswer === "False" ? "False" : "True")
-      : formFields.correctAnswer || "",
+        ? (formFields.correctAnswer === "False" ? "False" : "True")
+        : formFields.correctAnswer || "",
     };
-  
+
     try {
       if (editingQuestion) {
         await editQuestion(editingQuestion.id, questionData, navigate);
       }
-  
+
       const updatedQuestions = await fetchAssignmentQuestions(assignmentId, navigate);
       setQuestions(updatedQuestions);
-  
+
       setFormFields({
         title: '',
         text: '',
@@ -157,7 +229,6 @@ function AssignmentPage() {
       console.error(error);
     }
   };
-  
 
   const handleEditQuestion = (question) => {
     setEditingQuestion(question);
@@ -170,23 +241,120 @@ function AssignmentPage() {
       stats: { ...question.stats },
       options: Array.isArray(question.options) ? question.options.join(', ') : '',
       correctAnswer: question.questionType === "true_false_question"
-      ? (question.correctAnswer === "True" || question.correctAnswer === "False"
-        ? question.correctAnswer
-        : "True")
-      : question.correctAnswer || '',
+        ? (question.correctAnswer === "True" || question.correctAnswer === "False"
+          ? question.correctAnswer
+          : "True")
+        : question.correctAnswer || '',
     });
     setShowForm(true);
   };
-  
 
-  const handleDeleteTag = (questionId, tagToDelete) => {
-    setQuestions(
-      questions.map((q) =>
-        q.id === questionId
-          ? { ...q, tags: q.tags.filter((tag) => tag !== tagToDelete) }
-          : q
-      )
-    );
+  const handleDeleteTag = async (questionId, tagToDelete) => {
+    console.log("HandleDeleteTag", tagToDelete);
+    try {
+      // Find the question to update
+      const questionToUpdate = questions.find((q) => q.id === questionId);
+      if (!questionToUpdate) return;
+
+      // Remove the tag from the question's tags
+      const updatedTags = questionToUpdate.tags.filter((tag) => tag !== tagToDelete);
+
+      // Prepare the updated question data
+      const updatedQuestion = {
+        ...questionToUpdate,
+        tags: updatedTags,
+      };
+
+      // Call the API to update the question
+      await editQuestion(questionId, updatedQuestion, navigate);
+
+      // Update the local state
+      await setQuestions((prevQuestions) =>
+        prevQuestions.map((q) =>
+          q.id === questionId ? updatedQuestion : q
+        )
+      );
+      console.log(updatedTags);
+      console.log(questions);
+    } catch (error) {
+      alert('Failed to delete tag.');
+      console.error(error);
+    }
+    
+    console.log("END HandleDeleteTag");
+  };
+
+  const handleAddTag = async (questionId, newTag) => {
+    console.log("HandleAddTag", newTag);
+    try {
+      // Find the question to update
+      const questionToUpdate = questions.find((q) => q.id === questionId);
+      if (!questionToUpdate) return;
+
+      // Add the new tag to the question's tags
+      console.log(questionToUpdate.tags);
+      const updatedTags = [...questionToUpdate.tags, newTag];
+
+      // Prepare the updated question data
+      const updatedQuestion = {
+        ...questionToUpdate,
+        tags: updatedTags,
+      };
+
+      // Call the API to update the question
+      await editQuestion(questionId, updatedQuestion, navigate);
+
+      // Update the local state
+      await setQuestions((prevQuestions) =>
+        prevQuestions.map((q) =>
+          q.id === questionId ? updatedQuestion : q
+        )
+      );
+    } catch (error) {
+      alert('Failed to add tag.');
+      console.error(error);
+    }
+    console.log("END HandleAddTag");
+  };
+
+  const handleSwapTag = async (questionId, oldTag, newTag) => {
+    console.log("HandleSwapTag", oldTag, newTag);
+    try {
+      // Find the question to update
+      const questionToUpdate = questions.find((q) => q.id === questionId);
+      if (!questionToUpdate) return;
+  
+      // Swap the old tag with the new tag
+      const updatedTags = questionToUpdate.tags.map((tag) =>
+        tag === oldTag ? newTag : tag
+      );
+  
+      // Prepare the updated question data
+      const updatedQuestion = {
+        ...questionToUpdate,
+        tags: updatedTags,
+      };
+  
+      // Call the API to update the question
+      await editQuestion(questionId, updatedQuestion, navigate);
+  
+      // Update the local state
+      await new Promise((resolve) => {
+        setQuestions((prevQuestions) => {
+          const updatedQuestions = prevQuestions.map((q) =>
+            q.id === questionId ? updatedQuestion : q
+          );
+          resolve(updatedQuestions); // Resolve the Promise after state update
+          return updatedQuestions;
+        });
+      });
+  
+      console.log("Updated Tags:", updatedTags);
+    } catch (error) {
+      alert('Failed to swap tags.');
+      console.error(error);
+    }
+    console.log("END HandleSwapTag");
   };
 
   const handleUploadToCanvas = async () => {
@@ -203,7 +371,6 @@ function AssignmentPage() {
     }
   };
 
-
   const formatQuestionType = (questionType) => {
     const typeMap = {
       "multiple_choice_question": "MCQ",
@@ -211,11 +378,9 @@ function AssignmentPage() {
       "true_false_question": "True/False",
       "numerical_question": "Numerical",
     };
-    
-    return typeMap[questionType] || "Long Response"; 
+    return typeMap[questionType] || "Long Response";
   };
-  
-  
+
   const handleLatexDownload = async () => {
     try {
       const latex = await downloadLatex(assignmentId, navigate);
@@ -257,7 +422,7 @@ function AssignmentPage() {
               {assignmentName.replace(/-/g, ' ')} (Course: {courseName.replace(/-/g, ' ')})
             </h2>
             <div className="assignment-actions">
-              <DownloadDropdown 
+              <DownloadDropdown
                 onLatexDownload={handleLatexDownload}
                 onDocsDownload={handleDocsDownload}
               />
@@ -265,18 +430,34 @@ function AssignmentPage() {
                 Upload to Canvas
               </button>
             </div>
-            <button 
+            <button
               className="edit-assignment-button"
               onClick={handleEditAssignment}
             >
               Select or remove questions
             </button>
-            <button 
-              className="difficulty-button"
-              onClick={() => navigate(`/course/${courseId}/assignment/${assignmentId}/difficulty`)}
-            >
-              View Assignment Difficulty
-            </button>
+          </div>
+
+          <div className="assignment-stat-summary-div">
+            <div className="metrics-container">
+              <div className="metrics">
+                <div className="metric">
+                  <strong>Number of Questions:</strong> {questions.length}
+                </div>
+                <div className="metric">
+                  <strong>Topics Covered:</strong> {getUniqueTagsCount()}
+                </div>
+                <div className="metric">
+                  <strong> Average Difficulty:</strong> {calculateAverageDifficulty()}
+                </div>
+              </div>
+              <div className="view-metrics">
+                <button className="view-metrics-button" onClick={() => navigate(`/course/${courseId}/assignment/${assignmentId}/difficulty`)}>
+                  <div>View Details</div>
+                  <div style={{fontSize: "2.1em"}}><FaAngleRight /></div>
+                </button>
+              </div>
+            </div>
           </div>
 
           {assignmentStatistics && Object.keys(assignmentStatistics).length > 0 && (
@@ -294,69 +475,14 @@ function AssignmentPage() {
 
           <ul className="questions-list">
             {questions.map((question) => (
-              <li key={question.id} className="question-item">
-                <div className="question-text">
-                  <h3 className="question-title">{question.title}</h3>
-                  <h4 className="question-type-display">{formatQuestionType(question.questionType)}</h4>
-                  {question.tags && question.tags.length > 0 && (
-                      <div className="question-tags">
-                        {question.tags.map((tag, index) => (
-                          <span key={index} className="tag-item">
-                            {tag}
-                            <button
-                              className="delete-tag-button"
-                              onClick={() => handleDeleteTag(question.id, tag)}
-                            >
-                              ✕
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  <MathJax>{question.text}</MathJax>
-                  {question.questionType === "multiple_choice_question" && (
-                  <div style={{marginTop: '5px'}}>
-                    <strong>Choices:</strong>
-                    <ul style={{ marginTop: "5px", paddingLeft: "0px", listStyleType: "none" }}>
-                      {Array.isArray(question.options) && question.options.length > 0
-                        ? question.options.map((choice, index) => (
-                            <li 
-                              key={index} 
-                              style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: 'flex-start' }}
-                            >
-                              <strong>{String.fromCharCode(65 + index)})</strong>
-                              <span>{choice}</span>
-                            </li>
-                          ))
-                        : <li>No options provided</li>}
-                    </ul>
-                  </div>
-                )}
-                  {question.correctAnswer && (
-                    <p><strong>Correct Answer:</strong> {question.correctAnswer}</p>
-                  )}
-                  <div className="question-stats">
-                    Mean: {question.stats?.mean || 'N/A'},
-                    Median: {question.stats?.median || 'N/A'},
-                    Std Dev: {question.stats?.stdDev || 'N/A'},
-                    Min: {question.stats?.min || 'N/A'},
-                    Max: {question.stats?.max || 'N/A'}
-                  </div>
-                  {question.comment && (
-                    <div className="question-comment">
-                      <strong>Comment:</strong> {question.comment}
-                    </div>
-                  )}
-                </div>
-                <div className="question-actions">
-                  <button
-                    className="edit-button"
-                    onClick={() => handleEditQuestion(question)}
-                  >
-                    <FaEdit />
-                  </button>
-                </div>
-              </li>
+              <QuestionItem
+                key={question.id}
+                question={question}
+                handleEditQuestion={handleEditQuestion}
+                handleDeleteTag={handleDeleteTag}
+                handleAddTag={handleAddTag}
+                handleSwapTag={handleSwapTag}
+              />
             ))}
           </ul>
 
@@ -387,14 +513,36 @@ function AssignmentPage() {
                   }
                   rows="2"
                 />
-                <input
-                  type="text"
-                  placeholder="Enter tags (comma-separated)"
-                  value={formFields.tags}
-                  onChange={(e) =>
-                    setFormFields({ ...formFields, tags: e.target.value })
-                  }
-                />
+          
+                <div className="autocomplete-container">
+                  <input
+                    type="text"
+                    placeholder="Enter tags (comma-separated)"
+                    value={formFields.tags}
+                    onChange={(e) => {
+                      setFormFields({ ...formFields, tags: e.target.value });
+                      handleTagSearch(e.target.value);
+                    }}
+                    onFocus={() => {
+                      handleTagSearch(formFields.tags); // Show suggestions on focus
+                      setShowSuggestions(true);
+                    }}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} // Delay hiding for clicks to register
+                  />
+                  {showSuggestions && filteredTags.length > 0 && (
+                    <ul className="autocomplete-dropdown">
+                      {filteredTags.map((tag, index) => (
+                        <li
+                          key={index}
+                          onMouseDown={() => handleTagSelect(tag)}
+                        >
+                          {tag}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
                 <div className="stats-fields">
                   <label>
                     Mean:
@@ -454,7 +602,6 @@ function AssignmentPage() {
                 <button onClick={cancelEdit} className="cancel-question-button">
                   Cancel
                 </button>
-
               </form>
             </div>
           ) : (

@@ -1,35 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+
 .header {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    padding-top: 15px;
-    padding-bottom: 15px;
-    background-color: #1f3b8f;
-    color: white;
-    font-family: 'Trebuchet MS', sans-serif;
-  }
-  
-  .title {
-    padding-left: 8px;
-    font-size: 130%;
-  }
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  background-color: #1f3b8f;
+  color: white;
+  font-family: 'Work Sans', sans-serif;
+}
 
-  .icon {
-    color: aqua;
-  }
+.title {
+  padding-left: 8px;
+  font-weight: bold;
+  font-size: 1.2em;
+}
 
-  .logo {
-    font-size: 1.5em;
-    font-weight: bold;
-    padding-left: 0.7em;
-  }
-  
-  .logout {
-    font-size: 130%;
-    font-weight: bold;
-    padding-right: 30px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-  }
+.icon {
+  color: aqua;
+  font-size: 1.0em;
+  display: inline-flex;
+  align-items: center;
+}
+
+.logo {
+  font-size: 1.2em;
+  padding-left: 0.7em;
+  display: flex;
+  align-items: center;
+}
+
+.logout {
+  font-size: 1.2em;
+  font-weight: bold;
+  padding-right: 30px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}

@@ -1,160 +1,247 @@
-  .login-page {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    background-color: #63a2e1;
-    font-family: 'Trebuchet MS', sans-serif;
-  }
-  
-  .login-container {
-    display: flex;
-    justify-content: center;
-    width: 60%;
-    height: 100%;
-    padding-top: 3%;
-    background-color: #eae7ee;
-  }
-  
-  .login-shadow-box {
-    justify-content: center;
-    border-radius: 10px;
-    width: 500px;
-    height: 500px;
-    background-color: rgb(213, 213, 213);
-    box-shadow: rgba(0, 0, 0, 0.15) 0px 5px 15px;
-  }
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
 
-  .login-box {
-    display: block;
-    margin: auto;
-    margin-top: 6%;
-    padding: 10px 20px 20px 30px;
-    width: 77%;
-    height: auto;
-    border-radius: 10px;
-    text-align: center;
-    background-color: white;
-  }
+.login-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #63a2e1;
+  font-family: 'Work Sans', sans-serif;
+}
 
-  .login-welcome {
-    font-size: 1.7em;
-    font-weight: bold;
-  }
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 55%;
+  height: 100%;
+  background-color: #eae7ee;
+}
 
-  .login-welcome-text {
-    margin-top: -10px;
-    margin-bottom: 30px;
-  }
+.login-box {
+  display: block;
+  margin: auto;
+  padding: 30px 40px;
+  width: 400px;
+  height: auto;
+  border-radius: 15px;
+  text-align: center;
+  background-color: white;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
 
-  label {
-    font-weight: bold;
-    margin-bottom: 5px;
-  }
+.login-welcome {
+  font-size: 1.8em;
+  font-weight: bold;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
 
-  input {
-    display: block;
-    padding: 8px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    font-size: 1em;
-    margin-bottom: 25px;
-  }
+.login-welcome-text {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #555;
+}
 
-  #username, #password {
-    width: 80%;
-  }
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 4px;
+  text-align: left;
+}
 
-  #password {
-    margin-bottom: 5px;
-  }
+input {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 1em;
+  margin-bottom: 16px;
+  box-sizing: border-box;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
 
-  .forgot-pw {
-    width: 100%;
-    font-size: 0.8em;
-    float: left;
-    text-align: left;
-    margin-bottom: 25px;
-  }
-  
-  a {
-    color: black;
-  }
+input:focus {
+  border-color: #63a2e1;
+  box-shadow: 0 0 0 3px rgba(99, 162, 225, 0.2);
+  outline: none;
+}
 
-  .login-button {
-    background-color: #63a2e1;
-    margin: auto;
-    display: block;
-    color: white;
-    font-weight: bold;
-    padding: 10px;
-    width: 40%;
-    border-radius: 5px;
-    font-size: 1em;
-    margin-top: 10px;
-    margin-bottom: 20px;
-    cursor: pointer;
-  }
-  
-  .login-button:hover {
-    background-color: #1c6ab7;
-  }
-  
-  .line {
-    width: 100%; 
-    text-align: center; 
-    border-bottom: 1px solid #000; 
-    line-height: 0.1em;
-    margin: 10px 0 10px; 
- } 
- 
- .line span { 
-     background:#fff; 
-     padding:0 10px; 
-     font-size: 0.8em;
- }
-  
-  .create-account-button {
-    background-color: white;
-    color: #1f3b8f;
-    font-weight: bold;
-    border: none;
-    padding: 10px;
-    border-radius: 5px;
-    font-size: 1em;
-    cursor: pointer;
-  }
-  
-  .create-account-button:hover {
-    background-color: white;
-  }
+::placeholder {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  opacity: 0.8;
+}
 
-  .error-message {
-    background-color: #ffebe9;
-    border: 2px solid rgba(255, 129, 130, 0.4);
-    border-radius: 6px;
-    color: #cf222e;
-    margin: 10px 0;
-    padding: 10px;
-    font-size: 14px;
-    align-items: center;
-    justify-content: center;
-    display: flex;
-  }
-  
-  .field-error {
-    color: #cf222e;
-    font-size: 12px;
-    margin-top: -20px;
-    margin-bottom: 15px;
-    text-align: left;
-  }
-  
-  .input-error {
-    border-color: #cf222e !important;
-  }
-  
-  .input-error:focus {
-    border-color: #cf222e !important;
-    box-shadow: 0 0 0 3px rgba(207, 34, 46, 0.3);
-    outline: none;
-  }
+.forgot-pw {
+  width: 100%;
+  font-size: 0.9em;
+  text-align: left;
+  margin-top: -12px;
+  margin-bottom: 20px;
+}
+
+a {
+  color: #1f3b8f;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+a:hover {
+  color: #63a2e1;
+  text-decoration: underline;
+}
+
+.login-button {
+  background-color: #1f3b8f;
+  color: white;
+  font-weight: bold;
+  border: none;
+  padding: 12px;
+  width: 100%;
+  border-radius: 8px;
+  font-size: 1em;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.login-button:hover {
+  background-color: #163070;
+}
+
+.line {
+  width: 100%; 
+  text-align: center; 
+  border-bottom: 1px solid #ddd; 
+  line-height: 0.1em;
+  margin: 15px 0; 
+} 
+
+.line span { 
+  background: #fff; 
+  padding: 0 15px; 
+  font-size: 0.9em;
+  color: #777;
+}
+
+.create-account-button {
+  background-color: transparent;
+  color: #1f3b8f;
+  font-weight: bold;
+  border: 2px solid #1f3b8f;
+  padding: 10px;
+  width: 100%;
+  border-radius: 8px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.create-account-button:hover {
+  background-color: rgba(31, 59, 143, 0.1);
+}
+
+.error-message {
+  background-color: #ffebe9;
+  border: 2px solid rgba(255, 129, 130, 0.4);
+  border-radius: 8px;
+  color: #cf222e;
+  margin: 10px 0 20px;
+  padding: 12px;
+  font-size: 14px;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+}
+
+.field-error {
+  color: #cf222e;
+  font-size: 12px;
+  margin-top: -20px;
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.input-error {
+  border-color: #cf222e !important;
+}
+
+.input-error:focus {
+  border-color: #cf222e !important;
+  box-shadow: 0 0 0 3px rgba(207, 34, 46, 0.2);
+  outline: none;
+}
+
+/* Carousel Styles */
+.carousel-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  padding: 0 40px;
+}
+
+.carousel-content {
+  text-align: center;
+  max-width: 500px;
+}
+
+.carousel-icon {
+  font-size: 5em;
+  margin-bottom: 20px;
+}
+
+.carousel-title {
+  font-size: 2em;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.carousel-text {
+  font-size: 1.2em;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.carousel-dot {
+  height: 10px;
+  width: 10px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.5);
+  margin: 0 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.carousel-dot.active {
+  background-color: white;
+}
+
+.content-container {
+  display: flex;
+  height: 100vh;
+}
+
+/* Reset Password CSS */
+#reset-password-shadow-box {
+  height: 570px;
+}
+
+#success {
+  background-color: #edffe9;
+  border: 2px solid rgba(129, 255, 133, 0.4);
+  color: #148827;
+}
+
+#success-shadow-box {
+  height: 270px;
+}

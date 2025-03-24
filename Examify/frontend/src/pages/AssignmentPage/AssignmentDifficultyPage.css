@@ -1,16 +1,23 @@
 /* Toggle button styling */
+.header-container {
+  display: flex;
+  justify-content: space-between; /* Space between the text and the button */
+  align-items: center; /* Vertically center the button with the text */
+  margin-bottom: 20px; /* Add some spacing below the header */
+}
+
 .toggle-missing-stats-button {
-  background-color: #007bff;
+  background-color: #007bff; /* Example button color */
   color: white;
   border: none;
   padding: 10px 20px;
   border-radius: 5px;
   cursor: pointer;
-  margin-bottom: 20px;
+  font-size: 14px;
 }
 
 .toggle-missing-stats-button:hover {
-  background-color: #0056b3;
+  background-color: #0056b3; /* Darker shade on hover */
 }
 
 /* Missing stats dropdown styling */
@@ -37,4 +44,116 @@
   margin-bottom: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
+}
+
+/* Question item styling */
+.question-item {
+  /* display: grid;
+  grid-template-columns: 1fr; 
+  gap: 15px; 
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 15px;
+  margin-bottom: 20px;
+  width: 100%; 
+  box-sizing: border-box;  */
+}
+
+/* Question text styling */
+.question-text {
+  margin-bottom: 15px;
+}
+
+/* Stats inputs styling */
+.stats-inputs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Two columns for stats inputs */
+  gap: 10px; /* Space between inputs */
+}
+
+.stat-input {
+  display: flex;
+  align-items: center;
+}
+
+.stat-input label {
+  width: 80px; /* Fixed width for labels */
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+.stat-input input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%; /* Ensure all inputs have the same width */
+}
+
+.difficulty-chart {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.overall-stats-container {
+  padding-left: 20px; /* Add padding to the left */
+  padding-right: 20px; /* Add padding to the right */
+  width: 80%;
+}
+
+.overall-stats-container ul {
+  list-style-type: none; /* Remove default list styling */
+  padding: 5; /* Remove default padding */
+  margin: 5; /* Remove default margin */
+}
+
+.overall-stats-container li {
+  padding: 8px 0; /* Add spacing between list items */
+  border-bottom: 1px solid #ddd; /* Optional: Add a separator between items */
+}
+
+.overall-stats-container li:last-child {
+  border-bottom: none; /* Remove the border from the last item */
+}
+
+.metrics-container {
+  display: flex;
+  justify-content: space-between;
+  margin: 20px 0;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
+.metrics {
+  display: flex;
+  width: 85%
+}
+
+.metric {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  border-right: 1px solid #ddd; /* Add a separator between metrics */
+}
+
+.view-metrics {
+  width: 15%;
+  padding: 0 10px 0 10px;
+}
+
+.view-metrics-button {
+  font:inherit;
+  font-size: 0.9em;
+  font-weight: bold;
+  color: black;
+  background-color: transparent;
+  display: flex;
+}
+
+.view-metrics-button:hover {
+  color:#007bff;
 }
