@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchCourseInfo, fetchCourseQuestions, getAllTags } from '../../api/courses';
-import { createQuestion, editQuestion, deleteQuestion, uploadFileContentToBackend } from '../../api/questions';
+import { createQuestion, editQuestion, deleteQuestion, uploadImage, uploadFileContentToBackend } from '../../api/questions';
 import Header from '../../components/Header/Header';
 import { FaChevronLeft, FaEdit, FaTrash, FaPlus, FaEye } from 'react-icons/fa';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
@@ -33,6 +33,7 @@ function QuestionsPage() {
   const [expandedQuestion, setExpandedQuestion] = useState(null);
   const [variants, setVariants] = useState({});
   const [loadingVariants, setLoadingVariants] = useState({});
+  const [images, setImages] = useState([]);
 
   useEffect(() => {
     const loadCourseName = async () => {
@@ -89,26 +90,26 @@ function QuestionsPage() {
       setFilteredTags(tags);
       return;
     }
-  
+
     const inputTags = input.split(',').map(tag => tag.trim());
     const lastTag = inputTags[inputTags.length - 1];
-  
+
     const matchingTags = tags.filter(tag =>
       tag.toLowerCase().includes(lastTag.toLowerCase())
     );
-  
+
     setFilteredTags(matchingTags);
   };
-  
+
 
   const handleTagSelect = (selectedTag) => {
     const currentTags = formFields.tags.split(',').map(tag => tag.trim());
-    
+
     if (!currentTags.includes(selectedTag)) {
       currentTags[currentTags.length - 1] = selectedTag;
       setFormFields({ ...formFields, tags: currentTags.join(', ') });
     }
-    
+
     setShowSuggestions(false);
   };
 
@@ -143,22 +144,59 @@ function QuestionsPage() {
       "true_false_question": "True/False",
       "numerical_question": "Numerical",
     };
-    
-    return typeMap[questionType] || "Long Response"; 
+
+    return typeMap[questionType] || "Long Response";
+  };
+
+  const handleUploadImage = async (e) => {
+    e.preventDefault();
+
+    for (const file of e.target.files) {
+      const fileExt = file.name.split('.').pop().toLowerCase();
+      try {
+        const reader = new FileReader();
+
+        reader.onloadend = async () => {
+          const base64String = reader.result.split(",")[1];
+          const imageInfo = await uploadImage(courseId, fileExt, base64String, navigate);
+
+          if (imageInfo) {
+            // Store only the image ID in the state
+            setImages(prevImages => [...prevImages, imageInfo.imageId]);
+          } else {
+            console.error("Failed to upload image.");
+            alert("Failed to upload image.");
+          }
+        };
+
+        reader.readAsDataURL(file);
+      } catch (error) {
+        console.error('Error processing image:', error);
+        alert('Failed to process image.');
+      }
+    }
+  };
+
+  const handleRemoveImage = (imageId) => {
+    setImages((prevImages) => prevImages.filter((id) => id !== imageId));
   };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-  
+
+    // Split and clean tags
     const tagsArray = formFields.tags.split(',').map((tag) => tag.trim()).filter((tag) => tag);
+
+    // Split and clean options (if applicable)
     let optionsArray = formFields.options ? formFields.options.split(',').map(opt => opt.trim()) : [];
 
-
+    // Validation for empty title
     if (!formFields.title.trim()) {
       alert("Title cannot be empty.");
       return;
     }
-  
+
+    // Validation for multiple-choice questions
     if (formFields.questionType === "multiple_choice_question") {
       if (!formFields.options || formFields.options.split(',').length < 2) {
         alert("Multiple Choice Questions must have at least 2 options.");
@@ -173,17 +211,20 @@ function QuestionsPage() {
         return;
       }
     }
-  
+
+    // Validation for true/false questions
     if (formFields.questionType === "true_false_question" && !formFields.correctAnswer) {
       alert("True/False questions must have a correct answer.");
       return;
     }
-  
+
+    // Validation for numerical questions
     if (formFields.questionType === "numerical_question" && (formFields.correctAnswer === "" || isNaN(formFields.correctAnswer))) {
       alert("Numerical questions must have a valid numerical answer.");
       return;
     }
-  
+
+    // Prepare the question data for submission
     const questionData = {
       courseId: courseId,
       title: formFields.title,
@@ -194,13 +235,17 @@ function QuestionsPage() {
       stats: { ...formFields.stats },
       options: formFields.options ? formFields.options.split(',').map(opt => opt.trim()) : [],
       correctAnswer: formFields.questionType === "true_false_question"
-      ? (formFields.correctAnswer === "False" ? "False" : "True")
-      : formFields.correctAnswer || "",
+        ? (formFields.correctAnswer === "False" ? "False" : "True")
+        : formFields.correctAnswer || "",
+      imageIds: images, // Include the uploaded image IDs
     };
-  
+
     try {
       if (editingQuestion) {
+        // Edit the existing question
         await editQuestion(editingQuestion.id, questionData, navigate);
+
+        // Update variants if this is a variant
         if (editingQuestion.originalQuestionId) {
           const updatedVariants = await fetchQuestionVariants(editingQuestion.originalQuestionId);
           setVariants((prev) => ({
@@ -208,13 +253,16 @@ function QuestionsPage() {
             [editingQuestion.originalQuestionId]: updatedVariants,
           }));
         } else {
+          // Update the main questions list
           const updatedQuestions = await fetchCourseQuestions(courseId, navigate);
           setQuestions(updatedQuestions);
         }
       } else {
+        // Create a new question
         await createQuestion(questionData, navigate);
       }
-  
+
+      // Reset form fields and images state
       setFormFields({
         title: '',
         text: '',
@@ -223,8 +271,9 @@ function QuestionsPage() {
         questionType: 'essay_question',
         stats: { mean: '', median: '', stdDev: '', min: '', max: '' },
         options: '',
-        correctAnswer: ''
+        correctAnswer: '',
       });
+      setImages([]); // Clear the images state
       setShowForm(false);
     } catch (error) {
       alert("Failed to save question");
@@ -234,6 +283,7 @@ function QuestionsPage() {
 
   const handleEditQuestion = (question, originalQuestionId = null) => {
     setEditingQuestion(question);
+    setImages(question.images.map((image) => image.id));
     setFormFields({
       title: question.title,
       text: question.text,
@@ -243,86 +293,86 @@ function QuestionsPage() {
       stats: { ...question.stats },
       options: Array.isArray(question.options) ? question.options.join(', ') : '',
       correctAnswer: question.questionType === "true_false_question"
-      ? (question.correctAnswer === "True" || question.correctAnswer === "False"
-        ? question.correctAnswer
-        : "True")
-      : question.correctAnswer || '',
+        ? (question.correctAnswer === "True" || question.correctAnswer === "False"
+          ? question.correctAnswer
+          : "True")
+        : question.correctAnswer || '',
     });
     setShowForm(true);
   };
-  
+
   const handleAddTag = async (questionId, newTag) => {
-      console.log("HandleAddTag", newTag);
-      try {
-        // Find the question to update
-        const questionToUpdate = questions.find((q) => q.id === questionId);
-        if (!questionToUpdate) return;
-  
-        // Add the new tag to the question's tags
-        console.log(questionToUpdate.tags);
-        const updatedTags = [...questionToUpdate.tags, newTag];
-  
-        // Prepare the updated question data
-        const updatedQuestion = {
-          ...questionToUpdate,
-          tags: updatedTags,
-        };
-  
-        // Call the API to update the question
-        await editQuestion(questionId, updatedQuestion, navigate);
-  
-        // Update the local state
-        await setQuestions((prevQuestions) =>
-          prevQuestions.map((q) =>
+    console.log("HandleAddTag", newTag);
+    try {
+      // Find the question to update
+      const questionToUpdate = questions.find((q) => q.id === questionId);
+      if (!questionToUpdate) return;
+
+      // Add the new tag to the question's tags
+      console.log(questionToUpdate.tags);
+      const updatedTags = [...questionToUpdate.tags, newTag];
+
+      // Prepare the updated question data
+      const updatedQuestion = {
+        ...questionToUpdate,
+        tags: updatedTags,
+      };
+
+      // Call the API to update the question
+      await editQuestion(questionId, updatedQuestion, navigate);
+
+      // Update the local state
+      await setQuestions((prevQuestions) =>
+        prevQuestions.map((q) =>
+          q.id === questionId ? updatedQuestion : q
+        )
+      );
+    } catch (error) {
+      alert('Failed to add tag.');
+      console.error(error);
+    }
+    console.log("END HandleAddTag");
+  };
+
+  const handleSwapTag = async (questionId, oldTag, newTag) => {
+    console.log("HandleSwapTag", oldTag, newTag);
+    try {
+      // Find the question to update
+      const questionToUpdate = questions.find((q) => q.id === questionId);
+      if (!questionToUpdate) return;
+
+      // Swap the old tag with the new tag
+      const updatedTags = questionToUpdate.tags.map((tag) =>
+        tag === oldTag ? newTag : tag
+      );
+
+      // Prepare the updated question data
+      const updatedQuestion = {
+        ...questionToUpdate,
+        tags: updatedTags,
+      };
+
+      // Call the API to update the question
+      await editQuestion(questionId, updatedQuestion, navigate);
+
+      // Update the local state
+      await new Promise((resolve) => {
+        setQuestions((prevQuestions) => {
+          const updatedQuestions = prevQuestions.map((q) =>
             q.id === questionId ? updatedQuestion : q
-          )
-        );
-      } catch (error) {
-        alert('Failed to add tag.');
-        console.error(error);
-      }
-      console.log("END HandleAddTag");
-    };
-  
-    const handleSwapTag = async (questionId, oldTag, newTag) => {
-      console.log("HandleSwapTag", oldTag, newTag);
-      try {
-        // Find the question to update
-        const questionToUpdate = questions.find((q) => q.id === questionId);
-        if (!questionToUpdate) return;
-    
-        // Swap the old tag with the new tag
-        const updatedTags = questionToUpdate.tags.map((tag) =>
-          tag === oldTag ? newTag : tag
-        );
-    
-        // Prepare the updated question data
-        const updatedQuestion = {
-          ...questionToUpdate,
-          tags: updatedTags,
-        };
-    
-        // Call the API to update the question
-        await editQuestion(questionId, updatedQuestion, navigate);
-    
-        // Update the local state
-        await new Promise((resolve) => {
-          setQuestions((prevQuestions) => {
-            const updatedQuestions = prevQuestions.map((q) =>
-              q.id === questionId ? updatedQuestion : q
-            );
-            resolve(updatedQuestions); // Resolve the Promise after state update
-            return updatedQuestions;
-          });
+          );
+          resolve(updatedQuestions); // Resolve the Promise after state update
+          return updatedQuestions;
         });
-    
-        console.log("Updated Tags:", updatedTags);
-      } catch (error) {
-        alert('Failed to swap tags.');
-        console.error(error);
-      }
-      console.log("END HandleSwapTag");
-    };
+      });
+
+      console.log("Updated Tags:", updatedTags);
+    } catch (error) {
+      alert('Failed to swap tags.');
+      console.error(error);
+    }
+    console.log("END HandleSwapTag");
+  };
 
   const handleDeleteQuestion = async (id, originalQuestionId = null) => {
     try {
@@ -374,56 +424,56 @@ function QuestionsPage() {
       alert('Failed to delete tag.');
       console.error(error);
     }
-    
+
     console.log("END HandleDeleteTag");
   };
 
   // Handle difficulty change
-const handleDifficultyChange = async (questionId, newDifficulty) => {
-  try {
-    const questionToUpdate = questions.find((q) => q.id === questionId);
-    if (!questionToUpdate) return;
+  const handleDifficultyChange = async (questionId, newDifficulty) => {
+    try {
+      const questionToUpdate = questions.find((q) => q.id === questionId);
+      if (!questionToUpdate) return;
 
-    const difficultyTags = ['Easy', 'Medium', 'Hard'];
-    const currentDifficulty = questionToUpdate.tags.find((tag) => difficultyTags.includes(tag));
+      const difficultyTags = ['Easy', 'Medium', 'Hard'];
+      const currentDifficulty = questionToUpdate.tags.find((tag) => difficultyTags.includes(tag));
 
-    if (currentDifficulty === undefined) {
-      await handleAddTag(questionId, newDifficulty);
-    } else if (newDifficulty === 'Unrated') {
-      await handleDeleteTag(questionId, currentDifficulty);
-    } else {
-      await handleSwapTag(questionId, currentDifficulty, newDifficulty);
-    }
+      if (currentDifficulty === undefined) {
+        await handleAddTag(questionId, newDifficulty);
+      } else if (newDifficulty === 'Unrated') {
+        await handleDeleteTag(questionId, currentDifficulty);
+      } else {
+        await handleSwapTag(questionId, currentDifficulty, newDifficulty);
+      }
 
-    // Update the local state
-    const updatedQuestions = questions.map((q) =>
-      q.id === questionId
-        ? {
+      // Update the local state
+      const updatedQuestions = questions.map((q) =>
+        q.id === questionId
+          ? {
             ...q,
             tags: q.tags.filter((tag) => !difficultyTags.includes(tag)).concat(newDifficulty === 'Unrated' ? [] : [newDifficulty]),
           }
-        : q
-    );
-    setQuestions(updatedQuestions);
-  } catch (error) {
-    console.error('Failed to update difficulty:', error);
-    alert('Failed to update difficulty. Please try again.');
-  }
-};
+          : q
+      );
+      setQuestions(updatedQuestions);
+    } catch (error) {
+      console.error('Failed to update difficulty:', error);
+      alert('Failed to update difficulty. Please try again.');
+    }
+  };
 
   const filteredQuestions = questions
     .filter((question) => question.originalQuestionId == null)
     .filter((question) => {
-    const title = question.title || '';
-    const text = question.text || '';
-    const tags = question.tags || [];
+      const title = question.title || '';
+      const text = question.text || '';
+      const tags = question.tags || [];
 
-    return (
-      title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      text.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tags.some((tag) => (tag || '').toLowerCase().includes(searchQuery.toLowerCase()))
-    );
-  });
+      return (
+        title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        text.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        tags.some((tag) => (tag || '').toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+    });
 
   const handleUploadDocument = async (e) => {
     const file = e.target.files[0];
@@ -493,7 +543,7 @@ const handleDifficultyChange = async (questionId, newDifficulty) => {
     try {
       await createQuestionVariant(question.id);
       alert("Variant created successfully!");
-      handleViewVariants(question.id); 
+      handleViewVariants(question.id);
     } catch (error) {
       alert("Error creating variant.");
       console.error(error);
@@ -528,7 +578,7 @@ const handleDifficultyChange = async (questionId, newDifficulty) => {
             <div className="button-container">
               <button className="add-question-button" onClick={handleAddQuestion}>
                 <FaPlus />
-                <span className="question-button-text">{editingQuestion ? 'Edit Question' : ' Add Question'}</span>
+                <span className="question-button-text">{' Add Question'}</span>
               </button>
               <button className="upload-document-button">
                 <label htmlFor="upload-document" style={{ cursor: "pointer" }}>
@@ -538,7 +588,7 @@ const handleDifficultyChange = async (questionId, newDifficulty) => {
                   type="file"
                   id="upload-document"
                   style={{ display: "none" }}
-                  accept=".txt"
+                  accept=".docx,.txt"
                   onChange={handleUploadDocument}
                 />
               </button>
@@ -556,128 +606,83 @@ const handleDifficultyChange = async (questionId, newDifficulty) => {
           </div>
 
           <ul className="questions-list">
-  {filteredQuestions.map((question) => {
-    const difficultyTags = ['Easy', 'Medium', 'Hard'];
-    const difficulty = question.tags.find((tag) => difficultyTags.includes(tag)) || 'Unrated';
-    const filteredTags = question.tags.filter((tag) => !difficultyTags.includes(tag));
+            {filteredQuestions.map((question) => {
+              const difficultyTags = ['Easy', 'Medium', 'Hard'];
+              const difficulty = question.tags.find((tag) => difficultyTags.includes(tag)) || 'Unrated';
+              const filteredTags = question.tags.filter((tag) => !difficultyTags.includes(tag));
 
-    return (
-      <li key={question.id} className="question-item">
-        <div className="question-content">
-        <div className="question-text" style={{ width: '100%' }}>
-          <div className="question-header">
-            <h3 className="question-title">
-              {question.title}
-              <span className="difficulty-dropdown">
-              {handleAddTag && handleDeleteTag ? ( // Render dropdown if handleAddTag and handleDeleteTag are provided
-                <select
-                  value={difficulty}
-                  onChange={handleDifficultyChange}
-                  className="difficulty-dropdown"
-                  style={{ color: getDifficultyColor(difficulty), borderColor: getDifficultyColor(difficulty) }}
-                >
-                  <option value="Unrated">Unrated</option>
-                  <option value="Easy">Easy</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Hard">Hard</option>
-                </select>
-              ) : ( // Render static box if handleAddTag or handleDeleteTag is null
-                <span style={{ color: getDifficultyColor(difficulty) }}>
-                  {difficulty}
-                </span>
-              )}
-            </span>
-            </h3>
-          </div>
-          <h4 className="question-type-display">{formatQuestionType(question.questionType)}</h4>
-         
-          {/* Tags */}
-          {filteredTags.length > 0 && (
-            <div className="question-tags">
-              {filteredTags.map((tag, index) => (
-                <span key={index} className="tag-item">
-                  {tag}
-                  <button
-                    className="delete-tag-button"
-                    onClick={() => handleDeleteTag(question.id, tag)}
-                  >
-                    ✕
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
+              return (
+                <li key={question.id} className="question-item">
+                  <div className="question-content">
+                    <div className="question-text" style={{ width: '100%' }}>
+                      <div className="question-header">
+                        <h3 className="question-title">
+                          {question.title}
+                          <span className="difficulty-dropdown">
+                            {handleAddTag && handleDeleteTag ? ( // Render dropdown if handleAddTag and handleDeleteTag are provided
+                              <select
+                                value={difficulty}
+                                onChange={handleDifficultyChange}
+                                className="difficulty-dropdown"
+                                style={{ color: getDifficultyColor(difficulty), borderColor: getDifficultyColor(difficulty) }}
+                              >
+                                <option value="Unrated">Unrated</option>
+                                <option value="Easy">Easy</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Hard">Hard</option>
+                              </select>
+                            ) : ( // Render static box if handleAddTag or handleDeleteTag is null
+                              <span style={{ color: getDifficultyColor(difficulty) }}>
+                                {difficulty}
+                              </span>
+                            )}
+                          </span>
+                        </h3>
+                      </div>
+                      <h4 className="question-type-display">{formatQuestionType(question.questionType)}</h4>
 
-          {/* Question Text */}
-          <div className="question">
-            <MathJax>{question.text}</MathJax>
-          </div>
+                      {/* Tags */}
+                      {filteredTags.length > 0 && (
+                        <div className="question-tags">
+                          {filteredTags.map((tag, index) => (
+                            <span key={index} className="tag-item">
+                              {tag}
+                              <button
+                                className="delete-tag-button"
+                                onClick={() => handleDeleteTag(question.id, tag)}
+                              >
+                                ✕
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
 
-          {/* Multiple Choice Options */}
-          {question.questionType === "multiple_choice_question" && (
-            <div className="mc-div">
-              <ul className="mc-choice-list">
-                {Array.isArray(question.options) && question.options.length > 0
-                  ? question.options.map((choice, index) => (
-                      <li
-                        key={index}
-                        className="mc-choice"
-                      >
-                        <strong>{String.fromCharCode(65 + index)})</strong>
-                        <span>{choice}</span>
-                      </li>
-                    ))
-                  : <li>No options provided</li>}
-              </ul>
-            </div>
-          )}
+                      {/* Question Text */}
+                      <div className="question">
+                        <MathJax>{question.text}</MathJax>
+                      </div>
 
-          {/* Correct Answer */}
-          <div className="correct-answer">
-          {question.correctAnswer && (
-            <p><strong>Answer:</strong> {question.correctAnswer}</p>
-          )}
-          </div>
+                      {/* Render the associated images */}
+                      {question.images && question.images.length > 0 && (
+                        <div className="question-images">
+                          {question.images.map((image, index) => (
+                            <img
+                              key={index}
+                              src={image.url}
+                              alt={`Question Image ${index + 1}`}
+                              className="question-image"
+                            />
+                          ))}
+                        </div>
+                      )}
 
-           {/* Question Comment */}
-           {question.comment && (
-            <div className="question-comment">
-              <strong>Comment:</strong> {question.comment}
-            </div>
-          )}
-
-          <div className="variant-controls">
-            <button className="view-variants-button" onClick={() => handleViewVariants(question.id)}>
-              <FaEye /> {expandedQuestion === question.id ? 'Hide Variants' : 'View Variants'}
-            </button>
-            <button className="create-variant-button" onClick={() => handleCreateVariant(question)}>
-              <FaPlus /> Create Variant
-            </button>
-          </div>
-
-          {/* Variants Section */}
-          {expandedQuestion === question.id && (
-            <div className="variants-list">
-              {loadingVariants[question.id] ? (
-                <p>Loading variants...</p>
-              ) : variants[question.id]?.length > 0 ? (
-                variants[question.id].map((variant) => (
-                  <div key={variant.id} className="variant-item">
-
-                    <h4 className="question-title" style={{marginBottom: "5px"}}>
-                      {variant.title}
-                    </h4>
-
-                    <div className="question">
-                      <MathJax>{variant.text}</MathJax>
-                    </div>
-
-                    {/* Show Answer Choices if MCQ */}
-                    {variant.questionType === 'multiple_choice_question' && variant.options?.length > 0 && (
-                      <div className="mc-div">
-                        <ul className="mc-choice-list">
-                          {Array.isArray(variant.options) && variant.options.length > 0
-                            ? variant.options.map((choice, index) => (
+                      {/* Multiple Choice Options */}
+                      {question.questionType === "multiple_choice_question" && (
+                        <div className="mc-div">
+                          <ul className="mc-choice-list">
+                            {Array.isArray(question.options) && question.options.length > 0
+                              ? question.options.map((choice, index) => (
                                 <li
                                   key={index}
                                   className="mc-choice"
@@ -686,125 +691,184 @@ const handleDifficultyChange = async (questionId, newDifficulty) => {
                                   <span>{choice}</span>
                                 </li>
                               ))
-                            : <li>No options provided</li>}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* Correct Answer */}
-                    <div className="correct-answer">
-                      {variant.correctAnswer && (
-                        <p><strong>Answer: </strong>{variant.correctAnswer}</p>
+                              : <li>No options provided</li>}
+                          </ul>
+                        </div>
                       )}
-                    </div>
 
-                    {/* Variant Comment */}
-                    {variant.comment && (
-                    <div className="question-comment">
-                      <strong>Comment:</strong> {variant.comment}
+                      {/* Correct Answer */}
+                      <div className="correct-answer">
+                        {question.correctAnswer && (
+                          <p><strong>Answer:</strong> {question.correctAnswer}</p>
+                        )}
+                      </div>
+
+                      {/* Question Comment */}
+                      {question.comment && (
+                        <div className="question-comment">
+                          <strong>Comment:</strong> {question.comment}
+                        </div>
+                      )}
+
+                      <div className="variant-controls">
+                        <button className="view-variants-button" onClick={() => handleViewVariants(question.id)}>
+                          <FaEye /> {expandedQuestion === question.id ? 'Hide Variants' : 'View Variants'}
+                        </button>
+                        <button className="create-variant-button" onClick={() => handleCreateVariant(question)}>
+                          <FaPlus /> Create Variant
+                        </button>
+                      </div>
+
+                      {/* Variants Section */}
+                      {expandedQuestion === question.id && (
+                        <div className="variants-list">
+                          {loadingVariants[question.id] ? (
+                            <p>Loading variants...</p>
+                          ) : variants[question.id]?.length > 0 ? (
+                            variants[question.id].map((variant) => (
+                              <div key={variant.id} className="variant-item">
+
+                                <h4 className="question-title" style={{ marginBottom: "5px" }}>
+                                  {variant.title}
+                                </h4>
+
+                                <div className="question">
+                                  <MathJax>{variant.text}</MathJax>
+                                </div>
+
+                                {/* Show Answer Choices if MCQ */}
+                                {variant.questionType === 'multiple_choice_question' && variant.options?.length > 0 && (
+                                  <div className="mc-div">
+                                    <ul className="mc-choice-list">
+                                      {Array.isArray(variant.options) && variant.options.length > 0
+                                        ? variant.options.map((choice, index) => (
+                                          <li
+                                            key={index}
+                                            className="mc-choice"
+                                          >
+                                            <strong>{String.fromCharCode(65 + index)})</strong>
+                                            <span>{choice}</span>
+                                          </li>
+                                        ))
+                                        : <li>No options provided</li>}
+                                    </ul>
+                                  </div>
+                                )}
+
+                                {/* Correct Answer */}
+                                <div className="correct-answer">
+                                  {variant.correctAnswer && (
+                                    <p><strong>Answer: </strong>{variant.correctAnswer}</p>
+                                  )}
+                                </div>
+
+                                {/* Variant Comment */}
+                                {variant.comment && (
+                                  <div className="question-comment">
+                                    <strong>Comment:</strong> {variant.comment}
+                                  </div>
+                                )}
+
+                                {/* Question Statistics */}
+                                <div className="variant-stats">
+                                  <strong>Statistics: </strong>
+                                  Mean: {variant.stats?.mean || '--'},
+                                  Median: {variant.stats?.median || '--'},
+                                  Std Dev: {variant.stats?.stdDev || '--'},
+                                  Min: {variant.stats?.min || '--'},
+                                  Max: {variant.stats?.max || '--'}
+                                </div>
+
+                                {/* Edit & Delete Buttons */}
+                                <div className="variant-actions">
+                                  <button className="delete-button" style={{ float: "right" }} onClick={() => handleDeleteQuestion(variant.id, question.id)}>
+                                    <FaTrash />
+                                  </button>
+                                  <button className="edit-button" style={{ float: "right" }} onClick={() => handleEditQuestion(variant)}>
+                                    <FaEdit />
+                                  </button>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <p style={{ fontSize: "0.9em" }}>No variants available.</p>
+                          )}
+                        </div>
+                      )}
+
                     </div>
-                    )}
 
                     {/* Question Statistics */}
-                    <div className="variant-stats">
-                      <strong>Statistics: </strong> 
-                      Mean: {variant.stats?.mean || '--'},
-                      Median: {variant.stats?.median || '--'},
-                      Std Dev: {variant.stats?.stdDev || '--'},
-                      Min: {variant.stats?.min || '--'},
-                      Max: {variant.stats?.max || '--'}
+                    <div className="question-stats">
+                      <h3 className="question-title" style={{ marginBottom: "10px" }}>Statistics</h3>
+                      <div className="stat-details">
+                        <span>Mean:</span>
+                        <span>{question.stats?.mean || '--'}</span>
+                      </div>
+                      <div className="stat-details">
+                        <span>Median:</span>
+                        <span>{question.stats?.median || '--'}</span>
+                      </div>
+                      <div className="stat-details">
+                        <span>Std Dev:</span>
+                        <span>{question.stats?.stdDev || '--'}</span>
+                      </div>
+                      <div className="stat-details">
+                        <span>Min:</span>
+                        <span>{question.stats?.min || '--'}</span>
+                      </div>
+                      <div className="stat-details">
+                        <span>Max:</span>
+                        <span>{question.stats?.max || '--'}</span>
+                      </div>
                     </div>
 
-                    {/* Edit & Delete Buttons */}
-                    <div className="variant-actions">
-                      <button className="delete-button" style={{float: "right"}} onClick={() => handleDeleteQuestion(variant.id, question.id)}>
-                        <FaTrash />
-                      </button>
-                      <button className="edit-button" style={{float: "right"}} onClick={() => handleEditQuestion(variant)}>
+                    {/* Edit and Delete Buttons */}
+                    <div className="question-actions">
+                      <button className="edit-button" onClick={() => handleEditQuestion(question)}>
                         <FaEdit />
                       </button>
+                      <button
+                        className="delete-button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAttemptDelete(true);
+                        }}
+                      >
+                        <FaTrash />
+                      </button>
                     </div>
+
+                    {/* Delete Confirmation Modal */}
+                    {attemptDelete && (
+                      <div className="modal-background">
+                        <div className="delete-confirmation-window">
+                          <h3 id="link-canvas-title">Delete Question?</h3>
+                          <p>This action cannot be undone.</p>
+                          <div className="window-button-div">
+                            <button
+                              className="link-canvas-window-button"
+                              id="add-course-button"
+                              onClick={() => handleDeleteQuestion(question.id)}
+                            >
+                              Delete
+                            </button>
+                            <button
+                              className="link-canvas-window-button"
+                              id="add-course-cancel"
+                              onClick={() => setAttemptDelete(false)}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                ))
-              ) : (
-                <p style={{fontSize: "0.9em"}}>No variants available.</p>
-              )}
-            </div>
-          )}
-
-        </div>
-
-          {/* Question Statistics */}
-          <div className="question-stats">
-            <h3 className="question-title" style={{marginBottom: "10px"}}>Statistics</h3>
-            <div className="stat-details">
-              <span>Mean:</span>
-              <span>{question.stats?.mean || '--'}</span>
-            </div>
-            <div className="stat-details">
-              <span>Median:</span>
-              <span>{question.stats?.median || '--'}</span>
-            </div>
-            <div className="stat-details">
-              <span>Std Dev:</span>
-              <span>{question.stats?.stdDev || '--'}</span>
-            </div>
-            <div className="stat-details">
-              <span>Min:</span>
-              <span>{question.stats?.min || '--'}</span>
-            </div>
-            <div className="stat-details">
-              <span>Max:</span>
-              <span>{question.stats?.max || '--'}</span>
-            </div>
-        </div>
-
-        {/* Edit and Delete Buttons */}
-        <div className="question-actions">
-          <button className="edit-button" onClick={() => handleEditQuestion(question)}>
-            <FaEdit />
-          </button>
-          <button
-            className="delete-button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setAttemptDelete(true);
-            }}
-          >
-            <FaTrash />
-          </button>
-        </div>
-
-        {/* Delete Confirmation Modal */}
-        {attemptDelete && (
-          <div className="modal-background">
-            <div className="delete-confirmation-window">
-              <h3 id="link-canvas-title">Delete Question?</h3>
-              <p>This action cannot be undone.</p>
-              <div className="window-button-div">
-                <button
-                  className="link-canvas-window-button"
-                  id="add-course-button"
-                  onClick={() => handleDeleteQuestion(question.id)}
-                >
-                  Delete
-                </button>
-                <button
-                  className="link-canvas-window-button"
-                  id="add-course-cancel"
-                  onClick={() => setAttemptDelete(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-        </div>
-      </li>
-    );
-  })}
-</ul>
+                </li>
+              );
+            })}
+          </ul>
 
 
           {showForm && (
@@ -820,7 +884,7 @@ const handleDifficultyChange = async (questionId, newDifficulty) => {
                 />
                 <div className="question-type-container">
                   <label htmlFor="questionType">Question Type:</label>
-                  <select 
+                  <select
                     id="questionType"
                     className="question-type-selector"
                     value={formFields.questionType}
@@ -831,17 +895,48 @@ const handleDifficultyChange = async (questionId, newDifficulty) => {
                     <option value="true_false_question">True/False</option>
                     <option value="numerical_question">Numerical</option>
                   </select>
-              </div>
+                </div>
 
-              <label>Question:</label>
-              <textarea
-                placeholder="Enter your question"
-                value={formFields.text}
-                onChange={(e) => setFormFields({ ...formFields, text: e.target.value })}
-                rows="3"
-              />
+                <label>Question:</label>
+                <textarea
+                  placeholder="Enter your question"
+                  value={formFields.text}
+                  onChange={(e) => setFormFields({ ...formFields, text: e.target.value })}
+                  rows="3"
+                />
 
-            {formFields.questionType === "essay_question" && (
+                <div className="upload-image-container">
+                  <label>Upload Associated Images:</label>
+                  <button type="button" className="upload-image-for-new-question">
+                    <label htmlFor="upload-image-for-new-question" style={{ cursor: "pointer" }}>
+                      Upload Image
+                    </label>
+                    <input
+                      type="file"
+                      id="upload-image-for-new-question"
+                      style={{ display: "none" }}
+                      accept=".jpg,.png,.svg,.jpeg,.bmp,.tiff,.heic"
+                      onChange={handleUploadImage}
+                    />
+
+                  </button>
+                </div>
+
+                <div className="uploaded-images-container">
+                  {images.map((imageId, index) => (
+                    <div key={index} className="uploaded-image">
+                      <span>Image {index + 1} (ID: {imageId})</span>
+                      <button
+                        className="remove-image-button"
+                        onClick={() => handleRemoveImage(imageId)}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {formFields.questionType === "essay_question" && (
                   <div>
                     <label>Correct Answer:</label>
                     <input
@@ -853,7 +948,7 @@ const handleDifficultyChange = async (questionId, newDifficulty) => {
                   </div>
                 )}
 
-              {formFields.questionType === "multiple_choice_question" && (
+                {formFields.questionType === "multiple_choice_question" && (
                   <div className="mcq-options">
                     <label>Answer Choices (comma-separated):</label>
                     <input
@@ -895,7 +990,7 @@ const handleDifficultyChange = async (questionId, newDifficulty) => {
                       onChange={(e) => setFormFields({ ...formFields, correctAnswer: e.target.value })}
                     />
                   </div>
-                )} 
+                )}
 
                 <textarea
                   placeholder="Enter a comment"

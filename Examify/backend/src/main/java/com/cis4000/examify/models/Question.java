@@ -1,6 +1,21 @@
 package com.cis4000.examify.models;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.Id;
+
+import java.util.HashSet;
+import java.util.Set;
 import java.util.List;
 
 @Entity
@@ -28,39 +43,14 @@ public class Question {
 
     @ElementCollection
     @CollectionTable(name = "question_options", joinColumns = @JoinColumn(name = "question_id"))
-    @Column(name = "option_text")  
+    @Column(name = "option_text")
     private List<String> options;
 
     @Column(name = "correct_answer")
     private String correctAnswer;
 
-    public List<String> getOptions() {
-        return options;
-    }
-
-    public void setOptions(List<String> options) {
-        this.options = options;
-    }
-
-    public String getCorrectAnswer() {
-        return correctAnswer;
-    }
-
-    public void setCorrectAnswer(String correctAnswer) {
-        this.correctAnswer = correctAnswer;
-    }
-
     @Column(name = "original_question_id", nullable = true)
     private Long originalQuestionId;
-
-    public Long getOriginalQuestionId() {
-        return originalQuestionId;
-    }
-
-    public void setOriginalQuestionId(Long originalQuestionId) {
-        this.originalQuestionId = originalQuestionId;
-    }
-
 
     @ElementCollection
     @CollectionTable(name = "question_tags", joinColumns = @JoinColumn(name = "question_id"))
@@ -70,6 +60,15 @@ public class Question {
     @Embedded
     private Stats stats;
 
+    @ManyToMany
+    @JoinTable(
+        name = "question_image",
+        joinColumns = @JoinColumn(name = "question_id"),
+        inverseJoinColumns = @JoinColumn(name = "image_id")
+    )
+    private Set<Image> images = new HashSet<>();
+
+    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -110,6 +109,30 @@ public class Question {
         this.comment = comment;
     }
 
+    public List<String> getOptions() {
+        return options;
+    }
+
+    public void setOptions(List<String> options) {
+        this.options = options;
+    }
+
+    public String getCorrectAnswer() {
+        return correctAnswer;
+    }
+
+    public void setCorrectAnswer(String correctAnswer) {
+        this.correctAnswer = correctAnswer;
+    }
+
+    public Long getOriginalQuestionId() {
+        return originalQuestionId;
+    }
+
+    public void setOriginalQuestionId(Long originalQuestionId) {
+        this.originalQuestionId = originalQuestionId;
+    }
+
     public List<String> getTags() {
         return tags;
     }
@@ -134,31 +157,23 @@ public class Question {
         this.questionType = questionType;
     }
 
+    public Set<Image> getImages() {
+        return images;
+    }
+
+    public void setImages(Set<Image> images) {
+        this.images = images;
+    }
+
     @Embeddable
     public static class Stats {
-
         private String mean;
         private String median;
         private String stdDev;
         private String min;
         private String max;
 
-        public Stats() {
-            this.mean = "N/A";
-            this.median = "N/A";
-            this.stdDev = "N/A";
-            this.min = "N/A";
-            this.max = "N/A";
-        }
-
-        public Stats(String mean, String median, String stdDev, String min, String max) {
-            this.mean = mean;
-            this.median = median;
-            this.stdDev = stdDev;
-            this.min = min;
-            this.max = max;
-        }
-
+        // Getters and Setters for Stats
         public String getMean() {
             return mean;
         }
