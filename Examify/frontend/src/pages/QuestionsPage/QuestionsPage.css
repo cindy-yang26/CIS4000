@@ -448,3 +448,12 @@
   align-items: center;
   gap: 5px;
 }
+
+.remove-image-button {
+  background: none;
+  border: none;
+  color: red;
+  font-size: 8px;
+  cursor: pointer;
+  margin-left: 8px;
+}

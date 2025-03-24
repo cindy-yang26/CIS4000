@@ -64,8 +64,9 @@ public class QuestionsController extends BaseController {
     }
 
     @PostMapping("{id}/create-variant")
-    public ResponseEntity<?> createQuestionVariant(@CookieValue(name = "sessionId", required = false) String sessionCookie,
-                                                   @PathVariable Long id) {
+    public ResponseEntity<?> createQuestionVariant(
+            @CookieValue(name = "sessionId", required = false) String sessionCookie,
+            @PathVariable Long id) {
         Long userId = getUserIdFromSessionCookie(sessionCookie);
         if (userId == null) {
             return notLoggedInResponse();
@@ -87,7 +88,8 @@ public class QuestionsController extends BaseController {
             obfuscationResult = generateObfuscatedText(originalQuestion.getText());
         } catch (IOException e) {
             System.out.println("Obfuscation failed: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to generate obfuscated variant.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to generate obfuscated variant.");
         }
 
         Question variant = new Question();
@@ -120,61 +122,61 @@ public class QuestionsController extends BaseController {
 
     private ObfuscationResult generateObfuscatedText(String questionText) throws IOException {
         String prompt = """
-You are a question variant generator. Given a question, your goal is to create a new version that tests the **same core concept or skill**, 
-but with as much variation as possible in its presentation.
+                You are a question variant generator. Given a question, your goal is to create a new version that tests the **same core concept or skill**,
+                but with as much variation as possible in its presentation.
 
-What to Change:
-- **Change the numerical values, units, or specific conditions** in the problem.
-- **Change the real-world context or scenario** (e.g., from a car on a hill to a box on a ramp).
-- **Change variable names or labels**.
-- **Reword the question structure** (don't just paraphrase — restructure it if possible).
-- Maintain mathematical integrity: all math should be valid and solvable.
+                What to Change:
+                - **Change the numerical values, units, or specific conditions** in the problem.
+                - **Change the real-world context or scenario** (e.g., from a car on a hill to a box on a ramp).
+                - **Change variable names or labels**.
+                - **Reword the question structure** (don't just paraphrase — restructure it if possible).
+                - Maintain mathematical integrity: all math should be valid and solvable.
 
-What to Keep:
-- The **underlying concept** (e.g., applying Pythagoras, solving for velocity, interpreting a graph).
-- If applicable, keep the structure of answer choices, but change their values and ordering.
+                What to Keep:
+                - The **underlying concept** (e.g., applying Pythagoras, solving for velocity, interpreting a graph).
+                - If applicable, keep the structure of answer choices, but change their values and ordering.
 
-You must only create ONE variant.
+                You must only create ONE variant.
 
-⚠️ VERY IMPORTANT FORMATTING RULES ⚠️
+                ⚠️ VERY IMPORTANT FORMATTING RULES ⚠️
 
-- You MUST wrap the **entire content** of each field (Question Type, Title, Tags, Question, Choices, Correct Answer) inside square brackets `[ ]`.
-- ❗ Do NOT use display-style labels like "Multiple Choice Question" — for Question Type you MUST use ONLY one of these exact values:
-  - multiple_choice_question
-  - true_false_question
-  - numerical_question
-  - essay_question
-- Tags and choices must be separated with `||`, but the full list must be wrapped in **one pair of brackets**.
-- Do NOT put individual brackets around each choice or tag.
-- The **Correct Answer** must exactly match one of the answer choices (or True/False/N/A depending on the question type).
-- You MUST include the following fields, and follow the format **EXACTLY** in both order and spacing:
-  - Question Type: [one_of_the_four_types]
-  - Title: [Your generated title]
-  - Tags: [Tag1 || Tag2 || Tag3]
-  - Question: [Your obfuscated question text]
-  - Choices: [Choice1 || Choice2 || Choice3 || Choice4]  ← Only for MCQ. Omit for essay.
-  - Correct Answer: [Correct Answer] ← Omit for essay.
-- Do NOT include any letter labels (A, B, etc.) in the choices.
-- For **True/False** questions, do NOT include "(True/False?)" in the question text.
-- For **essay** questions, omit the `Choices:` field entirely, but still include `Correct Answer: [N/A]`.
+                - You MUST wrap the **entire content** of each field (Question Type, Title, Tags, Question, Choices, Correct Answer) inside square brackets `[ ]`.
+                - ❗ Do NOT use display-style labels like "Multiple Choice Question" — for Question Type you MUST use ONLY one of these exact values:
+                  - multiple_choice_question
+                  - true_false_question
+                  - numerical_question
+                  - essay_question
+                - Tags and choices must be separated with `||`, but the full list must be wrapped in **one pair of brackets**.
+                - Do NOT put individual brackets around each choice or tag.
+                - The **Correct Answer** must exactly match one of the answer choices (or True/False/N/A depending on the question type).
+                - You MUST include the following fields, and follow the format **EXACTLY** in both order and spacing:
+                  - Question Type: [one_of_the_four_types]
+                  - Title: [Your generated title]
+                  - Tags: [Tag1 || Tag2 || Tag3]
+                  - Question: [Your obfuscated question text]
+                  - Choices: [Choice1 || Choice2 || Choice3 || Choice4]  ← Only for MCQ. Omit for essay.
+                  - Correct Answer: [Correct Answer] ← Omit for essay.
+                - Do NOT include any letter labels (A, B, etc.) in the choices.
+                - For **True/False** questions, do NOT include "(True/False?)" in the question text.
+                - For **essay** questions, omit the `Choices:` field entirely, but still include `Correct Answer: [N/A]`.
 
-✅ Example — multiple_choice_question:
-Question Type: [multiple_choice_question]  
-Title: [Physics of Gravity]  
-Tags: [Physics || Gravity || Motion]  
-Question: [What force causes an object to accelerate downward on Earth?]  
-Choices: [Friction || Gravity || Magnetism || Inertia]  
-Correct Answer: [Gravity]
+                ✅ Example — multiple_choice_question:
+                Question Type: [multiple_choice_question]
+                Title: [Physics of Gravity]
+                Tags: [Physics || Gravity || Motion]
+                Question: [What force causes an object to accelerate downward on Earth?]
+                Choices: [Friction || Gravity || Magnetism || Inertia]
+                Correct Answer: [Gravity]
 
----
-Original Question:
-%s
-""".formatted(questionText);
+                ---
+                Original Question:
+                %s
+                """
+                .formatted(questionText);
 
         ObjectMapper objectMapper = new ObjectMapper();
         String requestBody = objectMapper.writeValueAsString(
-                new ChatCompletionRequest("gpt-3.5-turbo", "You are a helpful assistant.", prompt)
-        );
+                new ChatCompletionRequest("gpt-3.5-turbo", "You are a helpful assistant.", prompt));
 
         OkHttpClient client = new OkHttpClient();
 
@@ -222,7 +224,8 @@ Original Question:
 
     private List<String> extractList(String content, String label) {
         String value = extractBracketValue(content, label);
-        if (value.isEmpty()) return new ArrayList<>();
+        if (value.isEmpty())
+            return new ArrayList<>();
 
         return Arrays.stream(value.split("\\|\\|"))
                 .map(s -> s.trim().replaceAll("^[A-D]\\)", ""))
@@ -320,6 +323,9 @@ Original Question:
             question.setCorrectAnswer(questionRequest.getCorrectAnswer());
 
             // Update the stats
+            if (question.getStats() == null) {
+                question.setStats(new Question.Stats());
+            }
             Question.Stats stats = question.getStats();
             stats.setMean(questionRequest.getStats().getMean());
             stats.setMedian(questionRequest.getStats().getMedian());
@@ -353,7 +359,7 @@ Original Question:
 
     @DeleteMapping("{id}")
     public ResponseEntity<?> deleteQuestion(@CookieValue(name = "sessionId", required = false) String sessionCookie,
-                                            @PathVariable Long id) {
+            @PathVariable Long id) {
         Long userId = getUserIdFromSessionCookie(sessionCookie);
         // User needs to log in first
         if (userId == null) {
@@ -376,8 +382,9 @@ Original Question:
     }
 
     @GetMapping("{id}/variants")
-    public ResponseEntity<?> getQuestionVariants(@CookieValue(name = "sessionId", required = false) String sessionCookie,
-                                                 @PathVariable Long id) {
+    public ResponseEntity<?> getQuestionVariants(
+            @CookieValue(name = "sessionId", required = false) String sessionCookie,
+            @PathVariable Long id) {
         Long userId = getUserIdFromSessionCookie(sessionCookie);
         if (userId == null) {
             return notLoggedInResponse();
@@ -485,7 +492,7 @@ Original Question:
         public List<Long> getImageIds() {
             return imageIds;
         }
-    
+
         public void setImageIds(List<Long> imageIds) {
             this.imageIds = imageIds;
         }
@@ -549,7 +556,7 @@ Original Question:
 
         public ChatCompletionRequest(String model, String systemMessage, String userMessage) {
             this.model = model;
-            this.messages = new Message[]{
+            this.messages = new Message[] {
                     new Message("system", systemMessage),
                     new Message("user", userMessage)
             };
