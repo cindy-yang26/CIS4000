@@ -1,32 +1,63 @@
-/* Toggle button styling */
 .header-container {
   display: flex;
-  justify-content: space-between; /* Space between the text and the button */
-  align-items: center; /* Vertically center the button with the text */
-  margin-bottom: 20px; /* Add some spacing below the header */
+  justify-content: space-between; 
+  align-items: center; 
+  margin-bottom: 20px;
+}
+
+.difficulty-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 35px;
+  width: 100%;
 }
 
 .toggle-missing-stats-button {
-  background-color: #007bff; /* Example button color */
+  background-color: #007bff; 
   color: white;
+  font-family: 'Work Sans', sans-serif;
   border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
+  font-weight: bold;
+  padding: 8px 16px;
   cursor: pointer;
-  font-size: 14px;
+  border-radius: 5px;
+  font-size: 0.9em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+  color: white;
 }
 
 .toggle-missing-stats-button:hover {
-  background-color: #0056b3; /* Darker shade on hover */
+  background-color: #0056b3; 
 }
 
-/* Missing stats dropdown styling */
 .missing-stats-dropdown {
   border: 1px solid #ccc;
   border-radius: 5px;
-  padding: 20px;
+  padding: 10px 20px;
   background-color: #f9f9f9;
   margin-bottom: 20px;
+}
+
+#difficulty-question-item {
+  padding-right: 20px;
+  box-shadow: none;
+  background-color: #f9f9f9;
+  border-left: none;
+  align-items: flex-start;
+}
+
+.stat-estimate-div {
+  text-align: center;
+}
+
+#estimate-header {
+  margin: 0;
+  padding-bottom: 5px;
 }
 
 .missing-stat-entry {
@@ -46,40 +77,38 @@
   border-radius: 4px;
 }
 
-/* Question item styling */
-.question-item {
-  /* display: grid;
-  grid-template-columns: 1fr; 
-  gap: 15px; 
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 15px;
-  margin-bottom: 20px;
-  width: 100%; 
-  box-sizing: border-box;  */
+.estimate-title {
+  margin-bottom: 0;
 }
 
-/* Question text styling */
+.estimate-text {
+  font-weight: normal;
+  font-style: italic;
+  margin: 0;
+  margin-bottom: 15px;
+}
+
 .question-text {
   margin-bottom: 15px;
 }
 
-/* Stats inputs styling */
 .stats-inputs {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr); /* Two columns for stats inputs */
-  gap: 10px; /* Space between inputs */
+  width: 70%;
+  margin: auto;
 }
 
 .stat-input {
   display: flex;
   align-items: center;
+  height: 35px;
 }
 
 .stat-input label {
-  width: 80px; /* Fixed width for labels */
-  margin-right: 10px;
+  width: 80px;
+  font-size: 0.9em;
+  margin-right: 5px;
   font-weight: bold;
+  font-size: 0.9em;
 }
 
 .stat-input input {
@@ -87,36 +116,43 @@
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  width: 100%; /* Ensure all inputs have the same width */
+  width: 100%;
+  height: 25px;
+  margin-top: 15px;
+}
+
+.overall-stats-div {
+  display: flex;
+  width: 72%;
+  margin: 0 auto;
+  margin-top: 30px;
 }
 
 .difficulty-chart {
-  margin-top: 20px;
-  padding: 20px;
+  text-align: center;
   background-color: #f9f9f9;
-  border-radius: 8px;
+  border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 70%;
 }
 
 .overall-stats-container {
-  padding-left: 20px; /* Add padding to the left */
-  padding-right: 20px; /* Add padding to the right */
-  width: 80%;
+  padding: 5px 10px;
+  width: 30%;
+  font-size: 1.1em;
+  margin-right: 20px;
 }
 
-.overall-stats-container ul {
-  list-style-type: none; /* Remove default list styling */
-  padding: 5; /* Remove default padding */
-  margin: 5; /* Remove default margin */
+.overall-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #ddd;
 }
 
-.overall-stats-container li {
-  padding: 8px 0; /* Add spacing between list items */
-  border-bottom: 1px solid #ddd; /* Optional: Add a separator between items */
-}
-
-.overall-stats-container li:last-child {
-  border-bottom: none; /* Remove the border from the last item */
+.overall-stats-container div:last-child {
+  border-bottom: none; 
 }
 
 .metrics-container {
@@ -128,6 +164,11 @@
   border-radius: 8px;
 }
 
+#metrics-container-difficulty {
+  width: 70%;
+  margin: 0 auto;
+}
+
 .metrics {
   display: flex;
   width: 85%
@@ -137,7 +178,11 @@
   flex: 1;
   text-align: center;
   padding: 10px;
-  border-right: 1px solid #ddd; /* Add a separator between metrics */
+  border-right: 1px solid #ddd; 
+}
+
+#last-metric {
+  border: none;
 }
 
 .view-metrics {
