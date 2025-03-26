@@ -185,6 +185,7 @@
 .submit-question-button {
   background-color: #28a745;
   color: white;
+  margin-right: 8px;
   border: none;
   border-radius: 20px;
   padding: 10px 20px;
@@ -237,7 +238,6 @@
   background-color: #0056b3;
   color: white;
 }
-
 
 .edit-stats-form {
   margin-top: 20px;
@@ -351,6 +351,7 @@
 .question-type-selector {
   width: 100%;
   padding: 10px;
+  margin-bottom: 16px;
   font-size: 16px;
   border: 2px solid #ccc;
   border-radius: 5px;
@@ -511,6 +512,10 @@
 .view-variants-button:hover,
 .create-variant-button:hover {
   background-color: #407943;
+}
+
+.upload-image-container {
+  margin-bottom: 16px;
 }
 
 .remove-image-button {
