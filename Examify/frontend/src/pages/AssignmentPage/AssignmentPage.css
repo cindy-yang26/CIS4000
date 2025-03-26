@@ -519,3 +519,35 @@
 .update-assignment-button:hover {
   background-color: #1f3b8f;
 }
+
+.add-question-container {
+  display: flex;
+  justify-content: center;
+  margin: 30px 0;
+}
+
+.add-question-button {
+  background-color: #d9534f;
+  color: white;
+  border: none;
+  font: inherit;
+  font-weight: bold;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 0.9em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.add-question-button:hover {
+  background-color: #c9302c;
+}
+
+.question-button-text {
+  font-weight: bold;
+  margin-left: 5px;
+}
