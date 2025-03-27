@@ -7,6 +7,7 @@ import { FaChevronLeft, FaEdit, FaTrash, FaPlus, FaEye, FaSearch, FaUpload } fro
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
 import { fetchQuestionVariants, createQuestionVariant } from "../../api/variants";
 import './QuestionsPage.css';
+import QuestionForm from '../../components/QuestionForm';
 import mammoth from 'mammoth';
 
 function QuestionsPage() {
@@ -882,227 +883,19 @@ function QuestionsPage() {
 
 
           {showForm && (
-            <div className="question-form-div">
-              <form className="add-question-form" onSubmit={handleFormSubmit}>
-                <input
-                  type="text"
-                  placeholder="Enter question title"
-                  value={formFields.title}
-                  onChange={(e) =>
-                    setFormFields({ ...formFields, title: e.target.value })
-                  }
-                />
-                <div className="question-type-container">
-                  <label htmlFor="questionType">Question Type:</label>
-                  <select
-                    id="questionType"
-                    className="question-type-selector"
-                    value={formFields.questionType}
-                    onChange={(e) => setFormFields({ ...formFields, questionType: e.target.value })}
-                  >
-                    <option value="multiple_choice_question">Multiple Choice</option>
-                    <option value="essay_question">Long Response</option>
-                    <option value="true_false_question">True/False</option>
-                    <option value="numerical_question">Numerical</option>
-                  </select>
-                </div>
-
-                <label>Question:</label>
-                <textarea
-                  placeholder="Enter your question"
-                  value={formFields.text}
-                  onChange={(e) => setFormFields({ ...formFields, text: e.target.value })}
-                  rows="3"
-                />
-
-                <div className="upload-image-container">
-                  <label>Upload Associated Images:</label>
-                  <button type="button" className="upload-image-for-new-question">
-                    <label htmlFor="upload-image-for-new-question" style={{ cursor: "pointer" }}>
-                      Upload Image
-                    </label>
-                    <input
-                      type="file"
-                      id="upload-image-for-new-question"
-                      style={{ display: "none" }}
-                      accept=".jpg,.png,.svg,.jpeg,.bmp,.tiff,.heic"
-                      onChange={handleUploadImage}
-                    />
-
-                  </button>
-                </div>
-
-                <div className="uploaded-images-container">
-                  {images.map((imageId, index) => (
-                    <div key={index} className="uploaded-image">
-                      <span>Image {index + 1} (ID: {imageId})</span>
-                      <button
-                        className="remove-image-button"
-                        onClick={() => handleRemoveImage(imageId)}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                {formFields.questionType === "essay_question" && (
-                  <div>
-                    <label>Correct Answer:</label>
-                    <input
-                      type="text"
-                      placeholder="Enter correct answer"
-                      value={formFields.correctAnswer || ''}
-                      onChange={(e) => setFormFields({ ...formFields, correctAnswer: e.target.value })}
-                    />
-                  </div>
-                )}
-
-                {formFields.questionType === "multiple_choice_question" && (
-                  <div className="mcq-options">
-                    <label>Answer Choices (comma-separated):</label>
-                    <input
-                      type="text"
-                      placeholder="Option1, Option2, Option3, ..."
-                      value={formFields.options || ''}
-                      onChange={(e) => setFormFields({ ...formFields, options: e.target.value })}
-                    />
-                    <label>Correct Answer:</label>
-                    <input
-                      type="text"
-                      placeholder="Enter correct answer"
-                      value={formFields.correctAnswer || ''}
-                      onChange={(e) => setFormFields({ ...formFields, correctAnswer: e.target.value })}
-                    />
-                  </div>
-                )}
-
-                {formFields.questionType === "true_false_question" && (
-                  <div className="tf-options">
-                    <label>Correct Answer:</label>
-                    <select
-                      value={formFields.correctAnswer || 'True'}
-                      onChange={(e) => setFormFields({ ...formFields, correctAnswer: e.target.value })}
-                    >
-                      <option value="True">True</option>
-                      <option value="False">False</option>
-                    </select>
-                  </div>
-                )}
-
-                {formFields.questionType === "numerical_question" && (
-                  <div className="numerical-answer">
-                    <label>Correct Answer:</label>
-                    <input
-                      type="number"
-                      placeholder="Enter correct numerical value"
-                      value={formFields.correctAnswer || ''}
-                      onChange={(e) => setFormFields({ ...formFields, correctAnswer: e.target.value })}
-                    />
-                  </div>
-                )}
-
-                <textarea
-                  placeholder="Enter a comment"
-                  value={formFields.comment}
-                  onChange={(e) =>
-                    setFormFields({ ...formFields, comment: e.target.value })
-                  }
-                  rows="2"
-                />
-
-                <div className="autocomplete-container">
-                  <input
-                    type="text"
-                    placeholder="Enter tags (comma-separated)"
-                    value={formFields.tags}
-                    onChange={(e) => {
-                      setFormFields({ ...formFields, tags: e.target.value });
-                      handleTagSearch(e.target.value);
-                    }}
-                    onFocus={() => {
-                      handleTagSearch(formFields.tags); // Show suggestions on focus
-                      setShowSuggestions(true);
-                    }}
-                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} // Delay hiding for clicks to register
-                  />
-                  {showSuggestions && filteredTags.length > 0 && (
-                    <ul className="autocomplete-dropdown">
-                      {filteredTags.map((tag, index) => (
-                        <li
-                          key={index}
-                          onMouseDown={() => handleTagSelect(tag)}
-                        >
-                          {tag}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-
-                <div className="stats-fields">
-                  <label>
-                    Mean:
-                    <input
-                      type="text"
-                      value={formFields.stats.mean}
-                      onChange={(e) =>
-                        setFormFields({ ...formFields, stats: { ...formFields.stats, mean: e.target.value } })
-                      }
-                    />
-                  </label>
-                  <label>
-                    Median:
-                    <input
-                      type="text"
-                      value={formFields.stats.median}
-                      onChange={(e) =>
-                        setFormFields({ ...formFields, stats: { ...formFields.stats, median: e.target.value } })
-                      }
-                    />
-                  </label>
-                  <label>
-                    Std Dev:
-                    <input
-                      type="text"
-                      value={formFields.stats.stdDev}
-                      onChange={(e) =>
-                        setFormFields({ ...formFields, stats: { ...formFields.stats, stdDev: e.target.value } })
-                      }
-                    />
-                  </label>
-                  <label>
-                    Min:
-                    <input
-                      type="text"
-                      value={formFields.stats.min}
-                      onChange={(e) =>
-                        setFormFields({ ...formFields, stats: { ...formFields.stats, min: e.target.value } })
-                      }
-                    />
-                  </label>
-                  <label>
-                    Max:
-                    <input
-                      type="text"
-                      value={formFields.stats.max}
-                      onChange={(e) =>
-                        setFormFields({ ...formFields, stats: { ...formFields.stats, max: e.target.value } })
-                      }
-                    />
-                  </label>
-                </div>
-
-                <button type="submit" className="submit-question-button">
-                  {editingQuestion ? 'Save Changes' : 'Add Question'}
-                </button>
-                <button className="cancel-question-button" onClick={handleCancelQuestion}>
-                  Cancel
-                </button>
-
-              </form>
-            </div>
+            <QuestionForm
+              showForm={showForm}
+              editingQuestion={editingQuestion}
+              formFields={formFields}
+              setFormFields={setFormFields}
+              handleFormSubmit={handleFormSubmit}
+              handleCancelQuestion={handleCancelQuestion}
+              tags={tags}
+              images={images}
+              setImages={setImages}
+              handleUploadImage={handleUploadImage}
+              handleRemoveImage={handleRemoveImage}
+            />
           )}
         </div>
       </div>

@@ -2,14 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../../components/Header/Header';
 import DownloadDropdown from '../../components/DownloadDropdown';
-import { fetchAssignmentInfo, fetchAssignmentQuestions, uploadAssignmentToCanvas, downloadLatex, downloadDocs } from '../../api/assignments';
+import { fetchAssignmentInfo, fetchAssignmentQuestions, uploadAssignmentToCanvas, downloadLatex, downloadDocs, updateAssignmentQuestions } from '../../api/assignments';
+import { createQuestion, editQuestion, deleteQuestion, uploadImage, uploadFileContentToBackend } from '../../api/questions';
 import { FaChevronLeft, FaEdit, FaDownload } from 'react-icons/fa';
 import { FaAngleRight } from "react-icons/fa6";
 import { fetchCourseInfo, getAllTags } from '../../api/courses';
-import { editQuestion } from '../../api/questions';
 import { MathJaxContext } from 'better-react-mathjax';
 import QuestionItem from '../../components/QuestionItem'; // Import the new component
-import './AssignmentPage.css';
+import { FaPlus } from 'react-icons/fa';
+import QuestionForm from '../../components/QuestionForm';
+  import './AssignmentPage.css';
 
 function AssignmentPage() {
   const { courseId, assignmentId } = useParams();
@@ -19,7 +21,9 @@ function AssignmentPage() {
   const [assignmentStatistics, setAssignmentStatistics] = useState({});
   const [courseName, setCourseName] = useState("");
   const [questions, setQuestions] = useState([]);
+  const [showQuestionEditForm, setshowQuestionEditForm] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [images, setImages] = useState([]);
   const [formFields, setFormFields] = useState({
     title: '',
     text: '',
@@ -66,7 +70,59 @@ function AssignmentPage() {
       }
     };
     loadTags();
-  }, [courseId, navigate, showForm]);
+  }, [courseId, navigate, showQuestionEditForm]);
+
+  const handleAddQuestion = () => {
+    setFormFields({
+      title: '',
+      text: '',
+      comment: '',
+      tags: '',
+      questionType: 'essay_question',
+      correctAnswer: '',
+      stats: { mean: '', median: '', stdDev: '', min: '', max: '' },
+      options: '',
+    });
+    setEditingQuestion(null);
+    setImages([]);
+    setShowForm(true);
+  };
+  
+  const handleCancelQuestion = () => {
+    setShowForm(false);
+  };
+  
+  const handleUploadImage = async (e) => {
+    e.preventDefault();
+  
+    for (const file of e.target.files) {
+      const fileExt = file.name.split('.').pop().toLowerCase();
+      try {
+        const reader = new FileReader();
+  
+        reader.onloadend = async () => {
+          const base64String = reader.result.split(",")[1];
+          const imageInfo = await uploadImage(courseId, fileExt, base64String, navigate);
+  
+          if (imageInfo) {
+            setImages(prevImages => [...prevImages, imageInfo.imageId]);
+          } else {
+            console.error("Failed to upload image.");
+            alert("Failed to upload image.");
+          }
+        };
+  
+        reader.readAsDataURL(file);
+      } catch (error) {
+        console.error('Error processing image:', error);
+        alert('Failed to process image.');
+      }
+    }
+  };
+  
+  const handleRemoveImage = (imageId) => {
+    setImages((prevImages) => prevImages.filter((id) => id !== imageId));
+  };
 
   const handleTagSearch = (input) => {
     if (!input.trim()) {
@@ -151,20 +207,20 @@ function AssignmentPage() {
   };
 
   const cancelEdit = () => {
-    setShowForm(false);
+    setshowQuestionEditForm(false);
   };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-
+  
     const tagsArray = formFields.tags.split(',').map((tag) => tag.trim()).filter((tag) => tag);
     let optionsArray = formFields.options ? formFields.options.split(',').map(opt => opt.trim()) : [];
-
+  
     if (!formFields.title.trim()) {
       alert("Title cannot be empty.");
       return;
     }
-
+  
     if (formFields.questionType === "multiple_choice_question") {
       if (!formFields.options || formFields.options.split(',').length < 2) {
         alert("Multiple Choice Questions must have at least 2 options.");
@@ -179,39 +235,45 @@ function AssignmentPage() {
         return;
       }
     }
-
+  
     if (formFields.questionType === "true_false_question" && !formFields.correctAnswer) {
       alert("True/False questions must have a correct answer.");
       return;
     }
-
+  
     if (formFields.questionType === "numerical_question" && (formFields.correctAnswer === "" || isNaN(formFields.correctAnswer))) {
       alert("Numerical questions must have a valid numerical answer.");
       return;
     }
-
+  
     const questionData = {
+      courseId: courseId,
       title: formFields.title,
       text: formFields.text,
       comment: formFields.comment,
       tags: tagsArray,
       questionType: formFields.questionType,
-      correctAnswer: formFields.correctAnswer || "",
-      stats: { ...formFields.stats },
-      options: formFields.options ? formFields.options.split(',').map(opt => opt.trim()) : [],
       correctAnswer: formFields.questionType === "true_false_question"
         ? (formFields.correctAnswer === "False" ? "False" : "True")
         : formFields.correctAnswer || "",
+      stats: { ...formFields.stats },
+      options: formFields.options ? formFields.options.split(',').map(opt => opt.trim()) : [],
+      imageIds: images,
+      assignmentId: assignmentId, // Add this line to associate with assignment
     };
-
+  
     try {
       if (editingQuestion) {
         await editQuestion(editingQuestion.id, questionData, navigate);
+      } else {
+        const question = await createQuestion(questionData, navigate);
+        console.log(question);
+        await updateAssignmentQuestions(assignmentId, [...questions.map(x => x.id), question.id], navigate);
       }
-
+  
       const updatedQuestions = await fetchAssignmentQuestions(assignmentId, navigate);
       setQuestions(updatedQuestions);
-
+  
       setFormFields({
         title: '',
         text: '',
@@ -220,7 +282,9 @@ function AssignmentPage() {
         questionType: 'essay_question',
         correctAnswer: '',
         stats: { mean: '', median: '', stdDev: '', min: '', max: '' },
+        options: '',
       });
+      setImages([]);
       setShowForm(false);
     } catch (error) {
       alert("Failed to save question");
@@ -244,7 +308,7 @@ function AssignmentPage() {
           : "True")
         : question.correctAnswer || '',
     });
-    setShowForm(true);
+    setshowQuestionEditForm(true);
   };
 
   const handleDeleteTag = async (questionId, tagToDelete) => {
@@ -459,7 +523,7 @@ function AssignmentPage() {
           </ul>
 
           {/* Question editing form modal */}
-          {showForm && (
+          {showQuestionEditForm && (
             <div className="add-question-background">
               <form className="add-question-form" onSubmit={handleFormSubmit}>
                 <input
@@ -580,6 +644,29 @@ function AssignmentPage() {
               </form>
             </div>
           )}
+
+          {/* Add Question Button */}
+          <div className="add-question-container">
+            <button className="add-question-button" onClick={handleAddQuestion}>
+              <FaPlus />
+              <span className="question-button-text">{' Add Question'}</span>
+            </button>
+          </div>
+
+          {/* Question Form */}
+          <QuestionForm
+            showForm={showForm}
+            editingQuestion={editingQuestion}
+            formFields={formFields}
+            setFormFields={setFormFields}
+            handleFormSubmit={handleFormSubmit}
+            handleCancelQuestion={handleCancelQuestion}
+            tags={tags}
+            images={images}
+            setImages={setImages}
+            handleUploadImage={handleUploadImage}
+            handleRemoveImage={handleRemoveImage}
+          />
         </div>
       </div>
     </MathJaxContext>
