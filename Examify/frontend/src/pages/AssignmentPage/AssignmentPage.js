@@ -11,7 +11,7 @@ import { MathJaxContext } from 'better-react-mathjax';
 import QuestionItem from '../../components/QuestionItem'; // Import the new component
 import { FaPlus } from 'react-icons/fa';
 import QuestionForm from '../../components/QuestionForm';
-  import './AssignmentPage.css';
+import './AssignmentPage.css';
 
 function AssignmentPage() {
   const { courseId, assignmentId } = useParams();
@@ -87,23 +87,23 @@ function AssignmentPage() {
     setImages([]);
     setShowForm(true);
   };
-  
+
   const handleCancelQuestion = () => {
     setShowForm(false);
   };
-  
+
   const handleUploadImage = async (e) => {
     e.preventDefault();
-  
+
     for (const file of e.target.files) {
       const fileExt = file.name.split('.').pop().toLowerCase();
       try {
         const reader = new FileReader();
-  
+
         reader.onloadend = async () => {
           const base64String = reader.result.split(",")[1];
           const imageInfo = await uploadImage(courseId, fileExt, base64String, navigate);
-  
+
           if (imageInfo) {
             setImages(prevImages => [...prevImages, imageInfo.imageId]);
           } else {
@@ -111,7 +111,7 @@ function AssignmentPage() {
             alert("Failed to upload image.");
           }
         };
-  
+
         reader.readAsDataURL(file);
       } catch (error) {
         console.error('Error processing image:', error);
@@ -119,7 +119,7 @@ function AssignmentPage() {
       }
     }
   };
-  
+
   const handleRemoveImage = (imageId) => {
     setImages((prevImages) => prevImages.filter((id) => id !== imageId));
   };
@@ -129,25 +129,25 @@ function AssignmentPage() {
       setFilteredTags(tags);
       return;
     }
-  
+
     const inputTags = input.split(',').map(tag => tag.trim());
     const lastTag = inputTags[inputTags.length - 1];
-  
+
     const matchingTags = tags.filter(tag =>
       tag.toLowerCase().includes(lastTag.toLowerCase())
     );
-  
+
     setFilteredTags(matchingTags);
   };
-  
+
   const handleTagSelect = (selectedTag) => {
     const currentTags = formFields.tags.split(',').map(tag => tag.trim());
-    
+
     if (!currentTags.includes(selectedTag)) {
       currentTags[currentTags.length - 1] = selectedTag;
       setFormFields({ ...formFields, tags: currentTags.join(', ') });
     }
-    
+
     setShowSuggestions(false);
   };
 
@@ -212,15 +212,15 @@ function AssignmentPage() {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-  
+
     const tagsArray = formFields.tags.split(',').map((tag) => tag.trim()).filter((tag) => tag);
     let optionsArray = formFields.options ? formFields.options.split(',').map(opt => opt.trim()) : [];
-  
+
     if (!formFields.title.trim()) {
       alert("Title cannot be empty.");
       return;
     }
-  
+
     if (formFields.questionType === "multiple_choice_question") {
       if (!formFields.options || formFields.options.split(',').length < 2) {
         alert("Multiple Choice Questions must have at least 2 options.");
@@ -235,17 +235,17 @@ function AssignmentPage() {
         return;
       }
     }
-  
+
     if (formFields.questionType === "true_false_question" && !formFields.correctAnswer) {
       alert("True/False questions must have a correct answer.");
       return;
     }
-  
+
     if (formFields.questionType === "numerical_question" && (formFields.correctAnswer === "" || isNaN(formFields.correctAnswer))) {
       alert("Numerical questions must have a valid numerical answer.");
       return;
     }
-  
+
     const questionData = {
       courseId: courseId,
       title: formFields.title,
@@ -261,7 +261,7 @@ function AssignmentPage() {
       imageIds: images,
       assignmentId: assignmentId, // Add this line to associate with assignment
     };
-  
+
     try {
       if (editingQuestion) {
         await editQuestion(editingQuestion.id, questionData, navigate);
@@ -270,10 +270,10 @@ function AssignmentPage() {
         console.log(question);
         await updateAssignmentQuestions(assignmentId, [...questions.map(x => x.id), question.id], navigate);
       }
-  
+
       const updatedQuestions = await fetchAssignmentQuestions(assignmentId, navigate);
       setQuestions(updatedQuestions);
-  
+
       setFormFields({
         title: '',
         text: '',
@@ -321,11 +321,12 @@ function AssignmentPage() {
       const updatedQuestion = {
         ...questionToUpdate,
         tags: updatedTags,
+        imageIds: questionToUpdate.images.map((image) => image.id),
       };
 
       await editQuestion(questionId, updatedQuestion, navigate);
 
-      await setQuestions((prevQuestions) =>
+      setQuestions((prevQuestions) =>
         prevQuestions.map((q) =>
           q.id === questionId ? updatedQuestion : q
         )
@@ -346,6 +347,7 @@ function AssignmentPage() {
       const updatedQuestion = {
         ...questionToUpdate,
         tags: updatedTags,
+        imageIds: questionToUpdate.images.map((image) => image.id),
       };
 
       await editQuestion(questionId, updatedQuestion, navigate);
@@ -365,18 +367,19 @@ function AssignmentPage() {
     try {
       const questionToUpdate = questions.find((q) => q.id === questionId);
       if (!questionToUpdate) return;
-  
+
       const updatedTags = questionToUpdate.tags.map((tag) =>
         tag === oldTag ? newTag : tag
       );
-  
+
       const updatedQuestion = {
         ...questionToUpdate,
         tags: updatedTags,
+        imageIds: questionToUpdate.images.map((image) => image.id),
       };
-  
+
       await editQuestion(questionId, updatedQuestion, navigate);
-  
+
       await new Promise((resolve) => {
         setQuestions((prevQuestions) => {
           const updatedQuestions = prevQuestions.map((q) =>
@@ -445,13 +448,13 @@ function AssignmentPage() {
               <button className="back-button" onClick={handleReturnToCourse}>
                 <FaChevronLeft />
               </button>
-              
+
               <div className="assignment-title-section">
                 <h2 className="assignment-title">{assignmentName.replace(/-/g, ' ')}</h2>
                 <div className="course-label">Course: {courseName}</div>
               </div>
             </div>
-            
+
             {/* Right side with buttons */}
             <div className="assignment-actions">
               <button
@@ -487,7 +490,7 @@ function AssignmentPage() {
               <div className="view-metrics">
                 <button className="view-metrics-button" onClick={() => navigate(`/course/${courseId}/assignment/${assignmentId}/difficulty`)}>
                   <div>View Details</div>
-                  <div style={{fontSize: "2.1em"}}><FaAngleRight /></div>
+                  <div style={{ fontSize: "2.1em" }}><FaAngleRight /></div>
                 </button>
               </div>
             </div>
@@ -550,7 +553,7 @@ function AssignmentPage() {
                   }
                   rows="2"
                 />
-          
+
                 <div className="autocomplete-container">
                   <input
                     type="text"

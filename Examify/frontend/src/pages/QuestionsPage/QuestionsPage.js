@@ -8,6 +8,7 @@ import { MathJax, MathJaxContext } from 'better-react-mathjax';
 import { fetchQuestionVariants, createQuestionVariant } from "../../api/variants";
 import './QuestionsPage.css';
 import QuestionForm from '../../components/QuestionForm';
+import QuestionItem from '../../components/QuestionItem';
 import mammoth from 'mammoth';
 
 function QuestionsPage() {
@@ -317,13 +318,14 @@ function QuestionsPage() {
       const updatedQuestion = {
         ...questionToUpdate,
         tags: updatedTags,
+        imageIds: questionToUpdate.images.map((image) => image.id),
       };
 
       // Call the API to update the question
       await editQuestion(questionId, updatedQuestion, navigate);
 
       // Update the local state
-      await setQuestions((prevQuestions) =>
+      setQuestions((prevQuestions) =>
         prevQuestions.map((q) =>
           q.id === questionId ? updatedQuestion : q
         )
@@ -351,6 +353,7 @@ function QuestionsPage() {
       const updatedQuestion = {
         ...questionToUpdate,
         tags: updatedTags,
+        imageIds: questionToUpdate.images.map((image) => image.id),
       };
 
       // Call the API to update the question
@@ -408,6 +411,7 @@ function QuestionsPage() {
       const updatedQuestion = {
         ...questionToUpdate,
         tags: updatedTags,
+        imageIds: questionToUpdate.images.map((image) => image.id),
       };
 
       // Call the API to update the question
@@ -565,6 +569,99 @@ function QuestionsPage() {
     }
   };
 
+  function renderVariantControls(question) {
+    return (
+      <div className="variant-controls">
+        <button className="view-variants-button" onClick={() => handleViewVariants(question.id)}>
+          <FaEye /> {expandedQuestion === question.id ? 'Hide Variants' : 'View Variants'}
+        </button>
+        <button className="create-variant-button" onClick={() => handleCreateVariant(question)}>
+          <FaPlus /> Create Variant
+        </button>
+      </div>
+    );
+  }
+
+  function renderVariantsSection(question) {
+    return (
+      expandedQuestion === question.id && (
+        <div className="variants-list">
+          {loadingVariants[question.id] ? (
+            <p>Loading variants...</p>
+          ) : variants[question.id]?.length > 0 ? (
+            variants[question.id].map((variant) => (
+              <div key={variant.id} className="variant-item">
+
+                <h4 className="question-title" style={{ marginBottom: "5px" }}>
+                  {variant.title}
+                </h4>
+
+                <div className="question">
+                  <MathJax>{variant.text}</MathJax>
+                </div>
+
+                {/* Show Answer Choices if MCQ */}
+                {variant.questionType === 'multiple_choice_question' && variant.options?.length > 0 && (
+                  <div className="mc-div">
+                    <ul className="mc-choice-list">
+                      {Array.isArray(variant.options) && variant.options.length > 0
+                        ? variant.options.map((choice, index) => (
+                          <li
+                            key={index}
+                            className="mc-choice"
+                          >
+                            <strong>{String.fromCharCode(65 + index)})</strong>
+                            <span>{choice}</span>
+                          </li>
+                        ))
+                        : <li>No options provided</li>}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Correct Answer */}
+                <div className="correct-answer">
+                  {variant.correctAnswer && (
+                    <p><strong>Answer: </strong>{variant.correctAnswer}</p>
+                  )}
+                </div>
+
+                {/* Variant Comment */}
+                {variant.comment && (
+                  <div className="question-comment">
+                    <strong>Comment:</strong> {variant.comment}
+                  </div>
+                )}
+
+                {/* Question Statistics */}
+                <div className="variant-stats">
+                  <strong>Statistics: </strong>
+                  Mean: {variant.stats?.mean || '--'},
+                  Median: {variant.stats?.median || '--'},
+                  Std Dev: {variant.stats?.stdDev || '--'},
+                  Min: {variant.stats?.min || '--'},
+                  Max: {variant.stats?.max || '--'}
+                </div>
+
+                {/* Edit & Delete Buttons */}
+                <div className="variant-actions">
+                  <button className="delete-button" style={{ float: "right" }} onClick={() => handleDeleteQuestion(variant.id, question.id)}>
+                    <FaTrash />
+                  </button>
+                  <button className="edit-button" style={{ float: "right" }} onClick={() => handleEditQuestion(variant)}>
+                    <FaEdit />
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p style={{ fontSize: "0.9em" }}>No variants available.</p>
+          )}
+        </div>
+      )
+    );
+  }
+
   return (
     <MathJaxContext>
       <div className="questions-page">
@@ -591,7 +688,7 @@ function QuestionsPage() {
               </button>
               <button className="upload-document-button">
                 <label htmlFor="upload-document" style={{ cursor: "pointer", margin: "0" }}>
-                  <FaUpload style={{marginRight: "5px"}}/>
+                  <FaUpload style={{ marginRight: "5px" }} />
                   Upload Document
                 </label>
                 <input
@@ -617,270 +714,22 @@ function QuestionsPage() {
           </div>
 
           <ul className="questions-list">
-            {filteredQuestions.map((question) => {
-              const difficultyTags = ['Easy', 'Medium', 'Hard'];
-              const difficulty = question.tags.find((tag) => difficultyTags.includes(tag)) || 'Unrated';
-              const filteredTags = question.tags.filter((tag) => !difficultyTags.includes(tag));
-
-              return (
-                <li key={question.id} className="question-item">
-                  <div className="question-content">
-                    <div className="question-text" style={{ width: '100%' }}>
-                      <div className="question-header">
-                        <h3 className="question-title">
-                          {question.title}
-                          <span className="difficulty-dropdown">
-                            {handleAddTag && handleDeleteTag ? ( // Render dropdown if handleAddTag and handleDeleteTag are provided
-                              <select
-                                value={difficulty}
-                                onChange={handleDifficultyChange(question.id)}
-                                className="difficulty-dropdown"
-                                style={{ color: getDifficultyColor(difficulty), borderColor: getDifficultyColor(difficulty) }}
-                              >
-                                <option value="Unrated">Unrated</option>
-                                <option value="Easy">Easy</option>
-                                <option value="Medium">Medium</option>
-                                <option value="Hard">Hard</option>
-                              </select>
-                            ) : ( // Render static box if handleAddTag or handleDeleteTag is null
-                              <span style={{ color: getDifficultyColor(difficulty) }}>
-                                {difficulty}
-                              </span>
-                            )}
-                          </span>
-                        </h3>
-                      </div>
-                      <h4 className="question-type-display">{formatQuestionType(question.questionType)}</h4>
-
-                      {/* Tags */}
-                      {filteredTags.length > 0 && (
-                        <div className="question-tags">
-                          {filteredTags.map((tag, index) => (
-                            <span key={index} className="tag-item">
-                              {tag}
-                              <button
-                                className="delete-tag-button"
-                                onClick={() => handleDeleteTag(question.id, tag)}
-                              >
-                                ✕
-                              </button>
-                            </span>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Question Text */}
-                      <div className="question">
-                        <MathJax>{question.text}</MathJax>
-                      </div>
-
-                      {/* Render the associated images */}
-                      {question.images && question.images.length > 0 && (
-                        <div className="question-images">
-                          {question.images.map((image, index) => (
-                            <img
-                              key={index}
-                              src={image.url}
-                              alt={`Question Image ${index + 1}`}
-                              className="question-image"
-                              style={{maxHeight: "500px", maxWidth: "500px"}}
-                            />
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Multiple Choice Options */}
-                      {question.questionType === "multiple_choice_question" && (
-                        <div className="mc-div">
-                          <ul className="mc-choice-list">
-                            {Array.isArray(question.options) && question.options.length > 0
-                              ? question.options.map((choice, index) => (
-                                <li
-                                  key={index}
-                                  className="mc-choice"
-                                >
-                                  <strong>{String.fromCharCode(65 + index)})</strong>
-                                  <span>{choice}</span>
-                                </li>
-                              ))
-                              : <li>No options provided</li>}
-                          </ul>
-                        </div>
-                      )}
-
-                      {/* Correct Answer */}
-                      <div className="correct-answer">
-                        {question.correctAnswer && (
-                          <p><strong>Answer:</strong> {question.correctAnswer}</p>
-                        )}
-                      </div>
-
-                      {/* Question Comment */}
-                      {question.comment && (
-                        <div className="question-comment">
-                          <strong>Comment:</strong> {question.comment}
-                        </div>
-                      )}
-
-                      <div className="variant-controls">
-                        <button className="view-variants-button" onClick={() => handleViewVariants(question.id)}>
-                          <FaEye /> {expandedQuestion === question.id ? 'Hide Variants' : 'View Variants'}
-                        </button>
-                        <button className="create-variant-button" onClick={() => handleCreateVariant(question)}>
-                          <FaPlus /> Create Variant
-                        </button>
-                      </div>
-
-                      {/* Variants Section */}
-                      {expandedQuestion === question.id && (
-                        <div className="variants-list">
-                          {loadingVariants[question.id] ? (
-                            <p>Loading variants...</p>
-                          ) : variants[question.id]?.length > 0 ? (
-                            variants[question.id].map((variant) => (
-                              <div key={variant.id} className="variant-item">
-
-                                <h4 className="question-title" style={{ marginBottom: "5px" }}>
-                                  {variant.title}
-                                </h4>
-
-                                <div className="question">
-                                  <MathJax>{variant.text}</MathJax>
-                                </div>
-
-                                {/* Show Answer Choices if MCQ */}
-                                {variant.questionType === 'multiple_choice_question' && variant.options?.length > 0 && (
-                                  <div className="mc-div">
-                                    <ul className="mc-choice-list">
-                                      {Array.isArray(variant.options) && variant.options.length > 0
-                                        ? variant.options.map((choice, index) => (
-                                          <li
-                                            key={index}
-                                            className="mc-choice"
-                                          >
-                                            <strong>{String.fromCharCode(65 + index)})</strong>
-                                            <span>{choice}</span>
-                                          </li>
-                                        ))
-                                        : <li>No options provided</li>}
-                                    </ul>
-                                  </div>
-                                )}
-
-                                {/* Correct Answer */}
-                                <div className="correct-answer">
-                                  {variant.correctAnswer && (
-                                    <p><strong>Answer: </strong>{variant.correctAnswer}</p>
-                                  )}
-                                </div>
-
-                                {/* Variant Comment */}
-                                {variant.comment && (
-                                  <div className="question-comment">
-                                    <strong>Comment:</strong> {variant.comment}
-                                  </div>
-                                )}
-
-                                {/* Question Statistics */}
-                                <div className="variant-stats">
-                                  <strong>Statistics: </strong>
-                                  Mean: {variant.stats?.mean || '--'},
-                                  Median: {variant.stats?.median || '--'},
-                                  Std Dev: {variant.stats?.stdDev || '--'},
-                                  Min: {variant.stats?.min || '--'},
-                                  Max: {variant.stats?.max || '--'}
-                                </div>
-
-                                {/* Edit & Delete Buttons */}
-                                <div className="variant-actions">
-                                  <button className="delete-button" style={{ float: "right" }} onClick={() => handleDeleteQuestion(variant.id, question.id)}>
-                                    <FaTrash />
-                                  </button>
-                                  <button className="edit-button" style={{ float: "right" }} onClick={() => handleEditQuestion(variant)}>
-                                    <FaEdit />
-                                  </button>
-                                </div>
-                              </div>
-                            ))
-                          ) : (
-                            <p style={{ fontSize: "0.9em" }}>No variants available.</p>
-                          )}
-                        </div>
-                      )}
-
-                    </div>
-
-                    {/* Question Statistics */}
-                    <div className="question-stats">
-                      <h3 className="question-title" style={{ marginBottom: "10px" }}>Statistics</h3>
-                      <div className="stat-details">
-                        <span>Mean:</span>
-                        <span>{question.stats?.mean || '--'}</span>
-                      </div>
-                      <div className="stat-details">
-                        <span>Median:</span>
-                        <span>{question.stats?.median || '--'}</span>
-                      </div>
-                      <div className="stat-details">
-                        <span>Std Dev:</span>
-                        <span>{question.stats?.stdDev || '--'}</span>
-                      </div>
-                      <div className="stat-details">
-                        <span>Min:</span>
-                        <span>{question.stats?.min || '--'}</span>
-                      </div>
-                      <div className="stat-details">
-                        <span>Max:</span>
-                        <span>{question.stats?.max || '--'}</span>
-                      </div>
-                    </div>
-
-                    {/* Edit and Delete Buttons */}
-                    <div className="question-actions">
-                      <button className="edit-button" onClick={() => handleEditQuestion(question)}>
-                        <FaEdit />
-                      </button>
-                      <button
-                        className="delete-button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setAttemptDelete(true);
-                        }}
-                      >
-                        <FaTrash />
-                      </button>
-                    </div>
-
-                    {/* Delete Confirmation Modal */}
-                    {attemptDelete && (
-                      <div className="modal-background">
-                        <div className="delete-confirmation-window">
-                          <h3 id="link-canvas-title">Delete Question?</h3>
-                          <p>This action cannot be undone.</p>
-                          <div className="window-button-div">
-                            <button
-                              className="delete-confirmation-button"
-                              id="delete-question-confirmation-button"
-                              onClick={() => handleDeleteQuestion(question.id)}
-                            >
-                              Delete
-                            </button>
-                            <button
-                              className="link-canvas-window-button"
-                              id="add-course-cancel"
-                              onClick={() => setAttemptDelete(false)}
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+            {filteredQuestions.map((question) => (
+              <QuestionItem
+                key={question.id}
+                question={question}
+                handleEditQuestion={handleEditQuestion}
+                handleDeleteTag={handleDeleteTag}
+                handleAddTag={handleAddTag}
+                handleSwapTag={handleSwapTag}
+                renderVariantControls={renderVariantControls}
+                renderVariantsSection={renderVariantsSection}
+                attemptDelete={attemptDelete}
+                setAttemptDelete={setAttemptDelete}
+                handleDeleteQuestion={handleDeleteQuestion}
+              />
+            ))}
+          </ul >
 
 
           {showForm && (
@@ -898,9 +747,9 @@ function QuestionsPage() {
               handleRemoveImage={handleRemoveImage}
             />
           )}
-        </div>
-      </div>
-    </MathJaxContext>
+        </div >
+      </div >
+    </MathJaxContext >
   );
 }
 

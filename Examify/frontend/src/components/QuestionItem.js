@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { MathJax } from 'better-react-mathjax';
-import { FaEdit } from 'react-icons/fa';
+import { FaEdit, FaTrash } from 'react-icons/fa';
 import '../pages/AssignmentPage/AssignmentPage.css';
 
-const QuestionItem = ({ question, handleEditQuestion, handleDeleteTag, handleAddTag, handleSwapTag }) => {
+const QuestionItem = ({ question, handleEditQuestion, handleDeleteTag, handleAddTag, handleSwapTag, renderVariantControls, renderVariantsSection, attemptDelete, setAttemptDelete, handleDeleteQuestion }) => {
   // State to manage the selected difficulty
   const [difficulty, setDifficulty] = useState(() => {
     // Check if the tags contain "Easy", "Medium", or "Hard"
@@ -68,28 +68,30 @@ const QuestionItem = ({ question, handleEditQuestion, handleDeleteTag, handleAdd
     <li key={question.id} className="question-item">
       <div className="question-content">
         <div className="question-text">
-          <h3 className="question-title">
-            {question.title}
-            <span className="difficulty-dropdown">
-              {handleAddTag && handleDeleteTag ? ( // Render dropdown if handleAddTag and handleDeleteTag are provided
-                <select
-                  value={difficulty}
-                  onChange={handleDifficultyChange}
-                  className="difficulty-dropdown"
-                  style={{ color: getDifficultyColor(difficulty), borderColor: getDifficultyColor(difficulty) }}
-                >
-                  <option value="Unrated">Unrated</option>
-                  <option value="Easy">Easy</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Hard">Hard</option>
-                </select>
-              ) : ( // Render static box if handleAddTag or handleDeleteTag is null
-                <span style={{ color: getDifficultyColor(difficulty) }}>
-                  {difficulty}
-                </span>
-              )}
-            </span>
-          </h3>
+          <div className="question-header">
+            <h3 className="question-title">
+              {question.title}
+              <span className="difficulty-dropdown">
+                {handleAddTag && handleDeleteTag ? ( // Render dropdown if handleAddTag and handleDeleteTag are provided
+                  <select
+                    value={difficulty}
+                    onChange={handleDifficultyChange}
+                    className="difficulty-dropdown"
+                    style={{ color: getDifficultyColor(difficulty), borderColor: getDifficultyColor(difficulty) }}
+                  >
+                    <option value="Unrated">Unrated</option>
+                    <option value="Easy">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">Hard</option>
+                  </select>
+                ) : ( // Render static box if handleAddTag or handleDeleteTag is null
+                  <span style={{ color: getDifficultyColor(difficulty) }}>
+                    {difficulty}
+                  </span>
+                )}
+              </span>
+            </h3>
+          </div>
           <h4 className="question-type-display">{formatQuestionType(question.questionType)}</h4>
 
           {/* Tags */}
@@ -116,20 +118,35 @@ const QuestionItem = ({ question, handleEditQuestion, handleDeleteTag, handleAdd
             <MathJax>{question.text}</MathJax>
           </div>
 
+          {/* Render the associated images */}
+          {question.images && question.images.length > 0 && (
+            <div className="question-images">
+              {question.images.map((image, index) => (
+                <img
+                  key={index}
+                  src={image.url}
+                  alt={`Question Image ${index + 1}`}
+                  className="question-image"
+                  style={{ maxHeight: "500px", maxWidth: "500px" }}
+                />
+              ))}
+            </div>
+          )}
+
           {/* Multiple Choice Options */}
           {question.questionType === "multiple_choice_question" && (
             <div className="mc-div">
               <ul className="mc-choice-list">
                 {Array.isArray(question.options) && question.options.length > 0
                   ? question.options.map((choice, index) => (
-                      <li
-                        key={index}
-                        className="mc-choice"
-                      >
-                        <strong>{String.fromCharCode(65 + index)})</strong>
-                        <span>{choice}</span>
-                      </li>
-                    ))
+                    <li
+                      key={index}
+                      className="mc-choice"
+                    >
+                      <strong>{String.fromCharCode(65 + index)})</strong>
+                      <span>{choice}</span>
+                    </li>
+                  ))
                   : <li>No options provided</li>}
               </ul>
             </div>
@@ -148,11 +165,15 @@ const QuestionItem = ({ question, handleEditQuestion, handleDeleteTag, handleAdd
               <strong>Comment:</strong> {question.comment}
             </div>
           )}
+
+          {/* Variant Controls and Variant Section */}
+          {renderVariantControls && renderVariantControls(question)}
+          {renderVariantsSection && renderVariantsSection(question)}
         </div>
 
         {/* Question Statistics */}
         <div className="question-stats">
-          <h3 className="question-title">Statistics</h3>
+          <h3 className="question-title" style={{ marginBottom: "10px" }}>Statistics</h3>
           <div className="stat-details">
             <span>Mean:</span>
             <span>{question.stats?.mean || '--'}</span>
@@ -175,15 +196,52 @@ const QuestionItem = ({ question, handleEditQuestion, handleDeleteTag, handleAdd
           </div>
         </div>
 
-        {/* Edit Button */}
-        {handleEditQuestion && ( // Only render edit button if handleEditQuestion is provided
-          <div className="question-actions">
+        {/* Edit and Delete Buttons */}
+        <div className="question-actions">
+          {handleEditQuestion && ( // Only render edit button if handleEditQuestion is provided
             <button
               className="edit-button"
               onClick={() => handleEditQuestion(question)}
             >
               <FaEdit />
             </button>
+          )}
+          {setAttemptDelete && handleDeleteQuestion && (
+            <button
+              className="delete-button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setAttemptDelete(true);
+              }}
+            >
+              <FaTrash />
+            </button>
+          )}
+        </div>
+
+        {/* Delete Confirmation Modal */}
+        {attemptDelete && handleDeleteQuestion && setAttemptDelete && (
+          <div className="modal-background">
+            <div className="delete-confirmation-window">
+              <h3 id="link-canvas-title">Delete Question?</h3>
+              <p>This action cannot be undone.</p>
+              <div className="window-button-div">
+                <button
+                  className="delete-confirmation-button"
+                  id="delete-question-confirmation-button"
+                  onClick={() => handleDeleteQuestion(question.id)}
+                >
+                  Delete
+                </button>
+                <button
+                  className="link-canvas-window-button"
+                  id="add-course-cancel"
+                  onClick={() => setAttemptDelete(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

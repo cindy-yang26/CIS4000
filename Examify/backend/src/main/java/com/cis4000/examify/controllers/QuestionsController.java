@@ -14,7 +14,6 @@ import com.cis4000.examify.models.Question;
 import com.cis4000.examify.repositories.QuestionRepository;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import okhttp3.OkHttpClient;
@@ -29,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import com.cis4000.examify.repositories.ImageRepository;
@@ -176,12 +174,12 @@ public class QuestionsController extends BaseController {
 
         ObjectMapper objectMapper = new ObjectMapper();
         String requestBody = objectMapper.writeValueAsString(
-                new ChatCompletionRequest("gpt-3.5-turbo", "You are a helpful assistant.", prompt));
+                new ChatCompletionRequest(MODEL, "You are a helpful assistant.", prompt));
 
         OkHttpClient client = new OkHttpClient();
 
         Request request = new Request.Builder()
-                .url("https://api.openai.com/v1/chat/completions")
+                .url(OPENAI_API_URL)
                 .post(okhttp3.RequestBody.create(requestBody, MediaType.parse("application/json")))
                 .addHeader("Authorization", "Bearer " + apiKey)
                 .addHeader("Content-Type", "application/json")
@@ -345,12 +343,14 @@ public class QuestionsController extends BaseController {
 
             // Update the associated images
             if (questionRequest.getImageIds() != null) {
+                System.out.println(questionRequest.getImageIds().size());
                 Set<Image> images = new HashSet<>();
                 for (Long imageId : questionRequest.getImageIds()) {
                     imageRepository.findById(imageId).ifPresent(images::add);
                 }
                 question.setImages(images); // Set the new images
             } else {
+                System.out.println("image ids is null");
                 question.setImages(new HashSet<>()); // Clear images if no IDs are provided
             }
 
