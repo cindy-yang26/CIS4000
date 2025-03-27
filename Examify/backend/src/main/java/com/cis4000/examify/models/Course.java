@@ -5,6 +5,7 @@ import java.util.List;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -28,10 +29,10 @@ public class Course {
     @Column(name = "professor", nullable = false, length = 100)
     private String professor;
 
-    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Assignment> assignments;
 
-    @OneToMany(mappedBy = "courseId", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "courseId", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Question> questions;
 
     @Column(name = "canvasCourseId", nullable = true)

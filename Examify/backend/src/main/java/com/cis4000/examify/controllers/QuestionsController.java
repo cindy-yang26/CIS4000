@@ -58,9 +58,9 @@ public class QuestionsController extends BaseController {
             return false;
         }
 
-        return courseRepository.findById(question.getCourseId()).map(course -> {
-            return course.getUserId() != null && course.getUserId().equals(userId);
-        }).orElse(false);
+        return courseRepository.findById(question.getCourseId())
+                .map(course -> course.getUserId() != null && course.getUserId().equals(userId))
+                .orElse(false);
     }
 
     @PostMapping("{id}/create-variant")
@@ -88,7 +88,7 @@ public class QuestionsController extends BaseController {
             obfuscationResult = generateObfuscatedText(originalQuestion.getText());
         } catch (IOException e) {
             System.out.println("Obfuscation failed: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            return ResponseEntity.internalServerError()
                     .body("Failed to generate obfuscated variant.");
         }
 
@@ -313,7 +313,7 @@ public class QuestionsController extends BaseController {
             // Retrieve the existing question
             Optional<Question> questionOptional = questionRepository.findById(id);
             if (questionOptional.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Question not found");
+                return ResponseEntity.notFound().build();
             }
 
             Question question = questionOptional.get();

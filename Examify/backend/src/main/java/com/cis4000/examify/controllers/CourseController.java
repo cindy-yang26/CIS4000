@@ -21,13 +21,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.*;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -64,6 +61,8 @@ public class CourseController extends BaseController {
             course.setProfessor(request.getProfessor());
 
             Course savedCourse = courseRepository.save(course);
+            savedCourse.setAssignments(null);
+            savedCourse.setQuestions(null);
             return ResponseEntity.ok(savedCourse);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -120,13 +119,8 @@ public class CourseController extends BaseController {
 
             List<Assignment> assignments = course.getAssignments();
             for (Assignment a : assignments) {
-                // TODO: As in AssignmentController.getAssignmentInfoById, the following line
-                // exists because, if not, the fetching would have a cycle (by fetching an
-                // assignment, which has a course, which has assignments (including this one),
-                // etc.) leading to an infinitely long response
-                // We should probably figure out a way for it to return the course id but not
-                // the assignments of that course?
                 a.setCourse(null);
+                a.setQuestions(null);
             }
             return ResponseEntity.ok(assignments);
         } catch (RuntimeException e) {
@@ -263,15 +257,31 @@ public class CourseController extends BaseController {
     }
 
     @PutMapping("/{id}/rename")
-    public ResponseEntity<?> updateCourse(@PathVariable Long id, @RequestBody Map<String, String> payload) {
-        Course course = courseRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
+    public ResponseEntity<?> updateCourse(@CookieValue(name = "sessionId", required = false) String sessionCookie, @PathVariable Long id, @RequestBody Map<String, String> payload) {
+        Long userId = getUserIdFromSessionCookie(sessionCookie);
+        // User needs to log in first
+        if (userId == null) {
+            return notLoggedInResponse();
+        }
+
+        Optional<Course> courseOpt = courseRepository.findById(id);
+        if (courseOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Course course = courseOpt.get();
+
+        // Verify that this course belongs to the user
+        if (!userId.equals(course.getUserId())) {
+            return userDoesntHaveAccessResponse();
+        }
 
         if (payload.containsKey("courseCode")) {
             course.setCourseCode(payload.get("courseCode"));
         }
 
-        courseRepository.save(course);
+        course = courseRepository.save(course);
+        course.setAssignments(null);
+        course.setQuestions(null);
         return ResponseEntity.ok(course);
     }
 
@@ -287,6 +297,7 @@ public class CourseController extends BaseController {
             List<Course> courses = courseRepository.findByUserId(userId);
             for (Course c : courses) {
                 c.setAssignments(null);
+                c.setQuestions(null);
             }
             return ResponseEntity.ok(courses);
         } catch (Exception e) {

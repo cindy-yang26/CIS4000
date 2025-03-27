@@ -31,7 +31,7 @@ public class Assignment {
     @Column(name = "comment")
     private String comment;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "assignment_question", joinColumns = @JoinColumn(name = "assignment_id"), inverseJoinColumns = @JoinColumn(name = "question_id"))
     private List<Question> questions;
 

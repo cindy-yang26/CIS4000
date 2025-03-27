@@ -138,19 +138,20 @@ export const deleteCourse = async (id, navigate) => {
 
 export const updateCourse = async (courseId, updatedData) => {
   try {
-      const response = await fetch(`${API_BASE_URL}/${courseId}/rename`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updatedData)
-      });
+    const response = await fetch(`${API_BASE_URL}/${courseId}/rename`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updatedData),
+      credentials: 'include'
+    });
 
-      if (!response.ok) {
-          throw new Error("Failed to rename course");
-      }
+    if (!response.ok) {
+      throw new Error("Failed to rename course");
+    }
 
-      return await response.json();
+    return await response.json();
   } catch (error) {
-      console.error("Error updating course:", error);
-      throw error;
+    console.error("Error updating course:", error);
+    throw error;
   }
 };

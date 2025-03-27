@@ -66,8 +66,9 @@ public class AssignmentController extends BaseController {
             assignment.setQuestions(questions);
 
             Assignment savedAssignment = assignmentRepository.save(assignment);
+            savedAssignment.setCourse(null);
+            savedAssignment.setQuestions(null);
             return ResponseEntity.ok(savedAssignment);
-
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error creating assignment: " + e.getMessage());
@@ -92,11 +93,6 @@ public class AssignmentController extends BaseController {
                 return userDoesntHaveAccessResponse();
             }
 
-            // TODO: the following line exists because, if not, the fetching would have a
-            // cycle (by fetching an assignment, which has a course, which has assignments
-            // (including this one), etc.) leading to an infinitely long response
-            // We should probably figure out a way for it to return the course id but not
-            // the assignments of that course?
             assignment.setCourse(null);
             assignment.setQuestions(null);
 
@@ -113,8 +109,11 @@ public class AssignmentController extends BaseController {
     public ResponseEntity<?> renameAssignment(@PathVariable Long id, @RequestBody Map<String, String> payload) {
         System.out.println("Rename assignment with ID: " + id);
 
-        Assignment assignment = assignmentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Assignment not found with ID: " + id));
+        Optional<Assignment> assignmentOpt = assignmentRepository.findById(id);
+        if (assignmentOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Assignment assignment = assignmentOpt.get();
 
         if (!payload.containsKey("name") || payload.get("name").trim().isEmpty()) {
             return ResponseEntity.badRequest().body("Missing or empty 'name' field in request body.");
@@ -123,36 +122,47 @@ public class AssignmentController extends BaseController {
         String newName = payload.get("name").trim();
         assignment.setName(newName);
 
-        assignmentRepository.save(assignment);
-        assignment.setCourse(null); 
+        try {
+            assignment = assignmentRepository.save(assignment);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+        assignment.setCourse(null);
+        assignment.setQuestions(null);
         return ResponseEntity.ok(assignment);
     }
 
     @PutMapping("/{id}/update-questions")
-    public ResponseEntity<?> updateAssignmentQuestions(@PathVariable Long id, @RequestBody Map<String, List<Long>> payload) {
+    public ResponseEntity<?> updateAssignmentQuestions(@PathVariable Long id,
+            @RequestBody Map<String, List<Long>> payload) {
         System.out.println("Updating questions for assignment ID: " + id);
 
-        Assignment assignment = assignmentRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Assignment not found with ID: " + id));
+        Optional<Assignment> assignmentOpt = assignmentRepository.findById(id);
+        if (assignmentOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Assignment assignment = assignmentOpt.get();
 
         if (!payload.containsKey("questionIds")) {
             return ResponseEntity.badRequest().body("Missing 'questionIds' field in request body.");
         }
 
+        // TODO: we should verify that all the question IDs belong to the same course
+        // and that the assignment belongs to the current user
         List<Long> questionIds = payload.get("questionIds");
         List<Question> questions = questionRepository.findAllById(questionIds);
 
         if (questions.size() != questionIds.size()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body("Some question IDs provided do not exist in the database.");
+                    .body("Some question IDs provided do not exist in the database.");
         }
 
         assignment.setQuestions(questions);
-        assignmentRepository.save(assignment);
+        assignment = assignmentRepository.save(assignment);
+        assignment.setCourse(null);
 
         return ResponseEntity.ok(assignment);
     }
-
 
     @GetMapping("/{id}/questions")
     public ResponseEntity<?> getQuestionsByAssignmentId(

@@ -6,6 +6,7 @@ import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.JoinColumn;
@@ -60,7 +61,7 @@ public class Question {
     @Embedded
     private Stats stats;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "question_image", joinColumns = @JoinColumn(name = "question_id"), inverseJoinColumns = @JoinColumn(name = "image_id"))
     private Set<Image> images = new HashSet<>();
 
