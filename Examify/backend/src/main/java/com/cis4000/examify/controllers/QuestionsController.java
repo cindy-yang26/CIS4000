@@ -290,9 +290,9 @@ public class QuestionsController extends BaseController {
             }
 
             // Save the question
-            questionRepository.save(question);
+            Question savedQuestion = questionRepository.save(question);
 
-            return ResponseEntity.ok("Question created successfully");
+            return ResponseEntity.ok(savedQuestion);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error creating question: " + e.getMessage());
