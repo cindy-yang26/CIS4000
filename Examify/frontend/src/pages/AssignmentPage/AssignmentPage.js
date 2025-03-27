@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../../components/Header/Header';
 import DownloadDropdown from '../../components/DownloadDropdown';
-import { fetchAssignmentInfo, fetchAssignmentQuestions, uploadAssignmentToCanvas, downloadLatex, downloadDocs } from '../../api/assignments';
+import { fetchAssignmentInfo, fetchAssignmentQuestions, uploadAssignmentToCanvas, downloadLatex, downloadDocs, updateAssignmentQuestions } from '../../api/assignments';
 import { createQuestion, editQuestion, deleteQuestion, uploadImage, uploadFileContentToBackend } from '../../api/questions';
 import { FaChevronLeft, FaEdit, FaDownload } from 'react-icons/fa';
 import { FaAngleRight } from "react-icons/fa6";
@@ -266,7 +266,9 @@ function AssignmentPage() {
       if (editingQuestion) {
         await editQuestion(editingQuestion.id, questionData, navigate);
       } else {
-        await createQuestion(questionData, navigate);
+        const question = await createQuestion(questionData, navigate);
+        console.log(question);
+        await updateAssignmentQuestions(assignmentId, [...questions.map(x => x.id), question.id], navigate);
       }
   
       const updatedQuestions = await fetchAssignmentQuestions(assignmentId, navigate);
