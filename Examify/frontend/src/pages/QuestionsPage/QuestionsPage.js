@@ -683,6 +683,7 @@ function QuestionsPage() {
                               src={image.url}
                               alt={`Question Image ${index + 1}`}
                               className="question-image"
+                              style={{maxHeight: "500px", maxWidth: "500px"}}
                             />
                           ))}
                         </div>
