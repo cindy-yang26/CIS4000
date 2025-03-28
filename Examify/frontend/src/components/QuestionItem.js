@@ -3,11 +3,11 @@ import { MathJax } from 'better-react-mathjax';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 import '../pages/AssignmentPage/AssignmentPage.css';
 
-const QuestionItem = ({ question, handleEditQuestion, handleDeleteTag, handleAddTag, handleSwapTag, renderVariantControls, renderVariantsSection, attemptDelete, setAttemptDelete, handleDeleteQuestion, questions, setQuestions }) => {
+const QuestionItem = ({ question, handleEditQuestion, handleDeleteTag, handleAddTag, handleSwapTag, renderVariantControls, renderVariantsSection, attemptDelete, setAttemptDelete, handleDeleteQuestion }) => {
+  const difficultyTags = ['Easy', 'Medium', 'Hard'];
   // State to manage the selected difficulty
   const [difficulty, setDifficulty] = useState(() => {
     // Check if the tags contain "Easy", "Medium", or "Hard"
-    const difficultyTags = ['Easy', 'Medium', 'Hard'];
     const foundDifficulty = question.tags.find((tag) => difficultyTags.includes(tag));
     return foundDifficulty || 'Unrated'; // Default to "Unrated" if no difficulty tag is found
   });
@@ -18,12 +18,12 @@ const QuestionItem = ({ question, handleEditQuestion, handleDeleteTag, handleAdd
 
     try {
       // Remove the old difficulty tag (if it exists and is not "Unrated")
-      if (difficulty === undefined) {
+      if (difficulty === 'Unrated') {
         await handleAddTag(question.id, newDifficulty);
       } else if (newDifficulty === 'Unrated') {
         await handleDeleteTag(question.id, difficulty);
       } else {
-        handleSwapTag(question.id, difficulty, newDifficulty);
+        await handleSwapTag(question.id, difficulty, newDifficulty);
       }
 
       // Update the state only after the tags have been updated

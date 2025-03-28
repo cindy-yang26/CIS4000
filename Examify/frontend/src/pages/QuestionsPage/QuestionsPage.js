@@ -418,7 +418,7 @@ function QuestionsPage() {
       await editQuestion(questionId, updatedQuestion, navigate);
 
       // Update the local state
-      await setQuestions((prevQuestions) =>
+      setQuestions((prevQuestions) =>
         prevQuestions.map((q) =>
           q.id === questionId ? updatedQuestion : q
         )
@@ -431,40 +431,6 @@ function QuestionsPage() {
     }
 
     console.log("END HandleDeleteTag");
-  };
-
-  // Handle difficulty change
-  const handleDifficultyChange = (questionId) => async (e) => {
-    try {
-      const newDifficulty = e.target.value;
-      const questionToUpdate = questions.find((q) => q.id === questionId);
-      if (!questionToUpdate) return;
-
-      const difficultyTags = ['Easy', 'Medium', 'Hard'];
-      const currentDifficulty = questionToUpdate.tags.find((tag) => difficultyTags.includes(tag));
-
-      if (currentDifficulty === undefined) {
-        await handleAddTag(questionId, newDifficulty);
-      } else if (newDifficulty === 'Unrated') {
-        await handleDeleteTag(questionId, currentDifficulty);
-      } else {
-        await handleSwapTag(questionId, currentDifficulty, newDifficulty);
-      }
-
-      // Update the local state
-      const updatedQuestions = questions.map((q) =>
-        q.id === questionId
-          ? {
-            ...q,
-            tags: q.tags.filter((tag) => !difficultyTags.includes(tag)).concat(newDifficulty === 'Unrated' ? [] : [newDifficulty]),
-          }
-          : q
-      );
-      setQuestions(updatedQuestions);
-    } catch (error) {
-      console.error('Failed to update difficulty:', error);
-      alert('Failed to update difficulty. Please try again.');
-    }
   };
 
   const filteredQuestions = questions
