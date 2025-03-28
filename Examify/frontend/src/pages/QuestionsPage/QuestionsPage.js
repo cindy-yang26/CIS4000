@@ -28,7 +28,7 @@ function QuestionsPage() {
     stats: { mean: '', median: '', stdDev: '', min: '', max: '' },
   });
   const [searchQuery, setSearchQuery] = useState('');
-  const [attemptDelete, setAttemptDelete] = useState(false)
+  const [attemptDelete, setAttemptDelete] = useState(null);
   const [tags, setTags] = useState([])
   const [filteredTags, setFilteredTags] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -390,7 +390,7 @@ function QuestionsPage() {
         const updatedQuestions = await fetchCourseQuestions(courseId, navigate);
         setQuestions(updatedQuestions);
       }
-      setAttemptDelete(false);
+      setAttemptDelete(null);
     } catch (error) {
       alert(error);
       console.error(error);
@@ -729,8 +729,33 @@ function QuestionsPage() {
                 handleDeleteQuestion={handleDeleteQuestion}
               />
             ))}
-          </ul >
+          </ul>
 
+          {/* Delete Confirmation Modal */}
+          {attemptDelete && (
+            <div className="modal-background">
+              <div className="delete-confirmation-window">
+                <h3 id="link-canvas-title">Delete Question?</h3>
+                <p>This action cannot be undone.</p>
+                <div className="window-button-div">
+                  <button
+                    className="delete-confirmation-button"
+                    id="delete-question-confirmation-button"
+                    onClick={() => handleDeleteQuestion(attemptDelete)}
+                  >
+                    Delete
+                  </button>
+                  <button
+                    className="link-canvas-window-button"
+                    id="add-course-cancel"
+                    onClick={() => setAttemptDelete(null)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {showForm && (
             <QuestionForm

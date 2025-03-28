@@ -528,3 +528,25 @@
 .remove-image-button:hover {
   color: #ff4d4d;
 }
+
+.modal-background {
+  position: fixed; /* Keeps it fixed in the viewport */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5); /* Dim the entire screen */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* Ensure it stays above other elements */
+}
+
+.delete-confirmation-window {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 300px; /* Adjust width as needed */
+  text-align: center;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+}

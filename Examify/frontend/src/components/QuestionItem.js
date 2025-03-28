@@ -3,7 +3,7 @@ import { MathJax } from 'better-react-mathjax';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 import '../pages/AssignmentPage/AssignmentPage.css';
 
-const QuestionItem = ({ question, handleEditQuestion, handleDeleteTag, handleAddTag, handleSwapTag, renderVariantControls, renderVariantsSection, attemptDelete, setAttemptDelete, handleDeleteQuestion }) => {
+const QuestionItem = ({ question, handleEditQuestion, handleDeleteTag, handleAddTag, handleSwapTag, renderVariantControls, renderVariantsSection, attemptDelete, setAttemptDelete, handleDeleteQuestion, questions, setQuestions }) => {
   // State to manage the selected difficulty
   const [difficulty, setDifficulty] = useState(() => {
     // Check if the tags contain "Easy", "Medium", or "Hard"
@@ -18,7 +18,7 @@ const QuestionItem = ({ question, handleEditQuestion, handleDeleteTag, handleAdd
 
     try {
       // Remove the old difficulty tag (if it exists and is not "Unrated")
-      if (difficulty === 'Unrated') {
+      if (difficulty === undefined) {
         await handleAddTag(question.id, newDifficulty);
       } else if (newDifficulty === 'Unrated') {
         await handleDeleteTag(question.id, difficulty);
@@ -211,7 +211,7 @@ const QuestionItem = ({ question, handleEditQuestion, handleDeleteTag, handleAdd
               className="delete-button"
               onClick={(e) => {
                 e.stopPropagation();
-                setAttemptDelete(true);
+                setAttemptDelete(question.id);
               }}
             >
               <FaTrash />
@@ -220,7 +220,7 @@ const QuestionItem = ({ question, handleEditQuestion, handleDeleteTag, handleAdd
         </div>
 
         {/* Delete Confirmation Modal */}
-        {attemptDelete && handleDeleteQuestion && setAttemptDelete && (
+        {attemptDelete === question.id && handleDeleteQuestion && setAttemptDelete && (
           <div className="modal-background">
             <div className="delete-confirmation-window">
               <h3 id="link-canvas-title">Delete Question?</h3>
@@ -236,7 +236,7 @@ const QuestionItem = ({ question, handleEditQuestion, handleDeleteTag, handleAdd
                 <button
                   className="link-canvas-window-button"
                   id="add-course-cancel"
-                  onClick={() => setAttemptDelete(false)}
+                  onClick={() => setAttemptDelete(null)}
                 >
                   Cancel
                 </button>
