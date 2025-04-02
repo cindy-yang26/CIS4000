@@ -412,11 +412,11 @@ function AssignmentPage() {
   const handleLatexDownload = async () => {
     try {
       const latex = await downloadLatex(assignmentId, navigate);
-      const blob = new Blob([latex], { type: 'text/plain' });
+      const blob = new Blob([latex], { type: 'application/zip' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `assignment_${assignmentId}.tex`);
+      link.setAttribute('download', `assignment_${assignmentId}.zip`);
       document.body.appendChild(link);
       link.click();
       link.remove();

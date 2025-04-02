@@ -9,6 +9,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
@@ -17,8 +19,14 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import com.cis4000.examify.models.Assignment;
+import com.cis4000.examify.models.Image;
 import com.cis4000.examify.models.Question;
 import com.cis4000.examify.repositories.AssignmentRepository;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okio.ByteString;
 
 @Service
 public class LatexService {
@@ -44,7 +52,25 @@ public class LatexService {
         }
     }
 
-    public String getLatex(String templateName, Long assignmentId) {
+    public byte[] getLatexZip(String templateName, Long assignmentId) throws IOException {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
+
+        String latex = getLatex(templateName, assignmentId);
+        zipOutputStream.putNextEntry(new ZipEntry("assignment_" + assignmentId + ".tex"));
+        zipOutputStream.write(latex.getBytes());
+
+        Assignment assignment = assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new RuntimeException("Assignment not found with ID: " + assignmentId));
+        addImagesToZip(zipOutputStream, assignment);
+
+        zipOutputStream.close();
+        outputStream.close();
+
+        return outputStream.toByteArray();
+    }
+
+    private String getLatex(String templateName, Long assignmentId) {
         try {
             // load latex template file
             Path templatePath = new ClassPathResource("templates/" + templateName + ".tex").getFile().toPath();
@@ -52,8 +78,8 @@ public class LatexService {
 
             // fetch assignment
             Assignment assignment = assignmentRepository.findById(assignmentId)
-                .orElseThrow(() -> new RuntimeException("Assignment not found with ID: " + assignmentId));
-            
+                    .orElseThrow(() -> new RuntimeException("Assignment not found with ID: " + assignmentId));
+
             // replace template variables
             String courseCode = assignment.getCourse().getCourseCode();
             LocalDate today = LocalDate.now();
@@ -76,7 +102,8 @@ public class LatexService {
             }
 
             // Extract question template between `%beginQuestion` and `%endQuestion`
-            String questionTemplate = latexTemplate.substring(beginQuestionIndex + "%beginQuestion".length(), endQuestionIndex).trim();
+            String questionTemplate = latexTemplate
+                    .substring(beginQuestionIndex + "%beginQuestion".length(), endQuestionIndex).trim();
 
             // Generate content for each question
             StringBuilder questionsContent = new StringBuilder();
@@ -85,27 +112,30 @@ public class LatexService {
                 Question question = questions.get(i);
 
                 // Replace `{{questionName}}` in the extracted question template
-                String escaptedTitle = escapeLatexSpecialChars(question.getTitle());
-                String questionInstance = questionTemplate.replace("{{questionName}}", "Q" + (i + 1) + " " + escaptedTitle);
+                String escapedTitle = escapeLatexSpecialChars(question.getTitle());
+                String questionInstance = questionTemplate.replace("{{questionName}}",
+                        "Q" + (i + 1) + " " + escapedTitle);
 
                 // Escape LaTeX special characters in question text
-                String escapedText = escapeLatexSpecialChars(question.getText());
+                StringBuilder escapedText = new StringBuilder(escapeLatexSpecialChars(question.getText()));
 
                 // new line before more data
-                escapedText += "\n";
+                escapedText.append('\n');
 
                 // insert optional question type text
-                String questionTypeOptionalText = questionTypeText(question);
-                escapedText += questionTypeOptionalText + "\n";
+                escapedText.append(questionTypeText(question))
+                        .append('\n');
+
+                // insert optional images
+                escapedText.append(questionImageText(question));
 
                 // insert optional solution text
-                escapedText += questionSolutionText(question);
+                escapedText.append(questionSolutionText(question));
 
-                questionInstance = questionInstance.replace("{{questionText}}", escapedText);   
-                
+                questionInstance = questionInstance.replace("{{questionText}}", escapedText);
+
                 // Append formatted question instance
                 questionsContent.append(questionInstance).append("\n");
-                
             }
 
             // Construct final document
@@ -113,7 +143,6 @@ public class LatexService {
             String afterQuestions = latexTemplate.substring(endQuestionIndex + "%endQuestion".length());
 
             return beforeQuestions + "\n" + questionsContent.toString() + "\n" + afterQuestions;
-
         } catch (IOException e) {
             throw new RuntimeException("Error reading LaTeX template: " + e.getMessage());
         }
@@ -124,75 +153,74 @@ public class LatexService {
         try {
             // Create a new DOCX document
             XWPFDocument document = new XWPFDocument();
-    
+
             // Add a title paragraph
             XWPFParagraph titleParagraph = document.createParagraph();
             XWPFRun titleRun = titleParagraph.createRun();
             titleRun.setBold(true);
             titleRun.setText("Assignment Title: ");
-    
+
             // Fetch assignment from the database
             Assignment assignment = assignmentRepository.findById(assignmentId)
                     .orElseThrow(() -> new RuntimeException("Assignment not found with ID: " + assignmentId));
-            
+
             String courseCode = assignment.getCourse().getCourseCode();
             String assignmentName = assignment.getName();
-            
+
             // Add assignment details
             XWPFParagraph detailsParagraph = document.createParagraph();
             XWPFRun detailsRun = detailsParagraph.createRun();
             detailsRun.setText("Course: " + courseCode + " - Assignment: " + assignmentName);
-    
+
             // Add questions to the document
             List<Question> questions = assignment.getQuestions();
             for (int i = 0; i < questions.size(); i++) {
                 Question question = questions.get(i);
-    
+
                 // Add question number and title
                 XWPFParagraph questionTitleParagraph = document.createParagraph();
                 XWPFRun questionTitleRun = questionTitleParagraph.createRun();
                 questionTitleRun.setBold(true);
                 questionTitleRun.setText("Q" + (i + 1) + " " + question.getTitle());
-    
+
                 // Add question text
                 XWPFParagraph questionTextParagraph = document.createParagraph();
                 XWPFRun questionTextRun = questionTextParagraph.createRun();
                 questionTextRun.setText(question.getText());
             }
-    
+
             // Use ByteArrayOutputStream to capture the document's byte content
             try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
                 document.write(byteArrayOutputStream); // Write the document to the byte stream
                 document.close();
                 return byteArrayOutputStream.toByteArray(); // Return the byte array
             }
-    
+
         } catch (IOException e) {
             throw new RuntimeException("Error creating DOCX content: " + e.getMessage(), e);
         }
     }
 
-    
     private String escapeLatexSpecialChars(String text) {
-        return text; // Function does nothing for now since we assume everything is LaTex.
+        return text; // Function does nothing for now since we assume everything is LaTeX.
         // return text.replace("\\", "\\\\")
-        //            .replace("&", "\\&")
-        //            .replace("%", "\\%")
-        //            .replace("$", "\\$")
-        //            .replace("#", "\\#")
-        //            .replace("_", "\\_")
-        //            .replace("{", "\\{")
-        //            .replace("}", "\\}")
-        //            .replace("~", "\\textasciitilde{}")
-        //            .replace("^", "\\textasciicircum{}");  
+        //         .replace("&", "\\&")
+        //         .replace("%", "\\%")
+        //         .replace("$", "\\$")
+        //         .replace("#", "\\#")
+        //         .replace("_", "\\_")
+        //         .replace("{", "\\{")
+        //         .replace("}", "\\}")
+        //         .replace("~", "\\textasciitilde{}")
+        //         .replace("^", "\\textasciicircum{}");
     }
 
     private String questionTypeText(Question question) {
         if (question == null || question.getQuestionType() == null) {
             return "";
         }
-        
-        String questionType = question.getQuestionType();  // Store it to avoid multiple calls
+
+        String questionType = question.getQuestionType(); // Store it to avoid multiple calls
         StringBuilder latex = new StringBuilder();
 
         switch (questionType) {
@@ -209,7 +237,7 @@ public class LatexService {
             case "true_false_question":
                 latex.append("(Circle One)\n \n");
                 latex.append("\\vspace{0.2 in}\n" + //
-                                        "\\hspace{2 in} \\textbf{True} \\hspace{1 in} \\textbf{False} \\\\ \n");
+                        "\\hspace{2 in} \\textbf{True} \\hspace{1 in} \\textbf{False} \\\\ \n");
                 break;
             case "numerical_question":
                 break;
@@ -217,6 +245,32 @@ public class LatexService {
                 break;
         }
         return latex.toString();
+    }
+
+    private String getFilenameFromUrl(String url) {
+        int lastSlashIdx = url.lastIndexOf('/');
+        if (lastSlashIdx == -1) {
+            return url;
+        } else {
+            return url.substring(lastSlashIdx + 1);
+        }
+    }
+
+    private CharSequence questionImageText(Question question) {
+        if (question.getImages() == null || question.getImages().size() == 0) {
+            return "";
+        }
+
+        StringBuilder imagesText = new StringBuilder();
+        for (Image i : question.getImages()) {
+            imagesText.append("\\hfill\\begin{figure}[h]\n")
+                    .append("\\includegraphics[width=\\textwidth]{")
+                    .append(getFilenameFromUrl(i.getUrl()))
+                    .append("}\n")
+                    .append("\\end{figure}\\newline\n");
+        }
+
+        return imagesText;
     }
 
     private String questionSolutionText(Question question) {
@@ -228,7 +282,8 @@ public class LatexService {
         latex.append(answer);
         latex.append("\n");
         latex.append("\\else\n");
-        if ("essay_question".equals(question.getQuestionType()) || "numerical_question".equals(question.getQuestionType())) {
+        if ("essay_question".equals(question.getQuestionType())
+                || "numerical_question".equals(question.getQuestionType())) {
             latex.append("\\vspace{5 in}\n");
         }
         latex.append("\\fi\n");
@@ -246,11 +301,39 @@ public class LatexService {
             return "th";
         }
         switch (day % 10) {
-            case 1:  return "st";
-            case 2:  return "nd";
-            case 3:  return "rd";
-            default: return "th";
+            case 1:
+                return "st";
+            case 2:
+                return "nd";
+            case 3:
+                return "rd";
+            default:
+                return "th";
         }
     }
-    
+
+    private ByteString getImage(Image i) throws IOException {
+        OkHttpClient client = new OkHttpClient();
+        Request req = new Request.Builder()
+                .url(i.getUrl())
+                .get()
+                .build();
+
+        Response res = client.newCall(req).execute();
+        if (!res.isSuccessful()) {
+            throw new RuntimeException("Unexpected code when trying to retrieve image: " + res.code());
+        }
+
+        return res.body().byteString();
+    }
+
+    void addImagesToZip(ZipOutputStream zip, Assignment a) throws IOException {
+        for (Image i : a.getImages()) {
+            String filename = getFilenameFromUrl(i.getUrl());
+            ByteString imageContents = getImage(i);
+
+            zip.putNextEntry(new ZipEntry(filename));
+            zip.write(imageContents.toByteArray());
+        }
+    }
 }

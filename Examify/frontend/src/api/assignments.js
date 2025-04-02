@@ -156,7 +156,7 @@ export const downloadLatex = async (assignmentId, navigate) => {
       `http://localhost:8080/latex/default_template/${assignmentId}`, //TODO need to add option to change template
       { 
         withCredentials: true,
-        responseType: 'text'
+        responseType: 'arraybuffer'
       }
     );
     return response.data;

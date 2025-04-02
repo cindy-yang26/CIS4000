@@ -1,7 +1,12 @@
 package com.cis4000.examify.models;
 
 import jakarta.persistence.*;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import org.springframework.lang.NonNull;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
 
@@ -89,5 +94,18 @@ public class Assignment {
 
     public void setQuestions(List<Question> questions) {
         this.questions = questions;
+    }
+
+    public @NonNull Set<Image> getImages() {
+        Set<Image> images = new HashSet<>();
+        if (this.getQuestions() == null) {
+            return images;
+        }
+        for (Question q : this.getQuestions()) {
+            if (q.getImages() != null) {
+                images.addAll(q.getImages());
+            }
+        }
+        return images;
     }
 }

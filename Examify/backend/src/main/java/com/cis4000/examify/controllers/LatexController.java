@@ -25,22 +25,22 @@ public class LatexController {
         return latexService.sayHello();
     }
 
-    @GetMapping(value = "/{templateName}/{assignmentId}", produces = "text/plain")
-    public ResponseEntity<String> getLatexForAssignment(
+    @GetMapping(value = "/{templateName}/{assignmentId}", produces = "application/zip")
+    public ResponseEntity<?> getLatexForAssignment(
             @PathVariable String templateName,
             @PathVariable Long assignmentId) {
         try {
-            String latex = latexService.getLatex(templateName, assignmentId);
-            return ResponseEntity.ok(latex);
-        } catch (RuntimeException e) {
+            byte[] zipFile = latexService.getLatexZip(templateName, assignmentId);
+            return ResponseEntity.ok(zipFile);
+        } catch (Exception e) {
             System.out.println("JOEVER:" + e.getMessage());
             return ResponseEntity.badRequest().body("Error generating LaTeX: " + e.getMessage());
         }
     }
 
     @GetMapping(value = "/{templateName}/{assignmentId}/docs", produces = "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
-    public ResponseEntity<byte[]> getDocsForAssignment(@PathVariable String templateName, 
-                                                       @PathVariable Long assignmentId) {
+    public ResponseEntity<byte[]> getDocsForAssignment(@PathVariable String templateName,
+            @PathVariable Long assignmentId) {
         try {
             // Call service to generate the .docx content (in byte[] format)
             byte[] docxFile = latexService.getDocxContent(templateName, assignmentId);
@@ -52,13 +52,13 @@ public class LatexController {
             return ResponseEntity
                     .ok()
                     .headers(headers)
-                    .body(docxFile);  // Explicitly return the byte[] as the body
+                    .body(docxFile); // Explicitly return the byte[] as the body
 
         } catch (Exception e) {
             // Handle the case where there's an error generating the DOCX file
             return ResponseEntity.badRequest()
-                .contentType(MediaType.TEXT_PLAIN)
-                .body(("Error generating Docs: " + e.getMessage()).getBytes());
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body(("Error generating Docs: " + e.getMessage()).getBytes());
         }
     }
 
@@ -68,19 +68,19 @@ public class LatexController {
             @PathVariable Long assignmentId) {
         try {
             byte[] pdf = latexService.getPdf(templateName, assignmentId);
-            
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_PDF);
-            headers.setContentDispositionFormData("filename", 
-                String.format("%s_assignment_%d.pdf", templateName, assignmentId));
-            
+            headers.setContentDispositionFormData("filename",
+                    String.format("%s_assignment_%d.pdf", templateName, assignmentId));
+
             return ResponseEntity.ok()
-                .headers(headers)
-                .body(pdf);
+                    .headers(headers)
+                    .body(pdf);
         } catch (Exception e) {
             return ResponseEntity.badRequest()
-                .contentType(MediaType.TEXT_PLAIN)
-                .body(("Error generating PDF: " + e.getMessage()).getBytes());
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body(("Error generating PDF: " + e.getMessage()).getBytes());
         }
     }
 }
