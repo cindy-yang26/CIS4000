@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.cis4000.examify.models.Assignment;
 import com.cis4000.examify.models.Course;
+import com.cis4000.examify.models.Image;
 import com.cis4000.examify.models.Question;
 
 import org.springframework.http.*;
@@ -28,7 +29,8 @@ public class CanvasController extends BaseController {
     private AssignmentRepository assignmentRepository;
 
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadQuiz(@CookieValue(name = "sessionId", required = false) String sessionCookie,@RequestBody Map<String, Object> payload) {
+    public ResponseEntity<String> uploadQuiz(@CookieValue(name = "sessionId", required = false) String sessionCookie,
+            @RequestBody Map<String, Object> payload) {
         Long userId = getUserIdFromSessionCookie(sessionCookie);
         // User needs to log in first
         if (userId == null) {
@@ -56,7 +58,7 @@ public class CanvasController extends BaseController {
             assignment = assignmentOpt.get();
 
             Course course = assignment.getCourse();
-                        if (!course.getUserId().equals(userId)) {
+            if (!course.getUserId().equals(userId)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body("This account does not have access");
             }
 
@@ -101,7 +103,8 @@ public class CanvasController extends BaseController {
             JsonNode jsonResponse = objectMapper.readTree(responseBody);
             if (!jsonResponse.has("id")) {
                 System.err.println("Error: Quiz ID not found in Canvas response.");
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Quiz was created but no ID was returned.");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Quiz was created but no ID was returned.");
             }
 
             int quizId = jsonResponse.get("id").asInt();
@@ -117,58 +120,67 @@ public class CanvasController extends BaseController {
 
     public void uploadQuestionsToQuiz(Long canvasCourseId, int quizId, @NonNull Assignment assignment) {
         List<Question> questions = assignment.getQuestions();
-    
+
         if (questions.isEmpty()) {
             System.out.println("No questions found for assignment ID: " + assignment.getId());
             return;
         }
-    
-        String questionUrl = "https://canvas.instructure.com/api/v1/courses/" + canvasCourseId + "/quizzes/" + quizId + "/questions";
+
+        String questionUrl = "https://canvas.instructure.com/api/v1/courses/" + canvasCourseId + "/quizzes/" + quizId
+                + "/questions";
         Course course = assignment.getCourse();
         String token = course.getCanvasToken();
-    
+
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + token);
         headers.setContentType(MediaType.APPLICATION_JSON);
-    
+
         RestTemplate restTemplate = new RestTemplate();
-    
+
         for (Question q : questions) {
+            String questionText = q.getText();
+            if (questionText == null) {
+                questionText = "";
+            }
+            for (Image i : q.getImages()) {
+                questionText += "<img src=\"" + i.getUrl() + "\" loading=\"lazy\">";
+            }
+
             Map<String, Object> questionData = new HashMap<>();
             questionData.put("question_name", q.getTitle());
-            questionData.put("question_text", q.getText());
+            questionData.put("question_text", questionText);
             questionData.put("points_possible", 10);
-    
+
             switch (q.getQuestionType()) {
                 case "multiple_choice_question":
                     questionData.put("question_type", "multiple_choice_question");
                     questionData.put("answers", formatMultipleChoiceAnswers(q));
                     break;
-    
+
                 case "true_false_question":
                     questionData.put("question_type", "true_false_question");
                     questionData.put("answers", formatTrueFalseAnswers(q));
                     break;
-    
+
                 case "essay_question":
                     questionData.put("question_type", "essay_question");
                     break;
-    
+
                 case "numerical_question":
                     questionData.put("question_type", "numerical_question");
                     questionData.put("answers", formatNumericalAnswers(q));
                     break;
-    
+
                 default:
                     System.err.println("Unknown question type: " + q.getQuestionType());
                     continue;
             }
-    
+
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("question", questionData);
-    
+
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-    
+
             try {
                 restTemplate.exchange(questionUrl, HttpMethod.POST, entity, String.class);
                 System.out.println("Uploaded Question: " + q.getTitle() + " as " + q.getQuestionType());
@@ -176,11 +188,11 @@ public class CanvasController extends BaseController {
                 System.err.println("Error uploading question: " + q.getTitle() + " -> " + e.getMessage());
             }
         }
-    }    
+    }
 
     private List<Map<String, Object>> formatMultipleChoiceAnswers(Question q) {
         List<Map<String, Object>> answers = new ArrayList<>();
-        
+
         for (String option : q.getOptions()) {
             Map<String, Object> answer = new HashMap<>();
             answer.put("answer_text", option);
@@ -192,22 +204,21 @@ public class CanvasController extends BaseController {
 
     private List<Map<String, Object>> formatTrueFalseAnswers(Question q) {
         return List.of(
-            Map.of("answer_text", "True", "answer_weight", "True".equals(q.getCorrectAnswer()) ? 100 : 0),
-            Map.of("answer_text", "False", "answer_weight", "False".equals(q.getCorrectAnswer()) ? 100 : 0)
-        );
+                Map.of("answer_text", "True", "answer_weight", "True".equals(q.getCorrectAnswer()) ? 100 : 0),
+                Map.of("answer_text", "False", "answer_weight", "False".equals(q.getCorrectAnswer()) ? 100 : 0));
     }
 
     private List<Map<String, Object>> formatNumericalAnswers(Question q) {
         List<Map<String, Object>> answers = new ArrayList<>();
-        
+
         try {
             double exactAnswer = Double.parseDouble(q.getCorrectAnswer());
-    
+
             Map<String, Object> exactAnswerMap = new HashMap<>();
             exactAnswerMap.put("answer_exact", exactAnswer);
             exactAnswerMap.put("answer_error_margin", 0);
             exactAnswerMap.put("answer_weight", 100);
-            exactAnswerMap.put("numerical_answer_type", "exact_answer");  
+            exactAnswerMap.put("numerical_answer_type", "exact_answer");
             answers.add(exactAnswerMap);
 
             double rangeMargin = 0.0;
@@ -217,7 +228,7 @@ public class CanvasController extends BaseController {
             rangeAnswerMap.put("answer_weight", 100);
             rangeAnswerMap.put("numerical_answer_type", "range_answer");
             answers.add(rangeAnswerMap);
-    
+
             double approximateMargin = 0.0;
             Map<String, Object> approximateAnswerMap = new HashMap<>();
             approximateAnswerMap.put("answer_approximate", exactAnswer);
@@ -225,13 +236,12 @@ public class CanvasController extends BaseController {
             approximateAnswerMap.put("answer_weight", 100);
             approximateAnswerMap.put("numerical_answer_type", "precision_answer");
             answers.add(approximateAnswerMap);
-    
+
         } catch (NumberFormatException e) {
             System.err.println("Invalid numerical answer format: " + q.getCorrectAnswer());
         }
-        
+
         return answers;
     }
-    
 
 }
