@@ -23,7 +23,7 @@ public class LlmController {
     private static final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
     private static final String MODEL = "gpt-3.5-turbo";
 
-    @Value("${openai.api.key}")
+    @Value("${OPENAPI_KEY}")
     private String apiKey;
 
     @PostMapping

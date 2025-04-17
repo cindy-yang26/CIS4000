@@ -286,6 +286,7 @@ function AssignmentPage() {
       });
       setImages([]);
       setShowForm(false);
+      setshowQuestionEditForm(false);
     } catch (error) {
       alert("Failed to save question");
       console.error(error);

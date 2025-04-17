@@ -36,7 +36,7 @@ import com.cis4000.examify.repositories.ImageRepository;
 @RequestMapping("/api/questions")
 public class QuestionsController extends BaseController {
 
-    @Value("${openai.api.key}")
+    @Value("${OPENAPI_KEY}")
     private String apiKey;
 
     private static final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
@@ -69,6 +69,8 @@ public class QuestionsController extends BaseController {
         if (userId == null) {
             return notLoggedInResponse();
         }
+
+        System.err.println(apiKey);
 
         Optional<Question> originalQuestionOpt = questionRepository.findById(id);
         if (originalQuestionOpt.isEmpty()) {
